@@ -109,6 +109,7 @@ export default function AgentConsole() {
                 <Tag>{agent.clawPumpAgentId ? `ClawPump linked ${shorten(agent.clawPumpAgentId)}` : "ClawPump not linked"}</Tag>
                 <Tag>{portfolio?.observedWalletSol !== null && portfolio?.observedWalletSol !== undefined ? `watch balance ${formatSol(portfolio.observedWalletSol)}` : "wallet not observed"}</Tag>
                 <Tag>paper cash {formatSol(portfolio?.cashSol ?? 0)}</Tag>
+                {agent.haltReason && <Tag>halt: {agent.haltReason}</Tag>}
               </div>
             </div>
           ) : <EmptyState title="No agent" hint="Attach a watch-only Solana address, deploy the local agent, then optionally link a ClawPump agent." />}

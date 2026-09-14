@@ -20,4 +20,18 @@ assert(read("convex/clawPump.ts").includes("decisionReceiptId") && read("convex/
 assert(!landing.includes("Executes across spot, perps, and prediction markets"), "landing must not claim unbuilt execution surfaces");
 assert(!landing.includes("every trade lands on Solana"), "landing must not present paper trades as on-chain");
 
+const schema = read("convex/schema.ts");
+const signals = read("convex/signals.ts");
+const market = read("convex/lib/market.ts");
+const pumpInstruction = read("convex/lib/pumpInstruction.ts");
+const risk = read("convex/lib/risk.ts");
+const shield = read("convex/shieldScan.ts");
+assert(schema.includes("signal_executions") && schema.includes("by_agentId_signalId"), "idempotency must be scoped to agent + signal");
+assert(signals.includes("claimToken") && signals.includes("canAcquireClaim"), "claim lease must distinguish concurrent runs of the same agent");
+assert(portfolio.includes("updateEquityHighWater") && portfolio.includes("nextEquityRisk"), "drawdown must use a persisted equity high-water mark");
+assert(risk.includes("drawdownPct") && risk.includes("Math.max"), "high-water risk math must remain explicit and testable");
+assert(market.includes("isPumpCreateInstructionData") && pumpInstruction.includes("PUMP_CREATE_V2") && !market.includes("postTokenBalances"), "launch discovery must verify Pump create discriminators, not infer from token-balance deltas");
+assert(market.includes("getMultipleAccounts") && market.includes("programControlledPct"), "holder concentration must aggregate sampled accounts by owner and classify Pump custody");
+assert(!shield.includes("Deep scan queued"), "unimplemented shield classifiers must remain UNKNOWN, never queued/pass by implication");
+
 console.log("Winning-delta integrity gates: PASS");

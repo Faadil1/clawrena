@@ -1,5 +1,6 @@
 import { mutation, internalMutation, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
+import { nextEquityRisk } from "./lib/risk";
 
 /** Read the signed-in user's paper ledger plus watch-only wallet observation. */
 export const getMyContext = internalQuery({
@@ -188,5 +189,20 @@ export const internalPlaceUserPosition = internalMutation({
       timestamp: Date.now(),
     });
     return ctx.db.get(positionId);
+  },
+});
+
+/** Persist the real paper-equity high-water mark used by the drawdown guard. */
+export const updateEquityHighWater = internalMutation({
+  args: { portfolioId: v.id("portfolios"), equitySol: v.number() },
+  handler: async (ctx, { portfolioId, equitySol }) => {
+    if (!Number.isFinite(equitySol) || equitySol < 0) throw new Error("Invalid portfolio equity");
+    const portfolio = await ctx.db.get(portfolioId);
+    if (!portfolio) throw new Error("Portfolio not found");
+    const risk = nextEquityRisk(portfolio.equityHighWaterSol, equitySol);
+    if (portfolio.equityHighWaterSol !== risk.peakSol) {
+      await ctx.db.patch(portfolioId, { equityHighWaterSol: risk.peakSol, updatedAt: Date.now() });
+    }
+    return risk;
   },
 });

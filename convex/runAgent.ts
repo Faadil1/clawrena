@@ -62,6 +62,7 @@ export const runNow = action({
 
 async function runCycle(ctx: ActionCtx, agentId: Id<"agents">) {
   const startedAt = Date.now();
+  const claimToken = `${String(agentId)}:${startedAt}:${Math.random().toString(36).slice(2)}`;
   const learned = await ctx.runQuery(internal.queries.internal.loadAgentContext, { agentId });
   if (!learned) return { agentId, outcome: "error", reason: "no agent" };
 
@@ -147,40 +148,44 @@ async function runCycle(ctx: ActionCtx, agentId: Id<"agents">) {
     }
   }
 
-  const discovered = await discoverEntries(ctx, agent, openMints);
+  const discovered = await discoverEntries(ctx, agent, openMints, claimToken);
   tradesExecuted += discovered.tradesExecuted;
   processed += discovered.candidatesExamined;
 
   const fresh = await ctx.runQuery(internal.queries.internal.loadAgentContext, { agentId });
   let outcome: "ok" | "halted" = "ok";
   const freshAgent = fresh?.agent as AgentState | undefined;
-  if (fresh?.portfolio && fresh.openPositions.length > 0 && freshAgent) {
-    const cost = fresh.portfolio.investedSol;
-    const value = fresh.openPositions.reduce(
+  if (fresh?.portfolio && freshAgent) {
+    const openValueSol = fresh.openPositions.reduce(
       (sum: number, p: OpenPosition) => sum + (p.currentPrice / p.entryPrice) * p.sizeSol,
       0,
     );
-    const maxDrawdownPct = freshAgent.riskMaxDrawdownPct;
-    const threshold = cost * (1 - Math.min(100, Math.max(0, maxDrawdownPct)) / 100);
-    if (cost > 0 && value < threshold) {
-      await ctx.runMutation(internal.agents.internalSetStatus, { agentId, status: "halted" });
+    const equitySol = fresh.portfolio.cashSol + openValueSol;
+    const risk = await ctx.runMutation(internal.portfolio.updateEquityHighWater, {
+      portfolioId: fresh.portfolio.id,
+      equitySol,
+    });
+    const maxDrawdownPct = Math.min(100, Math.max(0, freshAgent.riskMaxDrawdownPct));
+    if (risk.peakSol > 0 && risk.drawdownPct >= maxDrawdownPct) {
+      const reason = `equity drawdown ${risk.drawdownPct.toFixed(2)}% reached ${maxDrawdownPct}% cap`;
+      await ctx.runMutation(internal.agents.internalSetStatus, { agentId, status: "halted", reason });
       await ctx.runMutation(internal.evidence.recordDecision, {
         agentId,
-        tokenMint: fresh.openPositions[0].tokenMint,
+        tokenMint: fresh.openPositions[0]?.tokenMint ?? "portfolio",
         decision: "reject",
         executionMode: "paper",
-        observations: { investedCostSol: cost, openValueSol: value, maxDrawdownPct },
+        observations: { equitySol, equityHighWaterSol: risk.peakSol, drawdownPct: risk.drawdownPct, maxDrawdownPct },
         unknowns: [],
-        reasons: ["portfolio drawdown guard halted new execution"],
+        reasons: ["portfolio equity high-water drawdown guard halted new execution"],
       });
       await ctx.runMutation(internal.signals.createSignal, {
-        tokenMint: fresh.openPositions[0].tokenMint,
+        tokenMint: fresh.openPositions[0]?.tokenMint ?? "portfolio",
         type: "warn",
         confidence: 100,
         score: -4,
-        title: "Agent halted — drawdown guard",
-        detail: `Harness halted: open paper value crossed the configured ${maxDrawdownPct}% drawdown cap. Explicit acknowledgement is required before restart.`,
-        payload: { cost, value, maxDrawdownPct },
+        title: "Agent halted — equity drawdown guard",
+        detail: `Paper equity is ${risk.drawdownPct.toFixed(2)}% below its high-water mark (${risk.peakSol.toFixed(4)} SOL). Explicit acknowledgement is required before restart.`,
+        payload: { equitySol, equityHighWaterSol: risk.peakSol, drawdownPct: risk.drawdownPct, maxDrawdownPct },
       });
       outcome = "halted";
     }
@@ -201,6 +206,7 @@ async function discoverEntries(
   ctx: ActionCtx,
   agent: AgentState,
   alreadyHeldMints: string[],
+  claimToken: string,
 ): Promise<{ tradesExecuted: number; candidatesExamined: number }> {
   const candidates: Array<{
     signalId: Id<"signals">;
@@ -208,6 +214,7 @@ async function discoverEntries(
     symbol: string | null;
     processedAt: number;
   }> = await ctx.runQuery(internal.queries.internal.listCandidateLaunches, {
+    agentId: agent.id,
     excludeMints: alreadyHeldMints,
   });
   if (candidates.length === 0) return { tradesExecuted: 0, candidatesExamined: 0 };
@@ -226,6 +233,7 @@ async function discoverEntries(
     const claimed = await ctx.runMutation(internal.signals.claimSignal, {
       signalId: c.signalId,
       agentId: agent.id,
+      claimToken,
     });
     if (!claimed) continue;
 
@@ -260,6 +268,7 @@ async function discoverEntries(
       await ctx.runMutation(internal.signals.releaseSignalClaim, {
         signalId: c.signalId,
         agentId: agent.id,
+        claimToken,
       });
       continue;
     }
@@ -279,13 +288,14 @@ async function discoverEntries(
       await ctx.runMutation(internal.signals.releaseSignalClaim, {
         signalId: c.signalId,
         agentId: agent.id,
+        claimToken,
       });
       continue;
     }
 
     const price = market.priceUsd;
     if (price === undefined || price <= 0) {
-      await ctx.runMutation(internal.signals.releaseSignalClaim, { signalId: c.signalId, agentId: agent.id });
+      await ctx.runMutation(internal.signals.releaseSignalClaim, { signalId: c.signalId, agentId: agent.id, claimToken });
       continue;
     }
     const sizeSol = Math.min(agent.riskMaxPosition, remainingCash * FRACTION_OF_CASH_PER_ENTRY);
@@ -302,6 +312,7 @@ async function discoverEntries(
       await ctx.runMutation(internal.signals.markSignalActed, {
         signalId: c.signalId,
         agentId: agent.id,
+        claimToken,
       });
       await ctx.runMutation(internal.evidence.recordDecision, {
         agentId: agent.id,
@@ -349,6 +360,7 @@ async function discoverEntries(
       await ctx.runMutation(internal.signals.releaseSignalClaim, {
         signalId: c.signalId,
         agentId: agent.id,
+        claimToken,
       });
     }
   }

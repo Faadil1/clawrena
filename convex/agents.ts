@@ -71,7 +71,7 @@ export const setAgentState = mutation({
     const user = await requireUser(ctx);
     const agent = await ctx.db.get(agentId);
     if (!agent || agent.ownerId !== user._id) throw new Error("Agent not found or not owned");
-    if (agent.status === "halted" && status === "running") {
+    if ((agent.status === "halted" || agent.requiresRiskAck) && status === "running") {
       throw new Error("Risk halt must be acknowledged before the agent can run again");
     }
     return ctx.db.patch(agentId, { status, updatedAt: Date.now() });
@@ -84,8 +84,14 @@ export const acknowledgeRiskHalt = mutation({
     const user = await requireUser(ctx);
     const agent = await ctx.db.get(agentId);
     if (!agent || agent.ownerId !== user._id) throw new Error("Agent not found or not owned");
-    if (agent.status !== "halted") return agent;
-    await ctx.db.patch(agentId, { status: "paused", updatedAt: Date.now() });
+    if (agent.status !== "halted" && !agent.requiresRiskAck) return agent;
+    await ctx.db.patch(agentId, {
+      status: "paused",
+      requiresRiskAck: false,
+      haltReason: undefined,
+      haltedAt: undefined,
+      updatedAt: Date.now(),
+    });
     return ctx.db.get(agentId);
   },
 });
@@ -113,8 +119,14 @@ export const internalSetStatus = internalMutation({
   args: {
     agentId: v.id("agents"),
     status: v.union(v.literal("idle"), v.literal("running"), v.literal("paused"), v.literal("halted")),
+    reason: v.optional(v.string()),
   },
-  handler: async (ctx, { agentId, status }) => ctx.db.patch(agentId, { status, updatedAt: Date.now() }),
+  handler: async (ctx, { agentId, status, reason }) => {
+    const now = Date.now();
+    return ctx.db.patch(agentId, status === "halted"
+      ? { status, haltReason: reason ?? "risk guard", haltedAt: now, requiresRiskAck: true, updatedAt: now }
+      : { status, updatedAt: now });
+  },
 });
 
 export const logAgentRun = internalMutation({

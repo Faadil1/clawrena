@@ -66,6 +66,7 @@ export const dashboard = query({
             depositedSol: portfolio.depositedSol ?? 0,
             observedWalletSol: portfolio.observedWalletSol ?? null,
             observedWalletAt: portfolio.observedWalletAt ?? null,
+            equityHighWaterSol: portfolio.equityHighWaterSol ?? portfolioValue,
             positionValue,
             portfolioValue,
             realizedPnl,
@@ -84,6 +85,9 @@ export const dashboard = query({
             walletAddress: agent.walletAddress,
             clawPumpAgentId: agent.clawPumpAgentId,
             clawPumpWalletAddress: agent.clawPumpWalletAddress,
+            haltReason: agent.haltReason ?? null,
+            haltedAt: agent.haltedAt ?? null,
+            requiresRiskAck: agent.requiresRiskAck ?? false,
           }
         : null,
       positions,

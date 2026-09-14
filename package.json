@@ -10,7 +10,8 @@
     "dev:backend": "convex dev",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src convex --ext .ts,.tsx",
-    "verify:integrity": "node scripts/verify-integrity.mjs"
+    "verify:integrity": "node scripts/verify-integrity.mjs",
+    "test:logic": "node scripts/test-logic.mjs"
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.95",

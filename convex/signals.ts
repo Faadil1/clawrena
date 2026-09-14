@@ -1,7 +1,6 @@
 import { internalMutation } from "./_generated/server";
 import { v } from "convex/values";
-
-const CLAIM_LEASE_MS = 2 * 60 * 1000;
+import { canAcquireClaim } from "./lib/claimLease";
 
 export const recordTelemetry = internalMutation({
   args: { eventType: v.string(), payload: v.any() },
@@ -27,56 +26,73 @@ export const createSignal = internalMutation({
 });
 
 /**
- * Atomically lease one launch signal to one agent. Convex mutations are
- * transactional, so concurrent runNow/cron cycles cannot both acquire the same
- * fresh lease. Stale leases expire automatically after two minutes.
+ * Claim one launch for one agent + run token. The lease lives in a separate
+ * signal_executions row, so another user's agent is never blocked merely
+ * because somebody else already acted on the same global launch signal.
  */
 export const claimSignal = internalMutation({
-  args: { signalId: v.id("signals"), agentId: v.id("agents") },
-  handler: async (ctx, { signalId, agentId }) => {
+  args: { signalId: v.id("signals"), agentId: v.id("agents"), claimToken: v.string() },
+  handler: async (ctx, { signalId, agentId, claimToken }) => {
     const signal = await ctx.db.get(signalId);
-    if (!signal || signal.type !== "new-launch" || signal.actedOn === true) return false;
+    if (!signal || signal.type !== "new-launch") return false;
     const now = Date.now();
-    const activeLease =
-      signal.claimStatus === "claimed" &&
-      signal.claimedAt !== undefined &&
-      now - signal.claimedAt < CLAIM_LEASE_MS;
-    if (activeLease && signal.claimedByAgentId !== agentId) return false;
-    if (activeLease && signal.claimedByAgentId === agentId) return true;
-    await ctx.db.patch(signalId, {
-      claimStatus: "claimed",
-      claimedByAgentId: agentId,
-      claimedAt: now,
-    });
+    const existing = await ctx.db
+      .query("signal_executions")
+      .withIndex("by_agentId_signalId", (q) => q.eq("agentId", agentId).eq("signalId", signalId))
+      .first();
+
+    if (!canAcquireClaim(existing, claimToken, now)) return false;
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        status: "claimed",
+        claimToken,
+        claimedAt: now,
+        updatedAt: now,
+      });
+    } else {
+      await ctx.db.insert("signal_executions", {
+        signalId,
+        agentId,
+        status: "claimed",
+        claimToken,
+        claimedAt: now,
+        updatedAt: now,
+      });
+    }
     return true;
   },
 });
 
 export const releaseSignalClaim = internalMutation({
-  args: { signalId: v.id("signals"), agentId: v.id("agents") },
-  handler: async (ctx, { signalId, agentId }) => {
-    const signal = await ctx.db.get(signalId);
-    if (!signal || signal.actedOn === true || signal.claimedByAgentId !== agentId) return false;
-    await ctx.db.patch(signalId, {
-      claimStatus: "released",
-      claimedByAgentId: undefined,
+  args: { signalId: v.id("signals"), agentId: v.id("agents"), claimToken: v.string() },
+  handler: async (ctx, { signalId, agentId, claimToken }) => {
+    const execution = await ctx.db
+      .query("signal_executions")
+      .withIndex("by_agentId_signalId", (q) => q.eq("agentId", agentId).eq("signalId", signalId))
+      .first();
+    if (!execution || execution.status === "acted" || execution.claimToken !== claimToken) return false;
+    await ctx.db.patch(execution._id, {
+      status: "released",
+      claimToken: undefined,
       claimedAt: undefined,
+      updatedAt: Date.now(),
     });
     return true;
   },
 });
 
 export const markSignalActed = internalMutation({
-  args: { signalId: v.id("signals"), agentId: v.id("agents") },
-  handler: async (ctx, { signalId, agentId }) => {
-    const signal = await ctx.db.get(signalId);
-    if (!signal) return null;
-    if (signal.claimedByAgentId !== agentId) throw new Error("Signal is not claimed by this agent");
-    return ctx.db.patch(signalId, {
-      actedOn: true,
-      actedAt: Date.now(),
-      claimStatus: "acted",
-    });
+  args: { signalId: v.id("signals"), agentId: v.id("agents"), claimToken: v.string() },
+  handler: async (ctx, { signalId, agentId, claimToken }) => {
+    const execution = await ctx.db
+      .query("signal_executions")
+      .withIndex("by_agentId_signalId", (q) => q.eq("agentId", agentId).eq("signalId", signalId))
+      .first();
+    if (!execution || execution.status !== "claimed" || execution.claimToken !== claimToken) {
+      throw new Error("Signal execution lease is not owned by this agent run");
+    }
+    await ctx.db.patch(execution._id, { status: "acted", actedAt: Date.now(), updatedAt: Date.now() });
+    return true;
   },
 });
 
@@ -110,11 +126,11 @@ export const ingestWebhookEvents = internalMutation({
         type: "new-launch",
         confidence: 0,
         score: 0,
-        title: "New launch observed on-chain",
+        title: "Pump create instruction verified on-chain",
         detail: ev.signature
-          ? `Fresh token creation observed at ${new Date(ev.ts ?? Date.now()).toISOString()} (tx ${ev.signature.slice(0, 12)}…). Evidence gate pending.`
-          : "Fresh token creation observed on-chain. Evidence gate pending.",
-        payload: { source: "onchain-launch-observation", signature: ev.signature, ts: ev.ts ?? Date.now() },
+          ? `Verified Pump create/create_v2 instruction at ${new Date(ev.ts ?? Date.now()).toISOString()} (tx ${ev.signature.slice(0, 12)}…). Evidence gate pending.`
+          : "Verified Pump create/create_v2 instruction. Evidence gate pending.",
+        payload: { source: "pump-create-instruction", signature: ev.signature, ts: ev.ts ?? Date.now() },
         processedAt: Date.now(),
       });
       inserted += 1;

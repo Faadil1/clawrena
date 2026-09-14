@@ -1,87 +1,54 @@
 "use node";
 
 import { action, internalAction } from "./_generated/server";
+import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { fetchLaunchMints, isMarketConfigured } from "./lib/market";
+import { fetchLaunchMints, findMintCreatedInTx, isMarketConfigured } from "./lib/market";
 
-/**
- * Launch-discovery scanner. Cron every few minutes: polls pump.fun's recent
- * signatures through a real (Helius-gated) RPC, parses each transaction to a
- * real mint address, and ingests them as `new-launch` signals — deduped by
- * mint so replays never double-insert.
- *
- * Honest by construction: every signal maps to a real on-chain create
- * transaction. When no Helius key is configured the underlying fetch helpers
- * fall back through plain public Solana RPCs (rate-limit-prone, so don't rely
- * on it at scale), and telemetry records `configured` exactly as it is. With
- * every RPC unreachable this writes nothing and records no fake activity.
- */
+async function ingestVerified(ctx: any, events: Array<{ mint: string; signature: string; ts: number }>) {
+  if (events.length === 0) return 0;
+  const result = await ctx.runMutation(internal.signals.ingestWebhookEvents, { events });
+  return result.inserted;
+}
+
 export const discover = internalAction({
   args: {},
   handler: async (ctx) => {
     const startedAt = Date.now();
     const configured = isMarketConfigured();
     const events = await fetchLaunchMints(25);
-    let inserted = 0;
-    if (events.length > 0) {
-      const result = await ctx.runMutation(internal.signals.ingestWebhookEvents, {
-        events,
-      });
-      inserted = result.inserted;
-    }
-
+    const inserted = await ingestVerified(ctx, events);
     await ctx.runMutation(internal.signals.recordTelemetry, {
       eventType: "scanner.run",
-      payload: {
-        source: "pump.fun",
-        configured,
-        launched: events.length,
-        inserted,
-        scanned: events.length,
-        at: startedAt,
-        note: configured
-          ? "Helius-gated RPC discovery."
-          : "Helius not configured — public RPC discovery (rate-limit prone).",
-      },
+      payload: { source: "pump.fun", verification: "create-discriminator", configured, verified: events.length, inserted, at: startedAt },
     });
-
-    return { configured, launched: events.length, inserted };
+    return { configured, verified: events.length, inserted };
   },
 });
 
-/**
- * On-demand discovery for a human at the wheel (the demo path). Same real
- * discovery + ingest pipeline as the cron, invoked immediately instead of on
- * the interval, and paginated shallow (public RPCs rate-limit hard). Returns
- * exactly what was found and ingested — never an estimate.
- */
 export const discoverNow = action({
   args: {},
   handler: async (ctx) => {
-    const startedAt = Date.now();
-    const configured = isMarketConfigured();
     const events = await fetchLaunchMints(15);
-    let inserted = 0;
-    if (events.length > 0) {
-      const result = await ctx.runMutation(internal.signals.ingestWebhookEvents, {
-        events,
-      });
-      inserted = result.inserted;
+    const inserted = await ingestVerified(ctx, events);
+    return { configured: isMarketConfigured(), verified: events.length, inserted, events };
+  },
+});
+
+/** Helius webhook signatures are candidates only; RPC instruction parsing is authority. */
+export const verifyLaunchSignatures = internalAction({
+  args: { signatures: v.array(v.string()) },
+  handler: async (ctx, { signatures }) => {
+    const events: Array<{ mint: string; signature: string; ts: number }> = [];
+    for (const signature of [...new Set(signatures as string[])].slice(0, 20)) {
+      const verified = await findMintCreatedInTx(signature);
+      if (verified) events.push({ mint: verified.mint, signature, ts: verified.blockTime ?? Date.now() });
     }
-
+    const inserted = await ingestVerified(ctx, events);
     await ctx.runMutation(internal.signals.recordTelemetry, {
-      eventType: "scanner.run",
-      payload: {
-        source: "pump.fun",
-        configured,
-        launched: events.length,
-        inserted,
-        scanned: events.length,
-        at: startedAt,
-        note: "manual trigger",
-      },
+      eventType: "scanner.webhookVerify",
+      payload: { candidates: signatures.length, verified: events.length, inserted, at: Date.now() },
     });
-
-    return { configured, launched: events.length, inserted, events };
+    return { candidates: signatures.length, verified: events.length, inserted };
   },
 });

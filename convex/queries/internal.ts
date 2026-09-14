@@ -19,7 +19,7 @@ export const loadAgentContext = internalQuery({
         riskMaxDrawdownPct: agent.riskMaxDrawdownPct,
       },
       portfolio: portfolio
-        ? { id: portfolio._id, cashSol: portfolio.cashSol, investedSol: portfolio.investedSol }
+        ? { id: portfolio._id, cashSol: portfolio.cashSol, investedSol: portfolio.investedSol, equityHighWaterSol: portfolio.equityHighWaterSol ?? null }
         : null,
       openPositions,
     };
@@ -74,7 +74,6 @@ export const getMyAgentForClawPump = internalQuery({
   },
 });
 
-
 export const getDecisionReceiptForAgent = internalQuery({
   args: { receiptId: v.id("decision_receipts"), agentId: v.id("agents") },
   handler: async (ctx, { receiptId, agentId }) => {
@@ -85,17 +84,25 @@ export const getDecisionReceiptForAgent = internalQuery({
 });
 
 export const listCandidateLaunches = internalQuery({
-  args: { excludeMints: v.optional(v.array(v.string())) },
-  handler: async (ctx, { excludeMints }) => {
+  args: { agentId: v.id("agents"), excludeMints: v.optional(v.array(v.string())) },
+  handler: async (ctx, { agentId, excludeMints }) => {
     const excluded = new Set(excludeMints ?? []);
     const rows = await ctx.db
       .query("signals")
       .withIndex("by_type_processedAt", (q) => q.eq("type", "new-launch"))
       .order("desc")
-      .take(50);
-    return rows
-      .filter((s) => s.actedOn !== true && !excluded.has(s.tokenMint))
-      .slice(0, 8)
-      .map((s) => ({ signalId: s._id, mint: s.tokenMint, symbol: s.tokenSymbol ?? null, processedAt: s.processedAt }));
+      .take(80);
+    const candidates = [];
+    for (const signal of rows) {
+      if (excluded.has(signal.tokenMint)) continue;
+      const execution = await ctx.db
+        .query("signal_executions")
+        .withIndex("by_agentId_signalId", (q) => q.eq("agentId", agentId).eq("signalId", signal._id))
+        .first();
+      if (execution?.status === "acted") continue;
+      candidates.push({ signalId: signal._id, mint: signal.tokenMint, symbol: signal.tokenSymbol ?? null, processedAt: signal.processedAt });
+      if (candidates.length >= 8) break;
+    }
+    return candidates;
   },
 });

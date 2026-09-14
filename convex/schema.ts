@@ -37,6 +37,7 @@ export default defineSchema({
     depositedSol: v.optional(v.number()),
     observedWalletSol: v.optional(v.number()),
     observedWalletAt: v.optional(v.number()),
+    equityHighWaterSol: v.optional(v.number()),
     updatedAt: v.number(),
   }).index("by_ownerId", ["ownerId"]),
 
@@ -58,6 +59,9 @@ export default defineSchema({
     riskMaxPosition: v.number(),
     riskMaxDrawdownPct: v.number(),
     autoTrading: v.boolean(),
+    haltReason: v.optional(v.string()),
+    haltedAt: v.optional(v.number()),
+    requiresRiskAck: v.optional(v.boolean()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
@@ -128,11 +132,24 @@ export default defineSchema({
     claimStatus: v.optional(v.union(v.literal("claimed"), v.literal("released"), v.literal("acted"))),
     claimedByAgentId: v.optional(v.id("agents")),
     claimedAt: v.optional(v.number()),
+    claimToken: v.optional(v.string()),
     processedAt: v.number(),
   })
     .index("by_processedAt", ["processedAt"])
     .index("by_tokenMint_type", ["tokenMint", "type"])
     .index("by_type_processedAt", ["type", "processedAt"]),
+
+  signal_executions: defineTable({
+    signalId: v.id("signals"),
+    agentId: v.id("agents"),
+    status: v.union(v.literal("claimed"), v.literal("released"), v.literal("acted")),
+    claimToken: v.optional(v.string()),
+    claimedAt: v.optional(v.number()),
+    actedAt: v.optional(v.number()),
+    updatedAt: v.number(),
+  })
+    .index("by_agentId", ["agentId"])
+    .index("by_agentId_signalId", ["agentId", "signalId"]),
 
   decision_receipts: defineTable({
     agentId: v.id("agents"),

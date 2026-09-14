@@ -52,3 +52,14 @@ The bridge uses the official Partner API v1:
 6. Prepare a ClawPump quote/build for an evidence-qualified mint.
 7. Show the PREPARE receipt and explain why it still does not count as volume.
 8. If the signing path is completed, sign/submit, independently verify the Solana signature, then show verified volume increase.
+
+
+## Second-pass hardening
+
+- Idempotency is scoped to `(agentId, signalId)` through `signal_executions`; one user's trade never consumes the launch globally.
+- Same-agent concurrent cycles use distinct claim tokens; only an idempotent retry of the same run may reuse an active lease.
+- Drawdown is measured from persisted total paper-equity high water, not just open-position cost. Risk halts carry a reason, timestamp, and explicit acknowledgement requirement.
+- Pump launch discovery accepts only official `create` / `create_v2` instruction discriminators. Helius webhook data supplies candidate signatures only.
+- Largest-account risk is aggregated by economic owner and Pump-program custody is classified separately. It remains a sampled-owner metric, not a total holder census.
+- Wash/bundle/honeypot checks stay `UNKNOWN` until a real classifier exists; a configured transport is never presented as a completed scan.
+- Logic tests exercise fail-closed evidence gates and claim-lease concurrency semantics in CI.

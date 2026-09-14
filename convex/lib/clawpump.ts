@@ -47,7 +47,6 @@ async function request<T>(
   }
 }
 
-
 export async function listClawPumpAgents(): Promise<ClawPumpResponse<{ agents: Array<{ id: string; name: string; walletAddress?: string; status?: string }> }>> {
   return request("/agents", { method: "GET" }, 30_000);
 }
@@ -63,7 +62,7 @@ export async function createClawPumpAgent(input: {
         name: input.name,
         system_prompt: input.systemPrompt,
         temperature: 0.2,
-        skills: ["trading", "portfolio", "market-intelligence"],
+        skills: ["trading", "portfolio", "market-intelligence", "sniper"],
       }),
     },
     120_000,
