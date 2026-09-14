@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import AgentConsole from "./pages/AgentConsole";
 import Signals from "./pages/Signals";
 import Token from "./pages/Token";
+import Proof from "./pages/Proof";
 import { AppShell } from "./components/AppShell";
 
 export default function App() {
@@ -17,25 +18,12 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route
-          element={<AppShell />}
-        >
-          <Route
-            path="/dashboard"
-            element={protectedPage(<Dashboard />)}
-          />
-          <Route
-            path="/agent"
-            element={protectedPage(<AgentConsole />)}
-          />
-          <Route
-            path="/signals"
-            element={protectedPage(<Signals />)}
-          />
-          <Route
-            path="/token/:mint?"
-            element={protectedPage(<Token />)}
-          />
+        <Route element={<AppShell />}>
+          <Route path="/dashboard" element={protectedPage(<Dashboard />)} />
+          <Route path="/agent" element={protectedPage(<AgentConsole />)} />
+          <Route path="/signals" element={protectedPage(<Signals />)} />
+          <Route path="/proof" element={protectedPage(<Proof />)} />
+          <Route path="/token/:mint?" element={protectedPage(<Token />)} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

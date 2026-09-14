@@ -5,9 +5,9 @@ import { authTables } from "@convex-dev/auth/server";
 /**
  * Alpha Scout data model.
  *
- * IMPORTANT: No seeds, no fixtures. Every table starts empty and is only
- * populated by real user activity and real on-chain/agent events. Counts in
- * the app reflect live system state — never invented numbers.
+ * Migration rule: new proof/execution fields are optional on existing tables so
+ * the winning delta can deploy over the current pre-launch database without
+ * rewriting historical rows. Missing executionMode is treated as paper.
  */
 export default defineSchema({
   ...authTables,
@@ -31,9 +31,12 @@ export default defineSchema({
   portfolios: defineTable({
     ownerId: v.id("users"),
     agentId: v.optional(v.id("agents")),
+    // Paper ledger only. A watched wallet balance is never credited here.
     cashSol: v.number(),
     investedSol: v.number(),
     depositedSol: v.optional(v.number()),
+    observedWalletSol: v.optional(v.number()),
+    observedWalletAt: v.optional(v.number()),
     updatedAt: v.number(),
   }).index("by_ownerId", ["ownerId"]),
 
@@ -50,6 +53,8 @@ export default defineSchema({
     name: v.string(),
     status: v.union(v.literal("idle"), v.literal("running"), v.literal("paused"), v.literal("halted")),
     walletAddress: v.optional(v.string()),
+    clawPumpAgentId: v.optional(v.string()),
+    clawPumpWalletAddress: v.optional(v.string()),
     riskMaxPosition: v.number(),
     riskMaxDrawdownPct: v.number(),
     autoTrading: v.boolean(),
@@ -71,6 +76,9 @@ export default defineSchema({
     pnlPct: v.number(),
     stopLoss: v.optional(v.number()),
     takeProfit: v.optional(v.number()),
+    executionMode: v.optional(v.union(v.literal("paper"), v.literal("onchain"))),
+    txSignature: v.optional(v.string()),
+    venue: v.optional(v.string()),
     status: v.union(v.literal("open"), v.literal("closed"), v.literal("closed_stop"), v.literal("closed_target")),
     openedAt: v.number(),
     closedAt: v.optional(v.number()),
@@ -89,7 +97,11 @@ export default defineSchema({
     pnlUsd: v.optional(v.number()),
     pnlPct: v.optional(v.number()),
     pnlSol: v.optional(v.number()),
+    executionMode: v.optional(v.union(v.literal("paper"), v.literal("onchain"))),
     txSignature: v.optional(v.string()),
+    confirmationSlot: v.optional(v.number()),
+    venue: v.optional(v.string()),
+    providerRequestId: v.optional(v.string()),
     executedBy: v.union(v.literal("user"), v.literal("agent")),
     timestamp: v.number(),
   })
@@ -112,11 +124,39 @@ export default defineSchema({
     detail: v.string(),
     payload: v.any(),
     actedOn: v.optional(v.boolean()),
+    actedAt: v.optional(v.number()),
+    claimStatus: v.optional(v.union(v.literal("claimed"), v.literal("released"), v.literal("acted"))),
+    claimedByAgentId: v.optional(v.id("agents")),
+    claimedAt: v.optional(v.number()),
     processedAt: v.number(),
   })
     .index("by_processedAt", ["processedAt"])
     .index("by_tokenMint_type", ["tokenMint", "type"])
     .index("by_type_processedAt", ["type", "processedAt"]),
+
+  decision_receipts: defineTable({
+    agentId: v.id("agents"),
+    signalId: v.optional(v.id("signals")),
+    tokenMint: v.string(),
+    decision: v.union(
+      v.literal("execute"),
+      v.literal("reject"),
+      v.literal("skip"),
+      v.literal("prepare"),
+    ),
+    executionMode: v.union(v.literal("paper"), v.literal("onchain")),
+    score: v.optional(v.number()),
+    observations: v.any(),
+    unknowns: v.array(v.string()),
+    reasons: v.array(v.string()),
+    riskBudgetSol: v.optional(v.number()),
+    quote: v.optional(v.any()),
+    txSignature: v.optional(v.string()),
+    requestId: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_agentId_createdAt", ["agentId", "createdAt"])
+    .index("by_createdAt", ["createdAt"]),
 
   products: defineTable({
     mint: v.string(),

@@ -14,301 +14,66 @@ export default function Landing() {
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"signIn" | "signUp">("signUp");
 
-  const openAuth = (mode: "signIn" | "signUp") => {
-    setAuthMode(mode);
-    setAuthOpen(true);
-  };
-
-  const handleLaunch = () => {
-    void ensureUser();
-  };
+  const openAuth = (mode: "signIn" | "signUp") => { setAuthMode(mode); setAuthOpen(true); };
 
   return (
-    <div className="bg-white text-ink">
-      <nav className="flex items-center justify-between gap-3 px-4 sm:px-6 lg:px-10 py-4 sm:py-5 border-b border-line">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-accent flex items-center justify-center text-white font-extrabold shadow-[0_6px_16px_rgba(245,158,11,.3)]">
-            A
-          </div>
-          <span className="font-bold text-[17px]">Alpha Scout</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link to="/signals" className="hidden sm:block text-sm font-medium text-ink-mid hover:text-ink px-3 py-2">
-            Signals
-          </Link>
-          <Link to="/agent" className="hidden sm:block text-sm font-medium text-ink-mid hover:text-ink px-3 py-2">
-            Agent
-          </Link>
-          {isAuthenticated ? (
-            <Link
-              to="/dashboard"
-              className="px-5 py-2.5 rounded-lg bg-accent text-white text-sm font-semibold"
-            >
-              Dashboard →{/* */}
-            </Link>
-          ) : (
-            <button
-              onClick={() => openAuth("signIn")}
-              className="px-5 py-2.5 rounded-lg bg-accent text-white text-sm font-semibold"
-            >
-              Get started
-            </button>
-          )}
-        </div>
+    <div className="bg-white text-ink min-h-screen">
+      <nav className="flex items-center justify-between px-4 sm:px-8 lg:px-10 py-5 border-b border-line">
+        <div className="flex items-center gap-3"><div className="w-9 h-9 rounded-xl bg-accent text-white font-extrabold flex items-center justify-center">A</div><div><div className="font-bold">Alpha Scout</div><div className="text-[10px] text-ink-faint uppercase tracking-wider">evidence-first</div></div></div>
+        {isAuthenticated ? <Link to="/dashboard" className="px-5 py-2.5 rounded-lg bg-accent text-white text-sm font-semibold">Dashboard →</Link> : <button onClick={() => openAuth("signIn")} className="px-5 py-2.5 rounded-lg bg-accent text-white text-sm font-semibold">Get started</button>}
       </nav>
 
-      <header className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16 px-4 sm:px-6 lg:px-10 py-12 sm:py-16 max-w-[1180px] mx-auto">
-        <div className="flex-1">
-          <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-up-bg text-up text-[13px] font-semibold mb-6">
-            <span className="w-2 h-2 rounded-full bg-up" />
-            Autonomous AI trading agent on Solana
+      <header className="max-w-[1180px] mx-auto px-4 sm:px-8 py-14 lg:py-20 grid lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <div className="inline-flex px-3 py-1.5 rounded-full bg-accent-light text-accent text-xs font-bold mb-5">SOLANA LAUNCH INTELLIGENCE · FAIL CLOSED</div>
+          <h1 className="text-4xl sm:text-5xl lg:text-[58px] font-extrabold leading-[1.02] tracking-tight">Discover. Investigate. <span className="text-accent">Trade only what you can prove.</span></h1>
+          <p className="text-lg text-ink-mid leading-relaxed mt-6 max-w-[620px]">Alpha Scout watches real pump.fun launches, qualifies them with live market and holder evidence, refuses critical unknowns, and records a receipt for every execute, reject or skip. The local harness is paper mode; ClawPump on-chain swaps are prepared separately and count only after signature and confirmation.</p>
+          <div className="flex flex-wrap gap-3 mt-8">
+            {isAuthenticated ? <Link to="/dashboard" onClick={() => void ensureUser()} className="px-7 py-3.5 rounded-xl bg-accent text-white font-semibold">Open Alpha Scout</Link> : <button onClick={() => openAuth("signUp")} className="px-7 py-3.5 rounded-xl bg-accent text-white font-semibold">Create account</button>}
+            {isAuthenticated && <Link to="/proof" className="px-7 py-3.5 rounded-xl border border-line font-semibold">View Live Proof</Link>}
           </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-[52px] font-extrabold leading-[1.05] tracking-tight mb-5">
-            Your AI trader that{" "}
-            <span className="bg-gradient-to-r from-accent to-accent-dark bg-clip-text text-transparent">
-              finds alpha
-            </span>{" "}
-            before it moves.
-          </h1>
-          <p className="text-lg text-ink-mid leading-relaxed mb-8 max-w-[520px]">
-            Alpha Scout monitors Solana tokens, tracks smart money, detects
-            manipulation, and executes trades — verifiably onchain. Deploy one
-            now; every trade lands on Solana for anyone to audit.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3.5 mb-9">
-            {isAuthenticated ? (
-              <Link
-                to="/dashboard"
-                onClick={handleLaunch}
-                className="px-7 py-3.5 rounded-xl bg-accent text-white text-base font-semibold shadow-[0_6px_16px_rgba(245,158,11,.3)]"
-              >
-                Deploy my agent
-              </Link>
-            ) : (
-              <button
-                onClick={() => openAuth("signUp")}
-                className="px-7 py-3.5 rounded-xl bg-accent text-white text-base font-semibold shadow-[0_6px_16px_rgba(245,158,11,.3)]"
-              >
-                Deploy my agent
-              </button>
-            )}
-            <Link
-              to="/signals"
-              className="px-7 py-3.5 rounded-xl border border-line text-base font-semibold text-ink hover:border-accent hover:text-accent"
-            >
-              View live dashboard
-            </Link>
-          </div>
-          <div className="flex gap-11">
-            <div>
-              <div className="font-mono text-[26px] font-extrabold">
-                {stats === undefined ? "…" : stats.tradesExecuted}
-              </div>
-              <div className="text-[13px] text-ink-faint mt-1">Trades executed</div>
-            </div>
-            <div>
-              <div className="font-mono text-[26px] font-extrabold">
-                {stats === undefined ? "…" : stats.agentsDeployed}
-              </div>
-              <div className="text-[13px] text-ink-faint mt-1">Agents deployed</div>
-            </div>
-            <div>
-              <div className="font-mono text-[26px] font-extrabold">
-                {stats === undefined ? "…" : `${String(stats.volumeSol.toLocaleString(undefined, { maximumFractionDigits: 2 }))} SOL`}
-              </div>
-              <div className="text-[13px] text-ink-faint mt-1">Volume traded</div>
-            </div>
+          <div className="grid grid-cols-3 gap-5 mt-10 max-w-[580px]">
+            <Metric label="Verified on-chain volume" value={stats ? `${stats.verifiedOnchainVolumeSol.toLocaleString(undefined, { maximumFractionDigits: 2 })} SOL` : "…"} />
+            <Metric label="Paper executions" value={stats ? String(stats.paperTrades) : "…"} />
+            <Metric label="Agents deployed" value={stats ? String(stats.agentsDeployed) : "…"} />
           </div>
         </div>
 
-        <div className="flex-1">
-          <div className="bg-white border border-line rounded-2xl overflow-hidden shadow-[0_30px_60px_-20px_rgba(16,20,32,.22)]">
-            <div className="flex items-center gap-1.5 px-4 py-3.5 border-b border-line bg-surface">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
-              <span className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" />
-              <span className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
-              <span className="ml-3 text-[12px] text-ink-faint flex-1 font-mono">
-                app.alphascout.xyz
-              </span>
-              <span className="text-[11px] text-up font-semibold">● READY</span>
-            </div>
-            <div className="p-4">
-              <div className="flex justify-between items-center mb-3">
-                <div>
-                  <div className="text-[13px] text-ink-faint">Portfolio Value</div>
-                  <div className="font-mono text-2xl font-extrabold">0 SOL</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-[13px] text-ink-faint">24h PnL</div>
-                  <div className="font-mono text-2xl font-extrabold text-ink-mid">—</div>
-                </div>
-              </div>
-              <div className="flex items-end gap-2 h-28 px-2 py-2">
-                {[35, 48, 40, 62, 55, 74, 68, 86, 80, 100].map((h, i) => (
-                  <div
-                    key={i}
-                    className="flex-1 rounded-t-md bg-gradient-to-b from-accent to-accent-dark opacity-40"
-                    style={{ height: `${h}%` }}
-                  />
-                ))}
-              </div>
-              <div className="mt-4 flex flex-col gap-2">
-                {["Connect a Solana wallet to begin", "Agent waits for your first signal", "Trades record onchain automatically"].map(
-                  (t, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-surface border border-line text-[13px]"
-                    >
-                      <span className="w-5 h-5 rounded-md bg-accent-light text-accent flex items-center justify-center text-[11px]">
-                        {i + 1}
-                      </span>
-                      <span className="font-medium text-ink-mid">{t}</span>
-                    </div>
-                  ),
-                )}
-              </div>
-            </div>
+        <div className="rounded-3xl border border-line shadow-[0_30px_70px_-30px_rgba(16,20,32,.3)] overflow-hidden">
+          <div className="px-5 py-4 bg-surface border-b border-line flex justify-between items-center"><span className="font-mono text-xs text-ink-faint">decision_receipt/latest</span><span className="text-[10px] font-bold text-up">● PROOF PLANE</span></div>
+          <div className="p-6 flex flex-col gap-4">
+            <ProofRow k="OBSERVED" v="Jupiter price · liquidity · Solana holders · launch age" />
+            <ProofRow k="UNKNOWN" v="Unknown liquidity or holder concentration blocks entry" />
+            <ProofRow k="DECISION" v="EXECUTE / REJECT / SKIP with deterministic score + reasons" />
+            <ProofRow k="EXECUTION" v="PAPER unless a signed, confirmed Solana transaction exists" />
+            <div className="rounded-xl bg-accent-light border border-accent/30 p-4 text-sm text-accent font-semibold">No decorative PnL chart. No seeded activity. No paper volume presented as on-chain volume.</div>
           </div>
         </div>
       </header>
 
-      <div className="py-8 sm:py-10 px-4 sm:px-10 border-y border-line bg-surface">
-        <div className="max-w-[1180px] mx-auto flex items-center justify-between gap-8 flex-wrap">
-          <span className="text-[13px] text-ink-faint font-semibold uppercase tracking-wider">
-            Built on
-          </span>
-          <span className="font-mono font-bold">Solana</span>
-          <span className="font-mono font-bold text-accent">ClawPump</span>
-          <span className="font-mono font-bold">pump.fun</span>
-          <span className="font-mono font-bold">Helius</span>
-          <span className="font-mono font-bold">Hermes</span>
-        </div>
-      </div>
-
-      <section className="py-14 sm:py-20 px-4 sm:px-10 max-w-[1180px] mx-auto">
-        <div className="text-center max-w-[640px] mx-auto mb-14">
-          <div className="text-accent font-bold text-sm mb-3 uppercase tracking-wide">
-            Why Alpha Scout
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4">
-            Every edge an alpha trader has, automated.
-          </h2>
-          <p className="text-[17px] text-ink-mid leading-relaxed">
-            Encode the playbooks of elite Solana traders into an autonomous
-            agent that never sleeps, never FOMOs, and never fades.
-          </p>
-        </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {[
-            {
-              icon: "⚡",
-              bg: "bg-up-bg",
-              t: "Real-time Alpha Discovery",
-              d: "Scan Solana tokens for volume spikes, holder shifts, and smart-money entries before the crowd. Real onchain data only.",
-            },
-            {
-              icon: "🛡",
-              bg: "bg-accent-light",
-              t: "Manipulation Shield",
-              d: "Flags wash trading, bundling, dev dumps, and honeypots before entry. Blocks engineered momentum from real demand.",
-            },
-            {
-              icon: "🎯",
-              bg: "bg-[#FFF8E1]",
-              t: "Adaptive Risk Control",
-              d: "Position sizing, trailing stops, and drawdown limits that adapt to volatility. Capital preservation first.",
-            },
-            {
-              icon: "🤖",
-              bg: "bg-down-bg",
-              t: "Autonomous Execution",
-              d: "Executes across spot, perps, and prediction markets with sub-second Solana finality.",
-            },
-            {
-              icon: "📊",
-              bg: "bg-up-bg",
-              t: "Onchain Verifiable",
-              d: "Every trade is recorded on Solana. Full transparency — audit performance, risk, and PnL in real time.",
-            },
-            {
-              icon: "🔗",
-              bg: "bg-accent-light",
-              t: "Token-powered",
-              d: "$SCOUT holders unlock premium signal tiers, revenue share, and governance over strategy parameters.",
-            },
-          ].map((f) => (
-            <div
-              key={f.t}
-              className="bg-white border border-line rounded-2xl p-7 hover:-translate-y-0.5 hover:border-accent hover:shadow-[0_16px_40px_-18px_rgba(245,158,11,.28)] transition"
-            >
-              <div
-                className={`w-13 h-13 w-[52px] h-[52px] rounded-2xl flex items-center justify-center text-2xl mb-5 ${f.bg}`}
-              >
-                {f.icon}
-              </div>
-              <h3 className="text-lg font-bold mb-2.5">{f.t}</h3>
-              <p className="text-[15px] text-ink-mid leading-relaxed">{f.d}</p>
-            </div>
-          ))}
+      <section className="bg-surface border-y border-line px-4 sm:px-8 py-16">
+        <div className="max-w-[1180px] mx-auto grid md:grid-cols-3 gap-5">
+          <Feature title="Alpha Evidence Engine" body="Scores only evidence the runtime can verify now: price, liquidity, holder concentration, freshness and bounded momentum. It does not pretend to predict guaranteed alpha." />
+          <Feature title="Atomic signal claims" body="A transactional lease prevents concurrent cron/run-now cycles from opening the same launch twice. Stale claims expire safely." />
+          <Feature title="ClawPump safety bridge" body="Uses the official v1 agent/swap APIs. High-risk and unverified-token acknowledgements stay false. Unsigned swap builds remain PREPARED, not EXECUTED." />
+          <Feature title="Watch-only wallet boundary" body="Reading an attached wallet can never create paper buying power. Re-observing the same balance cannot inflate the portfolio." />
+          <Feature title="One-minute risk loop" body="Stop-loss, take-profit and drawdown controls no longer wait fifteen minutes; webhook discovery remains primary with a five-minute reconciliation scan." />
+          <Feature title="Judge-verifiable receipts" body="Every decision stores observations, unknowns, reasons, risk budget, mode and provider request IDs so a judge can inspect why the agent acted or refused." />
         </div>
       </section>
 
-      <div className="px-4 sm:px-10 pb-14 sm:pb-20 max-w-[1180px] mx-auto">
-        <div className="bg-gradient-to-br from-accent to-accent-dark rounded-3xl px-6 sm:px-12 py-12 sm:py-16 text-center text-white">
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4">
-            Enter the arena with your own agent.
-          </h2>
-          <p className="text-[17px] opacity-90 max-w-[520px] mx-auto mb-8 leading-relaxed">
-            Deploy Alpha Scout to a live Solana wallet, tokenize it, and give it
-            money to trade. Built for the AnsemHack Clawrena.
-          </p>
-          {isAuthenticated ? (
-            <Link
-              to="/dashboard"
-              className="inline-block px-8 py-4 rounded-xl bg-white text-accent font-semibold"
-            >
-              Launch Alpha Scout now
-            </Link>
-          ) : (
-            <button
-              onClick={() => openAuth("signUp")}
-              className="px-8 py-4 rounded-xl bg-white text-accent font-semibold"
-            >
-              Launch Alpha Scout now
-            </button>
-          )}
-        </div>
-      </div>
+      <footer className="max-w-[1180px] mx-auto px-4 sm:px-8 py-8 flex flex-wrap justify-between gap-3 text-sm text-ink-faint"><span>Alpha Scout · AnsemHack Clawrena 2026</span><span>Solana · ClawPump · pump.fun · Jupiter · Helius · Convex</span></footer>
 
-      <footer className="py-8 px-4 sm:px-10 border-t border-line bg-surface">
-        <div className="max-w-[1180px] mx-auto flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center text-sm text-ink-faint">
-          <span>© 2026 Alpha Scout. Built for the AnsemHack Clawrena.</span>
-          <span className="font-mono">Alpha Scout · Solana</span>
-        </div>
-      </footer>
-      {authOpen && (
-        <AuthDialog
-          mode={authMode}
-          onClose={() => setAuthOpen(false)}
-          onModeChange={setAuthMode}
-          onSuccess={() => {
-            setAuthOpen(false);
-            navigate("/dashboard");
-          }}
-          signIn={signIn}
-        />
-      )}
+      {authOpen && <AuthDialog mode={authMode} onClose={() => setAuthOpen(false)} onModeChange={setAuthMode} onSuccess={() => { setAuthOpen(false); navigate("/dashboard"); }} signIn={signIn} />}
     </div>
   );
 }
 
-function AuthDialog({
-  mode,
-  onClose,
-  onModeChange,
-  onSuccess,
-  signIn,
-}: {
+function Metric({ label, value }: { label: string; value: string }) { return <div><div className="font-mono text-xl sm:text-2xl font-extrabold">{value}</div><div className="text-[11px] text-ink-faint mt-1">{label}</div></div>; }
+function ProofRow({ k, v }: { k: string; v: string }) { return <div className="grid grid-cols-[90px_1fr] gap-4 border-b border-line pb-4 last:border-0"><span className="text-[11px] font-bold text-accent">{k}</span><span className="text-sm text-ink-mid">{v}</span></div>; }
+function Feature({ title, body }: { title: string; body: string }) { return <div className="bg-white border border-line rounded-2xl p-6"><h3 className="font-bold text-lg">{title}</h3><p className="text-sm text-ink-mid mt-2 leading-relaxed">{body}</p></div>; }
+
+function AuthDialog({ mode, onClose, onModeChange, onSuccess, signIn }: {
   mode: "signIn" | "signUp";
   onClose: () => void;
   onModeChange: (mode: "signIn" | "signUp") => void;
@@ -317,88 +82,25 @@ function AuthDialog({
 }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const submit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setPending(true);
-    setError(null);
-    try {
-      await signIn("password", {
-        flow: mode,
-        email: email.trim(),
-        password,
-      });
-      onSuccess();
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Authentication failed.");
-    } finally {
-      setPending(false);
-    }
+    event.preventDefault(); setPending(true); setError(null);
+    try { await signIn("password", { flow: mode, email: email.trim(), password }); onSuccess(); }
+    catch (caught) { setError(caught instanceof Error ? caught.message : "Authentication failed."); }
+    finally { setPending(false); }
   };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 px-4" role="presentation" onMouseDown={onClose}>
-      <div className="w-full max-w-md rounded-2xl bg-white border border-line shadow-[0_24px_80px_-24px_rgba(16,20,32,.45)] p-6 sm:p-8" role="dialog" aria-modal="true" aria-labelledby="auth-title" onMouseDown={(event) => event.stopPropagation()}>
-        <div className="flex items-start justify-between gap-4 mb-6">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-accent">Alpha Scout</p>
-            <h2 id="auth-title" className="text-2xl font-extrabold mt-1">
-              {mode === "signUp" ? "Create your account" : "Welcome back"}
-            </h2>
-          </div>
-          <button type="button" onClick={onClose} className="text-2xl leading-none text-ink-faint hover:text-ink" aria-label="Close authentication dialog">
-            ×
-          </button>
-        </div>
-        <form onSubmit={(event) => void submit(event)} className="flex flex-col gap-4">
-          <label className="text-sm font-semibold">
-            Email
-            <input
-              required
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              className="mt-1.5 w-full rounded-lg border border-line bg-surface px-4 py-3 font-normal outline-none focus:border-accent"
-            />
-          </label>
-          <label className="text-sm font-semibold">
-            Password
-            <span className="relative mt-1.5 block">
-              <input
-                required
-                minLength={8}
-                type={showPassword ? "text" : "password"}
-                autoComplete={mode === "signUp" ? "new-password" : "current-password"}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                className="w-full rounded-lg border border-line bg-surface px-4 py-3 pr-14 font-normal outline-none focus:border-accent"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((visible) => !visible)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                title={showPassword ? "Hide password" : "Show password"}
-                className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-lg text-ink-faint hover:text-ink"
-              >
-                {showPassword ? "◉" : "◌"}
-              </button>
-            </span>
-          </label>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 px-4" onMouseDown={onClose}>
+      <div className="w-full max-w-md rounded-2xl bg-white border border-line p-7" role="dialog" aria-modal="true" onMouseDown={(e) => e.stopPropagation()}>
+        <div className="flex justify-between gap-4 mb-6"><div><div className="text-xs font-bold text-accent">ALPHA SCOUT</div><h2 className="text-2xl font-extrabold mt-1">{mode === "signUp" ? "Create your account" : "Welcome back"}</h2></div><button onClick={onClose} className="text-2xl text-ink-faint">×</button></div>
+        <form onSubmit={(e) => void submit(e)} className="flex flex-col gap-4">
+          <label className="text-sm font-semibold">Email<input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1.5 w-full rounded-lg border border-line bg-surface px-4 py-3 font-normal" /></label>
+          <label className="text-sm font-semibold">Password<input required minLength={8} type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1.5 w-full rounded-lg border border-line bg-surface px-4 py-3 font-normal" /></label>
           {error && <p className="rounded-lg bg-down-bg px-4 py-3 text-sm text-down">{error}</p>}
-          <button type="submit" disabled={pending} className="rounded-xl bg-accent px-5 py-3.5 text-sm font-semibold text-white disabled:opacity-60">
-            {pending ? "Connecting…" : mode === "signUp" ? "Create account" : "Sign in"}
-          </button>
+          <button disabled={pending} className="rounded-xl bg-accent px-5 py-3.5 text-sm font-semibold text-white disabled:opacity-60">{pending ? "Connecting…" : mode === "signUp" ? "Create account" : "Sign in"}</button>
         </form>
-        <p className="mt-5 text-center text-sm text-ink-mid">
-          {mode === "signUp" ? "Already have an account?" : "New to Alpha Scout?"}{" "}
-          <button type="button" onClick={() => { setError(null); onModeChange(mode === "signUp" ? "signIn" : "signUp"); }} className="font-semibold text-accent hover:underline">
-            {mode === "signUp" ? "Sign in" : "Create one"}
-          </button>
-        </p>
+        <p className="mt-5 text-center text-sm text-ink-mid">{mode === "signUp" ? "Already have an account?" : "New to Alpha Scout?"} <button type="button" onClick={() => onModeChange(mode === "signUp" ? "signIn" : "signUp")} className="font-semibold text-accent">{mode === "signUp" ? "Sign in" : "Create one"}</button></p>
       </div>
     </div>
   );

@@ -1,34 +1,27 @@
 import { query } from "../_generated/server";
 
-/**
- * Public aggregate stats for the landing page. No auth required — these are
- * broadcast counters, not private data. Every number is computed from live
- * system state; a fresh deployment genuinely returns zeros.
- */
 export const publicStats = query({
   args: {},
   handler: async (ctx) => {
-    const [trades, agents, users, signals, volume] = await Promise.all([
+    const [trades, agents, users, signals] = await Promise.all([
       ctx.db.query("trades").collect(),
       ctx.db.query("agents").collect(),
       ctx.db.query("users").collect(),
       ctx.db.query("signals").collect(),
-      ctx.db.query("portfolios").collect(),
     ]);
-
-    const tradesExecuted = trades.length;
-    const agentsDeployed = agents.length;
-    const totalUsers = Math.max(0, users.length - 1);
-    const signalsGenerated = signals.length;
-    const volumeSol = trades.reduce((sum, t) => sum + (t.amountSol ?? 0), 0);
-
+    const verifiedOnchain = trades.filter((t) => t.executionMode === "onchain" && Boolean(t.txSignature));
+    const paper = trades.filter((t) => t.executionMode !== "onchain" || !t.txSignature);
     return {
-      tradesExecuted,
-      agentsDeployed,
-      totalUsers,
-      signalsGenerated,
-      volumeSol,
-      netWorthSol: volume.reduce((sum, p) => sum + (p.cashSol ?? 0), 0),
+      tradesExecuted: verifiedOnchain.length,
+      verifiedOnchainTrades: verifiedOnchain.length,
+      paperTrades: paper.length,
+      agentsDeployed: agents.length,
+      totalUsers: users.length,
+      signalsGenerated: signals.length,
+      verifiedOnchainVolumeSol: verifiedOnchain.reduce((sum, t) => sum + (t.amountSol ?? 0), 0),
+      paperVolumeSol: paper.reduce((sum, t) => sum + (t.amountSol ?? 0), 0),
+      // Backward compatibility: volumeSol now means verified volume only.
+      volumeSol: verifiedOnchain.reduce((sum, t) => sum + (t.amountSol ?? 0), 0),
     };
   },
 });

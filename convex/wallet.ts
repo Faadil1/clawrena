@@ -5,21 +5,13 @@ import type { Id } from "./_generated/dataModel";
 
 type MyContext = {
   user: { id: Id<"users">; walletAddress?: string };
-  portfolio:
-    | { id: Id<"portfolios">; cashSol: number; depositedSol: number }
-    | null;
+  portfolio: { id: Id<"portfolios">; cashSol: number; depositedSol: number } | null;
 } | null;
 
-type ImportCredit = { currentCashSol: number; importedSol: number };
-
 /**
- * Import the attached wallet's real SOL balance into the portfolio. Reads the
- * live balance from RPC (throws when unroutable — it never guesses) and tops
- * the portfolio up to that amount when it is higher.
- *
- * Lives outside the portfolio module so its action->internal calls cross
- * module boundaries (a same-module call defeats tsc's inference). Results are
- * annotated with their concrete types for the same reason.
+ * Watch-only balance observation. The address is not proven owned and its live
+ * balance is never converted into executable/paper cash. This closes the old
+ * repeated-import inflation path by separating observation from funding.
  */
 export const importWalletBalance = action({
   args: {},
@@ -27,30 +19,25 @@ export const importWalletBalance = action({
     walletAddress: string;
     balanceSol: number;
     currentCashSol: number;
-    importedSol: number;
+    importedSol: 0;
+    observedWalletSol: number;
   }> => {
     const context: MyContext = await ctx.runQuery(internal.portfolio.getMyContext, {});
-    if (!context) {
-      throw new Error("User not found; call ensureUser first");
-    }
-    if (!context.user.walletAddress) {
-      throw new Error("Attach a Solana wallet before importing a balance");
-    }
+    if (!context) throw new Error("User not found; call ensureUser first");
+    if (!context.user.walletAddress) throw new Error("Attach a Solana address before observing its balance");
 
     const balance = await fetchWalletBalance(context.user.walletAddress);
-    if (balance === null) {
-      throw new Error("Could not read wallet balance — RPC unreachable.");
-    }
+    if (balance === null) throw new Error("Could not read wallet balance — RPC unreachable.");
 
-    const credited: ImportCredit = await ctx.runMutation(
-      internal.portfolio.creditWalletImport,
-      { amountSol: balance },
-    );
+    const observed = await ctx.runMutation(internal.portfolio.recordWalletObservation, {
+      amountSol: balance,
+    });
     return {
       walletAddress: context.user.walletAddress,
       balanceSol: balance,
-      currentCashSol: credited.currentCashSol,
-      importedSol: credited.importedSol,
+      currentCashSol: observed.paperCashSol,
+      importedSol: 0,
+      observedWalletSol: observed.observedWalletSol,
     };
   },
 });

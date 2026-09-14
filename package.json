@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "dev:backend": "convex dev",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src convex --ext .ts,.tsx"
+    "lint": "eslint src convex --ext .ts,.tsx",
+    "verify:integrity": "node scripts/verify-integrity.mjs"
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.95",

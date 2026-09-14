@@ -11,9 +11,13 @@
 import type * as _probe from "../_probe.js";
 import type * as agents from "../agents.js";
 import type * as auth from "../auth.js";
+import type * as clawPump from "../clawPump.js";
 import type * as cleanup from "../cleanup.js";
 import type * as crons from "../crons.js";
+import type * as evidence from "../evidence.js";
 import type * as http from "../http.js";
+import type * as lib_clawpump from "../lib/clawpump.js";
+import type * as lib_evidenceScore from "../lib/evidenceScore.js";
 import type * as lib_http from "../lib/http.js";
 import type * as lib_market from "../lib/market.js";
 import type * as portfolio from "../portfolio.js";
@@ -30,19 +34,19 @@ import type * as trades from "../trades.js";
 import type * as users from "../users.js";
 import type * as wallet from "../wallet.js";
 
-import type {
-  ApiFromModules,
-  FilterApi,
-  FunctionReference,
-} from "convex/server";
+import type { ApiFromModules, FilterApi, FunctionReference } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
   _probe: typeof _probe;
   agents: typeof agents;
   auth: typeof auth;
+  clawPump: typeof clawPump;
   cleanup: typeof cleanup;
   crons: typeof crons;
+  evidence: typeof evidence;
   http: typeof http;
+  "lib/clawpump": typeof lib_clawpump;
+  "lib/evidenceScore": typeof lib_evidenceScore;
   "lib/http": typeof lib_http;
   "lib/market": typeof lib_market;
   portfolio: typeof portfolio;
@@ -60,30 +64,6 @@ declare const fullApi: ApiFromModules<{
   wallet: typeof wallet;
 }>;
 
-/**
- * A utility for referencing Convex functions in your app's public API.
- *
- * Usage:
- * ```js
- * const myFunctionReference = api.myModule.myFunction;
- * ```
- */
-export declare const api: FilterApi<
-  typeof fullApi,
-  FunctionReference<any, "public">
->;
-
-/**
- * A utility for referencing Convex functions in your app's internal API.
- *
- * Usage:
- * ```js
- * const myFunctionReference = internal.myModule.myFunction;
- * ```
- */
-export declare const internal: FilterApi<
-  typeof fullApi,
-  FunctionReference<any, "internal">
->;
-
+export declare const api: FilterApi<typeof fullApi, FunctionReference<any, "public">>;
+export declare const internal: FilterApi<typeof fullApi, FunctionReference<any, "internal">>;
 export declare const components: {};

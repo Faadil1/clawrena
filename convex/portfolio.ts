@@ -1,27 +1,15 @@
 import { mutation, internalMutation, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 
-/**
- * The funding path: a wallet -> portfolio bridge. Until a portfolio holds
- * cash, nothing — user or agent — can open a position. The read-side queries
- * here are consumed by the `wallet.importWalletBalance` action (cross-module,
- * so aggregate reference inference stays clean).
- */
-
-/**
- * Read the signed-in user's portfolio context. Actions can't touch the db
- * directly, so this ships wallet + cash across the internal boundary.
- */
+/** Read the signed-in user's paper ledger plus watch-only wallet observation. */
 export const getMyContext = internalQuery({
   args: {},
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity || !identity.tokenIdentifier) return null;
+    if (!identity?.tokenIdentifier) return null;
     const user = await ctx.db
       .query("users")
-      .withIndex("by_tokenIdentifier", (q) =>
-        q.eq("tokenIdentifier", identity.tokenIdentifier!),
-      )
+      .withIndex("by_tokenIdentifier", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier!))
       .first();
     if (!user) return null;
     const portfolio = await ctx.db
@@ -31,52 +19,46 @@ export const getMyContext = internalQuery({
     return {
       user: { id: user._id, walletAddress: user.walletAddress },
       portfolio: portfolio
-        ? { id: portfolio._id, cashSol: portfolio.cashSol, depositedSol: portfolio.depositedSol ?? 0 }
+        ? {
+            id: portfolio._id,
+            cashSol: portfolio.cashSol,
+            depositedSol: portfolio.depositedSol ?? 0,
+            observedWalletSol: portfolio.observedWalletSol ?? null,
+            observedWalletAt: portfolio.observedWalletAt ?? null,
+          }
         : null,
     };
   },
 });
 
-/** Simple "add N SOL" — the demo/paper funding path. */
+/**
+ * Explicit PAPER funding. This does not represent an on-chain deposit and is
+ * deliberately labelled as such throughout the UI and metrics.
+ */
 export const depositSol = mutation({
-  args: {
-    amountSol: v.number(),
-    txSignature: v.optional(v.string()),
-  },
-  // TODO(production): wrap this in a real SOL transfer once live execution is
-  // wired (ClawPump / Hermes funded wallet). For the demo this authenticates
-  // the user and credits the managed portfolio directly, so nothing on-chain
-  // has to exist for the app to close the loop — and the PAPER badge makes
-  // that explicit in the UI.
+  args: { amountSol: v.number(), txSignature: v.optional(v.string()) },
   handler: async (ctx, { amountSol, txSignature }) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity || !identity.tokenIdentifier) {
-      throw new Error("Not authenticated");
-    }
+    if (!identity?.tokenIdentifier) throw new Error("Not authenticated");
     const user = await ctx.db
       .query("users")
-      .withIndex("by_tokenIdentifier", (q) =>
-        q.eq("tokenIdentifier", identity.tokenIdentifier!),
-      )
+      .withIndex("by_tokenIdentifier", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier!))
       .first();
-    if (!user) {
-      throw new Error("User not found; call ensureUser first");
-    }
+    if (!user) throw new Error("User not found; call ensureUser first");
     if (!Number.isFinite(amountSol) || amountSol <= 0 || amountSol > 100) {
-      throw new Error("Deposit amount must be between 0 and 100 SOL");
+      throw new Error("Paper deposit must be between 0 and 100 SOL");
     }
     let portfolio = await ctx.db
       .query("portfolios")
       .withIndex("by_ownerId", (q) => q.eq("ownerId", user._id))
       .first();
     if (!portfolio) {
-      const now = Date.now();
       const id = await ctx.db.insert("portfolios", {
         ownerId: user._id,
         cashSol: 0,
         investedSol: 0,
         depositedSol: 0,
-        updatedAt: now,
+        updatedAt: Date.now(),
       });
       portfolio = await ctx.db.get(id);
     }
@@ -99,18 +81,18 @@ export const depositSol = mutation({
   },
 });
 
-export const creditWalletImport = internalMutation({
+/**
+ * Store a live wallet-balance observation without crediting the paper ledger.
+ * Re-observing the same wallet can never mint new buying power.
+ */
+export const recordWalletObservation = internalMutation({
   args: { amountSol: v.number() },
   handler: async (ctx, { amountSol }) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity || !identity.tokenIdentifier) {
-      throw new Error("Not authenticated");
-    }
+    if (!identity?.tokenIdentifier) throw new Error("Not authenticated");
     const user = await ctx.db
       .query("users")
-      .withIndex("by_tokenIdentifier", (q) =>
-        q.eq("tokenIdentifier", identity.tokenIdentifier!),
-      )
+      .withIndex("by_tokenIdentifier", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier!))
       .first();
     if (!user) throw new Error("User not found; call ensureUser first");
     let portfolio = await ctx.db
@@ -118,43 +100,27 @@ export const creditWalletImport = internalMutation({
       .withIndex("by_ownerId", (q) => q.eq("ownerId", user._id))
       .first();
     if (!portfolio) {
-      const now = Date.now();
       const id = await ctx.db.insert("portfolios", {
         ownerId: user._id,
         cashSol: 0,
         investedSol: 0,
         depositedSol: 0,
-        updatedAt: now,
+        updatedAt: Date.now(),
       });
       portfolio = await ctx.db.get(id);
     }
     if (!portfolio) throw new Error("No portfolio");
     const now = Date.now();
-    const current = portfolio.cashSol;
-    const topUp = amountSol > current ? amountSol - current : 0;
-    if (topUp > 0) {
-      await ctx.db.patch(portfolio._id, {
-        cashSol: amountSol,
-        depositedSol: (portfolio.depositedSol ?? 0) + topUp,
-        updatedAt: now,
-      });
-      await ctx.db.insert("deposits", {
-        portfolioId: portfolio._id,
-        amountSol: topUp,
-        source: "wallet",
-        createdAt: now,
-      });
-    }
-    return { currentCashSol: current, importedSol: topUp };
+    await ctx.db.patch(portfolio._id, {
+      observedWalletSol: amountSol,
+      observedWalletAt: now,
+      updatedAt: now,
+    });
+    return { paperCashSol: portfolio.cashSol, observedWalletSol: amountSol, observedAt: now };
   },
 });
 
-/**
- * Internal: place a user position whose price was verified server-side by the
- * `trades.openPosition` action. Kept in this module (not `trades.ts`) so the
- * action and its internal target never share a module — a self-reference
- * there would defeat type-checking on the internal call.
- */
+/** Paper-only manual position placement after server-side Jupiter pricing. */
 export const internalPlaceUserPosition = internalMutation({
   args: {
     tokenMint: v.string(),
@@ -166,39 +132,26 @@ export const internalPlaceUserPosition = internalMutation({
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
-    if (!identity || !identity.tokenIdentifier) {
-      throw new Error("Not authenticated");
-    }
+    if (!identity?.tokenIdentifier) throw new Error("Not authenticated");
     const user = await ctx.db
       .query("users")
-      .withIndex("by_tokenIdentifier", (q) =>
-        q.eq("tokenIdentifier", identity.tokenIdentifier!),
-      )
+      .withIndex("by_tokenIdentifier", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier!))
       .first();
-    if (!user) {
-      throw new Error("User not found; call ensureUser first");
-    }
+    if (!user) throw new Error("User not found; call ensureUser first");
     const portfolio = await ctx.db
       .query("portfolios")
       .withIndex("by_ownerId", (q) => q.eq("ownerId", user._id))
       .first();
-    if (!portfolio) {
-      throw new Error("No portfolio");
-    }
-    if (!Number.isFinite(args.price) || args.price <= 0) {
-      throw new Error("Position price must be positive");
-    }
+    if (!portfolio) throw new Error("No portfolio");
+    if (!Number.isFinite(args.sizeSol) || args.sizeSol <= 0) throw new Error("Position size must be positive");
+    if (!Number.isFinite(args.price) || args.price <= 0) throw new Error("Position price must be positive");
     if (
-      (args.stopLoss !== undefined &&
-        (!Number.isFinite(args.stopLoss) || args.stopLoss <= 0)) ||
-      (args.takeProfit !== undefined &&
-        (!Number.isFinite(args.takeProfit) || args.takeProfit <= 0))
+      (args.stopLoss !== undefined && (!Number.isFinite(args.stopLoss) || args.stopLoss <= 0)) ||
+      (args.takeProfit !== undefined && (!Number.isFinite(args.takeProfit) || args.takeProfit <= 0))
     ) {
       throw new Error("Exit prices must be positive");
     }
-    if (portfolio.cashSol < args.sizeSol) {
-      throw new Error("Insufficient cash in portfolio");
-    }
+    if (portfolio.cashSol < args.sizeSol) throw new Error("Insufficient paper cash in portfolio");
 
     const positionId = await ctx.db.insert("positions", {
       portfolioId: portfolio._id,
@@ -212,6 +165,7 @@ export const internalPlaceUserPosition = internalMutation({
       pnlPct: 0,
       ...(args.stopLoss !== undefined && { stopLoss: args.stopLoss }),
       ...(args.takeProfit !== undefined && { takeProfit: args.takeProfit }),
+      executionMode: "paper",
       status: "open",
       openedAt: Date.now(),
     });
@@ -221,7 +175,6 @@ export const internalPlaceUserPosition = internalMutation({
       investedSol: portfolio.investedSol + args.sizeSol,
       updatedAt: Date.now(),
     });
-
     await ctx.db.insert("trades", {
       portfolioId: portfolio._id,
       ...(portfolio.agentId && { agentId: portfolio.agentId }),
@@ -230,10 +183,10 @@ export const internalPlaceUserPosition = internalMutation({
       ...(args.tokenSymbol && { tokenSymbol: args.tokenSymbol }),
       amountSol: args.sizeSol,
       price: args.price,
+      executionMode: "paper",
       executedBy: "user",
       timestamp: Date.now(),
     });
-
     return ctx.db.get(positionId);
   },
 });
