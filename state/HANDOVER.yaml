@@ -1,83 +1,88 @@
 project: alpha-scout-clawrena
-handover_version: P10_2026-09-15
+handover_version: P11_2026-09-15
 start_here:
   - state/CURRENT.yaml
-  - evidence/runtime/LIVE_FRONTEND.json
-  - docs/TOKEN_UTILITY.md
-  - docs/P4_RUNTIME_SUBMISSION.md
-  - docs/DEPLOYMENT_CLOUDFLARE_CONVEX.md
+  - docs/WINNING_INTELLIGENCE_P11.md
+  - docs/COMPETITIVE_INTELLIGENCE_2026-09-15.md
+  - docs/ANSEM_AUTHORITY_DEMO.md
+  - skills/evidence-authority/SKILL.md
   - docs/GATE_7_PROMOTE.md
-  - docs/JUDGE_ASSURANCE_P3.md
-  - docs/REAL_FAILURE_EVIDENCE.md
-  - docs/RUBRIC_EVIDENCE_MATRIX.md
-  - docs/CLAIM_LEDGER.md
-  - docs/DEMO_QA_GATE_6_75.md
+  - evidence/canonical-run/STATUS.json
 
 repo:
+  upstream: https://github.com/opeblow/clawrena
+  merged_pr_1: https://github.com/opeblow/clawrena/pull/1
+  upstream_merge_commit: 171576483ff589dcf41c07f25a671134628ef073
   fork: https://github.com/Faadil1/clawrena
-  branch: winning-delta-p0-p2
-  upstream_pr: https://github.com/opeblow/clawrena/pull/1
+  branch: winning-intelligence-p11
 
-what_changed_p10:
-  - approved forensic judge homepage was implemented from the accepted design direction
-  - long SaaS-style landing sequence was replaced by a compact judge-first entry page
-  - homepage now leads with Capital moves only when evidence says yes
-  - status rail exposes live market, authority locked, unknown veto, paper default, and verified on-chain boundary
-  - investigation flow is visible above the fold: discover -> claim -> investigate -> qualify -> execute/refuse -> prove
-  - example dossier is explicitly labeled NOT RUNTIME EVIDENCE to preserve truth boundaries
-  - unique hawk-eye crest replaced the generic A mark
-  - the same crest is used on the homepage, app shell, CTA surfaces, and favicon
-  - browser favicon and theme color were added to index.html
-  - upstream CI run #34 passed security, integrity, logic, typecheck, lint, and build
-  - live static assets were published from source 41926a4b0ae8425a661cd40f30d98316d7079ce0
-  - immutable asset commit is ae2117a58eebdd21ac55b5ccdef7ebc822da9564
-  - Vercel production deployment dpl_Cpo1EUbEymcV3ZdkczKQAXgaaynf is READY
-  - stable URL https://clawrena-alpha-scout-review.vercel.app serves the approved build
-  - deployment provenance and alpha-scout.svg both return HTTP 200
-  - auth round trip has been visually verified by reaching the authenticated dashboard
+what_changed_p11:
+  - reran Winning Intelligence after PR #1 was merged instead of continuing from the old feature branch
+  - re-read official Clawrena judging and current competitive/leaderboard surfaces
+  - identified category collision with ClawPump community Alpha Scanner, Meme Token Analyzer and Risk Manager skills
+  - repositioned Alpha Scout from generic autonomous launch trader / alpha scanner to Evidence Underwriter / Execution Authority
+  - added versioned Evidence Passports to new decision receipts
+  - Evidence Passport includes deterministic replay key, policy state, freshness expiry and counterfactual reconsideration conditions
+  - corrected an initial hidden spot: passing evidence is QUALIFIED, never labelled AUTHORIZED before last-mile provider/risk checks
+  - added machine-readable GET /authority-policy
+  - added cross-agent POST /underwrite requiring mint plus verified Pump launch signature
+  - /underwrite independently re-fetches Pump create/create_v2 provenance and live market/holder evidence before QUALIFIED or REFUSED
+  - /underwrite never signs, submits or moves value
+  - packaged reusable ClawPump/Hermes Evidence Authority custom skill
+  - added current Clawrena competitive intelligence snapshot
+  - documented an ANSEM-funded underwriting demo path using official ClawPump billing support, explicitly NOT YET PROVED
+  - intentionally did not start another UI/UX pass before the new product category has runtime proof
 
-live_frontend:
-  url: https://clawrena-alpha-scout-review.vercel.app
-  vercel_deployment_id: dpl_Cpo1EUbEymcV3ZdkczKQAXgaaynf
-  source_sha: 41926a4b0ae8425a661cd40f30d98316d7079ce0
-  static_asset_branch: live-preview-dist
-  asset_commit: ae2117a58eebdd21ac55b5ccdef7ebc822da9564
-  convex_client_url: https://grandiose-poodle-700.convex.cloud
-  root_http_status: 200
-  provenance_http_status: 200
-  favicon_http_status: 200
-  backend_bundle_bound: true
-  auth_round_trip_verified: true
-  convex_http_health_verified: false
-  canonical_runtime_evidence: false
+competitive_findings:
+  official_analytics_observed_tokenized_entries: 154
+  official_analytics_observed_fee_generating_entries: 85
+  alpha_scout_found_by_name_on_official_analytics_at_review: false
+  collisions:
+    - ClawPump Alpha Scanner community skill
+    - ClawPump Meme Token Analyzer community skill
+    - ClawPump Risk Manager community skill
+  strong_patterns:
+    - SelfMade: one-sentence mission plus closed Earn-Prove-Build-Reinvest loop
+    - HyperBull: on-chain receipts plus human-signature boundary
+    - MarketBubbleSearch: evidence and refusal-to-guess visible as product behavior
+    - Agent Heights: memorable spatial product metaphor
+    - Steve: autonomous trading plus risk controls already occupied language
 
-visual_contract:
-  home: APPROVED_FORENSIC_JUDGE_HOME
-  workstation: P8_FORENSIC_WORKSTATION
-  identity: HAWK_EYE_CREST
-  palette: warm_paper_rust_olive_graphite
-  judge_length: compact_single_entry_sequence
-  example_data_boundary: NOT_RUNTIME_EVIDENCE
+truth_boundaries:
+  qualified_is_authorized: false
+  prepare_is_execution: false
+  pending_is_verified: false
+  paper_is_onchain: false
+  replay_key_is_crypto_signature: false
+  underwrite_moves_value: false
+  ansem_funded_demo_proved: false
+  x402_service_deployed: false
+
+validation_status:
+  p11_branch_created_from_upstream_merge: true
+  upstream_draft_pr_creation: blocked_by_github_app_403
+  full_ci: pending
+  p11_convex_deploy: pending
+  endpoint_runtime_probe: pending
+  custom_skill_real_import: pending
 
 next_actions_priority:
-  - visually inspect the deployed P10 homepage against the approved reference on desktop and mobile
-  - read the exact VITE_CONVEX_SITE_URL from local .env.local and probe /healthz
-  - configure HELIUS_API_KEY, HELIUS_WEBHOOK_SECRET and CLAWPUMP_API_KEY in the Convex deployment; JUPITER_API_KEY optional
-  - capture one real live-market REJECT or UNKNOWN receipt and preserve it in evidence/canonical-run/STATUS.json
-  - deploy the same runtime to Cloudflare Pages as preferred canonical frontend
-  - verify registration, X/follow and ClawPump tokenization receipts before 2026-09-20T23:59:00Z
-  - after tokenization, observe the real Agent Treasury ledger and capture it
-  - run TRACE Gate 6.5 on desktop/mobile runtime
-  - run npm run gate:submission; Gate 7 remains blocked until every hard receipt exists
+  - validate P11 with npm run verify:integrity, npm run test:logic, typecheck, lint and build
+  - deploy P11 Convex functions to grandiose-poodle-700 and probe /healthz, /authority-policy and /underwrite
+  - import Evidence Authority as a real custom skill on a ClawPump/Hermes agent
+  - run that external agent against a real Pump launch and capture a genuine REFUSED or QUALIFIED underwriting result
+  - capture canonical real negative-path receipt and update evidence/canonical-run/STATUS.json
+  - close registration/X/tokenization eligibility receipts before 2026-09-20T23:59:00Z
+  - if possible, fund a ClawPump billing wallet with ANSEM and prove one real underwriting run before making the ANSEM-use claim
+  - only after these proofs, run the next TRACE/UI pass around Proof-of-Authority rather than a trading-dashboard metaphor
 
 never_do:
-  - do_not_convert_example_dossier_to_runtime_evidence
-  - do_not_convert_LIVE_FRONTEND_to_CANONICAL_RUNTIME_without_real_convex_health_and_negative_path
+  - do_not_call_qualified_authorized_before_last_mile_preflight
+  - do_not_accept_caller_scores_as_verified_underwriting_evidence
   - do_not_convert_PREPARE_or_PENDING_to_VERIFIED_without_signature_and_confirmation
-  - do_not_use_test_fixture_as_submission_evidence
-  - do_not_hide_rejects_unknowns_or_provider_degradation
-  - do_not_claim_realised_alpha_without_real_performance_evidence
-  - do_not_claim_wash_bundle_honeypot_classifiers_are_live
-  - do_not_mark_eligibility_verified_without_receipt_links
-  - do_not_claim_creator_fee_share_is_holder_revenue_share
-  - do_not_claim_automated_treasury_spending_before_it_exists
+  - do_not_claim_ansem_funded_until_real_billing_and_run_receipts_exist
+  - do_not_claim_x402_service_until_a_real_paid_endpoint_exists
+  - do_not_copy_competitor_staking_yield_buyback_mechanics_without_product_need
+  - do_not_hide_rejects_unknowns_provider_degradation_or_failed_attempts
+  - do_not_mark_eligibility_verified_without_external_receipts
+  - do_not_reopen_ui_before_p11_category_and_runtime_proof_are_stable

@@ -1,11 +1,16 @@
 project: alpha-scout-clawrena
-canonical_branch: winning-delta-p0-p2
-upstream_pr: https://github.com/opeblow/clawrena/pull/1
-phase: P10_APPROVED_JUDGE_HOME_LIVE
+canonical_branch: winning-intelligence-p11
+upstream_merge_commit: 171576483ff589dcf41c07f25a671134628ef073
+upstream_merged_pr: https://github.com/opeblow/clawrena/pull/1
+phase: P11_WINNING_INTELLIGENCE_EXECUTION_AUTHORITY
 updated_at: 2026-09-15
 
 product_truth:
+  current_category: evidence_underwriter_and_execution_authority
+  old_category_alpha_scanner: rejected_due_to_platform_collision
   local_execution: paper
+  evidence_gate_pass_state: QUALIFIED
+  qualified_means_execution_authorized: false
   clawpump_partner_api: unsigned_prepare_only
   verified_onchain_execution: pending
   verified_volume_rule: onchain_mode_plus_signature_plus_confirmation_slot
@@ -16,19 +21,34 @@ product_truth:
   automated_treasury_spending: not_built
   convex_cloud_project: created
   convex_cloud_deployment: grandiose-poodle-700
-  convex_functions_ready: true
-  public_live_frontend: reachable
-  public_live_frontend_convex_bound: true
-  public_home_visual: approved_forensic_judge_home
-  brand_identity: hawk_eye_crest
-  favicon_verified: true
+  convex_functions_ready_for_merged_p10: true
+  p11_convex_deployed: false
+  p11_authority_policy_endpoint: coded_not_deployed
+  p11_underwrite_endpoint: coded_not_deployed
+  p11_evidence_authority_skill: packaged_not_imported
+  ansem_funded_underwriting_demo: planned_not_proved
+  public_live_frontend: reachable_p10
   auth_round_trip_verified: true
   convex_http_health_verified: false
   canonical_public_runtime: pending
 
 canonical_thesis: >-
-  Alpha Scout is an evidence-first autonomous launch trader that can prove why it traded,
-  why it refused, and what the linked agent actually earned instead of inventing token utility.
+  Other agents can discover, analyze, recommend or trade. Alpha Scout independently verifies
+  the evidence record, returns QUALIFIED or REFUSED, and preserves a replayable Evidence Passport.
+  QUALIFIED is not execution authorization: last-mile provider and risk checks still control value movement.
+
+winning_intelligence_p11:
+  official_rubric_source: https://clawpump.tech/ansemhack
+  competitive_snapshot: docs/COMPETITIVE_INTELLIGENCE_2026-09-15.md
+  requalification: docs/WINNING_INTELLIGENCE_P11.md
+  evidence_passport_policy: AS-AUTHORITY-V1
+  public_policy_route: GET /authority-policy
+  cross_agent_underwrite_route: POST /underwrite
+  skill_package: skills/evidence-authority/SKILL.md
+  ansem_demo_plan: docs/ANSEM_AUTHORITY_DEMO.md
+  leaderboard_observation_at_review: alpha_scout_not_found_by_name
+  observed_tokenized_entries: 154
+  observed_fee_generating_entries: 85
 
 completed_gates:
   - rubric_mapping
@@ -50,25 +70,32 @@ completed_gates:
   - agent_treasury_observability
   - token_utility_claim_boundary
   - convex_cloud_project_created
-  - convex_dev_schema_and_functions_deployed
-  - live_frontend_built_against_real_convex_url
-  - public_live_frontend_root_reachability
-  - public_live_frontend_proof_route_reachability
   - public_auth_round_trip
   - p8_forensic_workstation
   - p10_approved_judge_home_implementation
   - hawk_eye_logo_and_favicon
-  - immutable_live_asset_publication
-  - public_deployment_provenance_verified
-  - upstream_ci_34_green
+  - p11_official_rubric_requalification
+  - p11_competitive_scan
+  - p11_category_collision_diagnosed
+  - p11_evidence_passport_coded
+  - p11_counterfactual_refusal_coded
+  - p11_machine_readable_policy_coded
+  - p11_cross_agent_underwriting_coded
+  - p11_qualified_not_authorized_boundary
+  - p11_evidence_authority_skill_packaged
 
 conditional_gates:
   - trace_gate_6_5_visual_runtime_review
   - judge_performance_assurance
   - agent_advantage_runtime_demo
   - verified_onchain_execution_if_attempted
+  - ansem_funded_underwriting_demo
+  - x402_underwriting_service_only_if_real_paid_service_is_deployed
 
 blocking_gates:
+  - p11_full_ci_validation
+  - p11_convex_deploy_and_endpoint_probes
+  - evidence_authority_skill_import_into_real_clawpump_or_hermes_agent
   - convex_http_health_probe
   - runtime_provider_secret_configuration
   - eligibility_external_receipts
@@ -76,11 +103,15 @@ blocking_gates:
   - public_cloudflare_runtime_deploy
   - canonical_real_negative_path_capture
   - real_agent_treasury_capture_after_tokenization
+  - attention_and_stream_receipts
   - gate_7_promote
 
 strategic_open:
   - real_onchain_volume
   - attention_and_stream_distribution
+  - ansem_funded_live_underwriting_run
+  - cross_agent_underwriting_usage
+  - possible_x402_monetization_after_real_service_usage
   - bounded_treasury_spending_policy_with_receipts
 
 eligibility:
@@ -92,47 +123,33 @@ eligibility:
 
 runtime:
   preferred_frontend: cloudflare_pages
-  deployment_runbook: docs/DEPLOYMENT_CLOUDFLARE_CONVEX.md
-  live_frontend_url: https://clawrena-alpha-scout-review.vercel.app
-  live_frontend_vercel_deployment_id: dpl_Cpo1EUbEymcV3ZdkczKQAXgaaynf
-  live_frontend_source_sha: 41926a4b0ae8425a661cd40f30d98316d7079ce0
-  live_asset_branch: live-preview-dist
-  live_asset_commit: ae2117a58eebdd21ac55b5ccdef7ebc822da9564
-  live_frontend_root_http_status: 200
-  live_frontend_provenance_http_status: 200
-  live_frontend_favicon_http_status: 200
-  convex_client_url: https://grandiose-poodle-700.convex.cloud
-  convex_http_url: pending_verified_value_from_env_local
+  current_p10_live_frontend_url: https://clawrena-alpha-scout-review.vercel.app
+  current_p10_convex_client_url: https://grandiose-poodle-700.convex.cloud
+  p11_source_branch: winning-intelligence-p11
+  p11_source_head_before_state_commit: 87e6d438f3211b73a91ae7096b82c2a3f55ff79e
+  p11_deployed: false
   live_frontend_is_canonical_runtime: false
-  live_frontend_evidence: evidence/runtime/LIVE_FRONTEND.json
-  reachability_evidence: evidence/runtime/LATEST.json
   canonical_run_status: evidence/canonical-run/STATUS.json
   promotion_command: npm run gate:submission
 
 visual_system:
-  approved_home_reference: forensic_editorial_judge_entry
-  home_message: Capital moves only when evidence says yes.
-  palette:
-    paper: '#F3EFE4'
-    rust: '#D94D1B'
-    olive: '#324638'
-    ink: '#171913'
+  current_p10_direction: forensic_editorial_judge_entry
+  next_visual_pass_status: blocked_until_p11_runtime_proof
+  next_visual_category: proof_of_authority_workstation
+  next_visual_rule: do_not_start_from_generic_trading_dashboard_references
   identity_asset: public/alpha-scout.svg
-  example_dossier_rule: NOT_RUNTIME_EVIDENCE
 
 canonical_artifacts:
+  winning_intelligence_p11: docs/WINNING_INTELLIGENCE_P11.md
+  competitive_intelligence: docs/COMPETITIVE_INTELLIGENCE_2026-09-15.md
+  ansem_demo: docs/ANSEM_AUTHORITY_DEMO.md
+  evidence_authority_skill: skills/evidence-authority/SKILL.md
   real_failure: docs/REAL_FAILURE_EVIDENCE.md
   rubric_matrix: docs/RUBRIC_EVIDENCE_MATRIX.md
   claim_ledger: docs/CLAIM_LEDGER.md
   token_utility: docs/TOKEN_UTILITY.md
-  p3_gate_matrix: docs/JUDGE_ASSURANCE_P3.md
-  p4_runtime_submission: docs/P4_RUNTIME_SUBMISSION.md
-  deploy_runbook: docs/DEPLOYMENT_CLOUDFLARE_CONVEX.md
   gate_7: docs/GATE_7_PROMOTE.md
   demo_qa: docs/DEMO_QA_GATE_6_75.md
-  collision_agent_advantage: docs/COLLISION_AGENT_ADVANTAGE.md
   trace_6_5: docs/TRACE_GATE_6_5.md
   eligibility_status: evidence/eligibility/STATUS.json
-  runtime_status: evidence/runtime/LATEST.json
-  live_frontend_status: evidence/runtime/LIVE_FRONTEND.json
   canonical_run_status: evidence/canonical-run/STATUS.json
