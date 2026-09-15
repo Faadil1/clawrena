@@ -1,0 +1,21 @@
+{
+  "artifactClass": "PUBLIC_LIVE_FRONTEND_BOUND_TO_CONVEX",
+  "status": "PUBLIC_FRONTEND_REACHABLE_CONVEX_BOUND",
+  "publicUrl": "https://clawrena-alpha-scout-review.vercel.app",
+  "vercelDeploymentId": "dpl_5DWoXE5AkFBXMPKuqBFyCD5L3e6B",
+  "sourceRef": "winning-delta-p0-p2",
+  "sourceSha": "47225cf29f1af76bd203657c8d3369cd2f58d9d4",
+  "staticAssetBranch": "live-preview-dist",
+  "convexClientUrl": "https://grandiose-poodle-700.convex.cloud",
+  "builtAt": "2026-09-15T13:19:07Z",
+  "probes": {
+    "frontendRoot": { "checked": true, "status": 200 },
+    "frontendProofRoute": { "checked": true, "status": 200 },
+    "deploymentProvenance": { "checked": true, "status": 200 },
+    "convexHttpHealth": { "checked": false, "status": null },
+    "authRoundTrip": { "checked": false, "status": null }
+  },
+  "canonicalRuntimeEvidence": false,
+  "fakeSuccessForbidden": true,
+  "notes": "The public frontend is built with the real Convex client URL and is reachable. Canonical runtime promotion remains blocked until Convex HTTP health, auth, and a real live-market negative-path receipt are verified."
+}
