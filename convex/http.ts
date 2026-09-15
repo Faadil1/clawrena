@@ -1,7 +1,7 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { auth } from "./auth";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { evidencePolicyDescriptor } from "./lib/evidencePolicy";
 import { compareUnderwritingDecisions, underwritePumpLaunch } from "./lib/underwriting";
 
@@ -41,6 +41,21 @@ export const authorityPolicy = httpAction(async () => json({
   fakeSuccessForbidden: true,
 }));
 
+export const authorityStats = httpAction(async (ctx) => {
+  const stats = await ctx.runQuery(api.queries.public.publicStats, {});
+  return json({
+    service: "alpha-scout",
+    metricClass: "AUTHORITY_REQUEST_ACTIVITY",
+    underwritingDecisions: stats.underwritingDecisions,
+    underwritingQualified: stats.underwritingQualified,
+    underwritingRefused: stats.underwritingRefused,
+    underwritingLineageReruns: stats.underwritingLineageReruns,
+    requestCountsAreNotUniqueAgents: true,
+    notTradingVolume: true,
+    notRealisedPerformance: true,
+  });
+});
+
 export const authorityOpenApi = httpAction(async (_ctx, request) => {
   const origin = new URL(request.url).origin;
   return json({
@@ -49,6 +64,7 @@ export const authorityOpenApi = httpAction(async (_ctx, request) => {
     servers: [{ url: origin }],
     paths: {
       "/authority-policy": { get: { summary: "Read the current versioned evidence policy" } },
+      "/authority-stats": { get: { summary: "Read transparent underwriting request counts; never unique users or trading volume" } },
       "/underwrite": {
         post: {
           summary: "Independently underwrite a Pump launch without moving value",
@@ -156,6 +172,7 @@ export const heliusWebhook = httpAction(async (ctx, request) => {
 
 http.route({ path: "/healthz", method: "GET", handler: healthz });
 http.route({ path: "/authority-policy", method: "GET", handler: authorityPolicy });
+http.route({ path: "/authority-stats", method: "GET", handler: authorityStats });
 http.route({ path: "/authority-openapi", method: "GET", handler: authorityOpenApi });
 http.route({ path: "/underwrite", method: "POST", handler: underwrite });
 http.route({ path: "/reunderwrite", method: "POST", handler: reunderwrite });
