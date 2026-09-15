@@ -1,5 +1,11 @@
 import { getJson, postJson } from "./http";
-import { isPumpCreateInstructionData, PUMP_CREATE, PUMP_CREATE_V2 } from "./pumpInstruction";
+import {
+  findPumpCreateMintInInstructions,
+  isPumpCreateInstructionData,
+  PUMP_CREATE,
+  PUMP_CREATE_V2,
+  type SolanaInstructionLike,
+} from "./pumpInstruction";
 
 const PUMP_FUN_PROGRAM = "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P";
 const SPL_TOKEN_PROGRAM = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
@@ -177,33 +183,99 @@ export async function fetchHolderConcentration(mint: string): Promise<HolderConc
   } catch { return null; }
 }
 
-export async function fetchRecentLaunches(limit = 25): Promise<string[]> {
+type SignatureRow = { signature?: string };
+
+async function fetchRecentLaunchPage(limit = 100, before?: string): Promise<string[]> {
   try {
     const boundedLimit = Math.max(1, Math.min(100, Math.floor(limit)));
-    const res = await rpcCall("getSignaturesForAddress", [PUMP_FUN_PROGRAM, { limit: boundedLimit, commitment: "confirmed" }]);
-    const signatures: Array<{ signature?: string }> = res.result ?? [];
+    const options: { limit: number; commitment: "confirmed"; before?: string } = {
+      limit: boundedLimit,
+      commitment: "confirmed",
+    };
+    if (before) options.before = before;
+    const res = await rpcCall("getSignaturesForAddress", [PUMP_FUN_PROGRAM, options]);
+    const signatures: SignatureRow[] = res.result ?? [];
     return signatures.map((item) => item.signature ?? "").filter(Boolean);
-  } catch { return []; }
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchRecentLaunches(limit = 25): Promise<string[]> {
+  return fetchRecentLaunchPage(limit);
 }
 
 export type LaunchEvent = { mint: string; signature: string; ts: number };
+export type LaunchDiscoveryResult = {
+  events: LaunchEvent[];
+  signatureLimitRequested: number;
+  signatureLimitApplied: number;
+  signaturesExamined: number;
+  pagesSearched: number;
+  dedicatedRpcConfigured: boolean;
+};
 
 /**
- * Search a bounded window of recent Pump-program transactions until enough
- * strict create/create_v2 launches are found. This removes the old hidden
- * 15-transaction cap without weakening launch provenance or synthesizing data.
+ * Search a bounded, paginated window of recent Pump-program transactions until
+ * enough strict create/create_v2 launches are found. Verification is performed
+ * in small parallel batches to keep a larger search window practical while
+ * remaining bounded and fail-closed.
  */
-export async function fetchLaunchMints(signatureLimit = 50, maxEvents = 3): Promise<LaunchEvent[]> {
-  const signatures = await fetchRecentLaunches(signatureLimit);
-  const events: LaunchEvent[] = [];
+export async function fetchLaunchMintsWithDiagnostics(
+  signatureLimit = 50,
+  maxEvents = 3,
+): Promise<LaunchDiscoveryResult> {
+  const requested = Number.isFinite(signatureLimit) ? Math.floor(signatureLimit) : 50;
+  const cap = Math.max(1, Math.min(500, requested));
   const eventCap = Math.max(1, Math.min(10, Math.floor(maxEvents)));
-  for (const signature of signatures) {
-    const result = await findMintCreatedInTx(signature);
-    if (!result) continue;
-    events.push({ mint: result.mint, signature, ts: result.blockTime ?? Date.now() });
-    if (events.length >= eventCap) break;
+  const events: LaunchEvent[] = [];
+  const seen = new Set<string>();
+  let before: string | undefined;
+  let signaturesExamined = 0;
+  let pagesSearched = 0;
+
+  while (signaturesExamined < cap && events.length < eventCap) {
+    const remaining = cap - signaturesExamined;
+    const page = await fetchRecentLaunchPage(Math.min(100, remaining), before);
+    if (page.length === 0) break;
+    pagesSearched += 1;
+
+    for (let index = 0; index < page.length && events.length < eventCap; index += 6) {
+      const batch = page.slice(index, index + 6).filter((signature) => !seen.has(signature));
+      for (const signature of batch) seen.add(signature);
+      const verified = await Promise.all(batch.map(async (signature) => ({
+        signature,
+        result: await findMintCreatedInTx(signature),
+      })));
+      signaturesExamined += batch.length;
+      for (const item of verified) {
+        if (!item.result) continue;
+        events.push({
+          mint: item.result.mint,
+          signature: item.signature,
+          ts: item.result.blockTime ?? Date.now(),
+        });
+        if (events.length >= eventCap) break;
+      }
+      if (signaturesExamined >= cap) break;
+    }
+
+    if (page.length < Math.min(100, remaining)) break;
+    before = page[page.length - 1];
   }
-  return events;
+
+  return {
+    events,
+    signatureLimitRequested: requested,
+    signatureLimitApplied: cap,
+    signaturesExamined,
+    pagesSearched,
+    dedicatedRpcConfigured: isMarketConfigured(),
+  };
+}
+
+export async function fetchLaunchMints(signatureLimit = 50, maxEvents = 3): Promise<LaunchEvent[]> {
+  return (await fetchLaunchMintsWithDiagnostics(signatureLimit, maxEvents)).events;
 }
 
 /** Only official Pump create/create_v2 instructions qualify as launch provenance. */
@@ -211,25 +283,24 @@ export async function findMintCreatedInTx(signature: string): Promise<{ mint: st
   try {
     const res = await rpcCall("getTransaction", [signature, { encoding: "jsonParsed", maxSupportedTransactionVersion: 0 }]);
     const tx = res.result as null | {
-      transaction?: { message?: { instructions?: Array<{ programId?: string; accounts?: string[]; data?: string }> } };
-      blockTime?: number;
+      transaction?: { message?: { instructions?: SolanaInstructionLike[] } };
+      meta?: { innerInstructions?: Array<{ index?: number; instructions?: SolanaInstructionLike[] }> };
+      blockTime?: number | null;
       slot?: number;
     };
-    const instructions = tx?.transaction?.message?.instructions ?? [];
-    for (const instruction of instructions) {
-      if (instruction.programId !== PUMP_FUN_PROGRAM || typeof instruction.data !== "string") continue;
-      if (!isPumpCreateInstructionData(instruction.data)) continue;
-      const mint = instruction.accounts?.[0];
-      if (typeof mint === "string" && MINT_RE.test(mint)) {
-        return {
-          mint,
-          blockTime: tx?.blockTime ? tx.blockTime * 1000 : undefined,
-          slot: Number.isFinite(Number(tx?.slot)) ? Number(tx?.slot) : undefined,
-        };
-      }
-    }
+    const topLevel = tx?.transaction?.message?.instructions ?? [];
+    const inner = (tx?.meta?.innerInstructions ?? []).flatMap((group) => group.instructions ?? []);
+    const mint = findPumpCreateMintInInstructions([...topLevel, ...inner], PUMP_FUN_PROGRAM);
+    if (!mint || !MINT_RE.test(mint)) return null;
+    const blockTimeSeconds = Number(tx?.blockTime);
+    return {
+      mint,
+      blockTime: Number.isFinite(blockTimeSeconds) && blockTimeSeconds > 0 ? blockTimeSeconds * 1000 : undefined,
+      slot: Number.isFinite(Number(tx?.slot)) ? Number(tx?.slot) : undefined,
+    };
+  } catch {
     return null;
-  } catch { return null; }
+  }
 }
 
-export { PUMP_FUN_PROGRAM, SPL_TOKEN_PROGRAM, SOL_MINT, SYSTEM_PROGRAM, PUMP_CREATE, PUMP_CREATE_V2 };
+export { PUMP_FUN_PROGRAM, SPL_TOKEN_PROGRAM, SOL_MINT, SYSTEM_PROGRAM, PUMP_CREATE, PUMP_CREATE_V2, isPumpCreateInstructionData };
