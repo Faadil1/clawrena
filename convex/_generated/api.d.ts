@@ -18,6 +18,7 @@ import type * as evidence from "../evidence.js";
 import type * as http from "../http.js";
 import type * as lib_claimLease from "../lib/claimLease.js";
 import type * as lib_clawpump from "../lib/clawpump.js";
+import type * as lib_evidencePassport from "../lib/evidencePassport.js";
 import type * as lib_evidencePolicy from "../lib/evidencePolicy.js";
 import type * as lib_evidenceScore from "../lib/evidenceScore.js";
 import type * as lib_executionAuthority from "../lib/executionAuthority.js";
@@ -55,6 +56,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   "lib/claimLease": typeof lib_claimLease;
   "lib/clawpump": typeof lib_clawpump;
+  "lib/evidencePassport": typeof lib_evidencePassport;
   "lib/evidencePolicy": typeof lib_evidencePolicy;
   "lib/evidenceScore": typeof lib_evidenceScore;
   "lib/executionAuthority": typeof lib_executionAuthority;
