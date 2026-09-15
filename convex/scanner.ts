@@ -7,7 +7,6 @@ import { internal } from "./_generated/api";
 import {
   fetchLaunchMintsWithDiagnostics,
   findMintCreatedInTx,
-  isMarketConfigured,
 } from "./lib/market";
 
 type LaunchEvent = { mint: string; signature: string; ts: number };
