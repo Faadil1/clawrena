@@ -47,7 +47,14 @@ export async function fetchSolUsdRate(): Promise<number | null> {
   return rate !== undefined && rate > 0 ? rate : null;
 }
 
-export type MarketSnapshot = { priceUsd?: number; liquidityUsd?: number; decimals?: number; priceChange24h?: number };
+export type MarketSnapshot = {
+  priceUsd?: number;
+  liquidityUsd?: number;
+  decimals?: number;
+  priceChange24h?: number;
+  blockId?: number;
+  observedAt: number;
+};
 export async function fetchMarketSnapshot(mints: string[]): Promise<Record<string, MarketSnapshot>> {
   const ids = [...new Set(mints)].slice(0, 50);
   if (ids.length === 0) return {};
@@ -55,6 +62,7 @@ export async function fetchMarketSnapshot(mints: string[]): Promise<Record<strin
   const key = process.env.JUPITER_API_KEY;
   if (key) headers["x-api-key"] = key;
   try {
+    const observedAt = Date.now();
     const body = await getJson<Record<string, Record<string, unknown>>>(`https://api.jup.ag/price/v3?ids=${ids.join(",")}`, 8_000, headers);
     const map = (body.data ?? body) as Record<string, Record<string, unknown>>;
     const out: Record<string, MarketSnapshot> = {};
@@ -70,8 +78,12 @@ export async function fetchMarketSnapshot(mints: string[]): Promise<Record<strin
         return undefined;
       };
       const snap: MarketSnapshot = {
-        priceUsd: num(["usdPrice", "price"]), liquidityUsd: num(["liquidity"]),
-        decimals: num(["decimals"]), priceChange24h: num(["priceChange24h"]),
+        priceUsd: num(["usdPrice", "price"]),
+        liquidityUsd: num(["liquidity"]),
+        decimals: num(["decimals"]),
+        priceChange24h: num(["priceChange24h"]),
+        blockId: num(["blockId"]),
+        observedAt,
       };
       if (snap.priceUsd !== undefined) out[mint] = snap;
     }
@@ -94,18 +106,21 @@ export async function fetchTokenMeta(mint: string): Promise<{ name?: string; sym
 }
 
 export type HolderConcentration = {
-  mint: string; supply: number; largestHolderAmount: number; largestHolderPct: number;
-  holderCount: number; sampledOwnerCount: number; programControlledPct: number;
+  mint: string;
+  supply: number;
+  largestHolderAmount: number;
+  largestHolderPct: number;
+  holderCount: number;
+  sampledOwnerCount: number;
+  programControlledPct: number;
+  observedAt: number;
+  observationSlot?: number;
 };
 
-/**
- * Aggregate the largest token accounts by economic owner, then exclude owners
- * that are themselves Pump-program accounts (e.g. bonding-curve custody).
- * This is still a top-account sample, not a total holder census, so the UI
- * deliberately calls it sampled-owner concentration.
- */
+/** Aggregate sampled token accounts by economic owner and exclude Pump custody. */
 export async function fetchHolderConcentration(mint: string): Promise<HolderConcentration | null> {
   try {
+    const observedAt = Date.now();
     const [supplyRes, largestRes] = await Promise.all([
       rpcCall("getTokenSupply", [mint]), rpcCall("getTokenLargestAccounts", [mint]),
     ]);
@@ -142,10 +157,22 @@ export async function fetchHolderConcentration(mint: string): Promise<HolderConc
     }
     const largest = sampledUserOwners.reduce((max, current) => current[1] > max ? current[1] : max, 0);
     const sampledOwnerCount = sampledUserOwners.length;
+    const slots = [
+      supplyRes.result?.context?.slot,
+      largestRes.result?.context?.slot,
+      parsed.result?.context?.slot,
+      ownerAccounts.result?.context?.slot,
+    ].map(Number).filter(Number.isFinite);
     return {
-      mint, supply, largestHolderAmount: largest, largestHolderPct: (largest / supply) * 100,
-      holderCount: sampledOwnerCount, sampledOwnerCount,
+      mint,
+      supply,
+      largestHolderAmount: largest,
+      largestHolderPct: (largest / supply) * 100,
+      holderCount: sampledOwnerCount,
+      sampledOwnerCount,
       programControlledPct: (programControlledAmount / supply) * 100,
+      observedAt,
+      observationSlot: slots.length > 0 ? Math.max(...slots) : undefined,
     };
   } catch { return null; }
 }
@@ -169,17 +196,14 @@ export async function fetchLaunchMints(limit = 25): Promise<LaunchEvent[]> {
   return events;
 }
 
-/**
- * Strict launch verification: only Pump `create` or `create_v2` instructions
- * qualify. A new ATA or token-balance delta is never sufficient evidence.
- * The mint is account #1 in both official Pump IDL instructions.
- */
-export async function findMintCreatedInTx(signature: string): Promise<{ mint: string; blockTime?: number } | null> {
+/** Only official Pump create/create_v2 instructions qualify as launch provenance. */
+export async function findMintCreatedInTx(signature: string): Promise<{ mint: string; blockTime?: number; slot?: number } | null> {
   try {
     const res = await rpcCall("getTransaction", [signature, { encoding: "jsonParsed", maxSupportedTransactionVersion: 0 }]);
     const tx = res.result as null | {
       transaction?: { message?: { instructions?: Array<{ programId?: string; accounts?: string[]; data?: string }> } };
       blockTime?: number;
+      slot?: number;
     };
     const instructions = tx?.transaction?.message?.instructions ?? [];
     for (const instruction of instructions) {
@@ -187,7 +211,11 @@ export async function findMintCreatedInTx(signature: string): Promise<{ mint: st
       if (!isPumpCreateInstructionData(instruction.data)) continue;
       const mint = instruction.accounts?.[0];
       if (typeof mint === "string" && MINT_RE.test(mint)) {
-        return { mint, blockTime: tx?.blockTime ? tx.blockTime * 1000 : undefined };
+        return {
+          mint,
+          blockTime: tx?.blockTime ? tx.blockTime * 1000 : undefined,
+          slot: Number.isFinite(Number(tx?.slot)) ? Number(tx?.slot) : undefined,
+        };
       }
     }
     return null;
