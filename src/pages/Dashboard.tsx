@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { formatSol, formatPrice, shorten, timeAgo } from "../lib/format";
+import { formatSol, shorten, timeAgo } from "../lib/format";
 
 type PositionRow = {
   _id: string;
