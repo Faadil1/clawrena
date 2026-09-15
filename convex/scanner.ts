@@ -4,10 +4,20 @@ import { action, internalAction } from "./_generated/server";
 import type { ActionCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { fetchLaunchMints, findMintCreatedInTx, isMarketConfigured } from "./lib/market";
+import {
+  fetchLaunchMintsWithDiagnostics,
+  findMintCreatedInTx,
+  isMarketConfigured,
+} from "./lib/market";
 
 type LaunchEvent = { mint: string; signature: string; ts: number };
-type ScanResult = { configured: boolean; verified: number; inserted: number };
+type ScanResult = {
+  configured: boolean;
+  verified: number;
+  inserted: number;
+  signaturesExamined: number;
+  pagesSearched: number;
+};
 
 async function ingestVerified(ctx: ActionCtx, events: LaunchEvent[]): Promise<number> {
   if (events.length === 0) return 0;
@@ -19,42 +29,61 @@ export const discover = internalAction({
   args: {},
   handler: async (ctx): Promise<ScanResult> => {
     const startedAt = Date.now();
-    const configured = isMarketConfigured();
-    const events = await fetchLaunchMints(40, 2);
-    const inserted: number = await ingestVerified(ctx, events);
+    const discovery = await fetchLaunchMintsWithDiagnostics(60, 2);
+    const inserted: number = await ingestVerified(ctx, discovery.events);
     await ctx.runMutation(internal.signals.recordTelemetry, {
       eventType: "scanner.run",
       payload: {
         source: "pump.fun",
-        verification: "create-discriminator",
-        configured,
-        searchedSignatureLimit: 40,
-        verified: events.length,
+        verification: "official-create-or-create-v2-top-level-or-cpi",
+        configured: discovery.dedicatedRpcConfigured,
+        signatureLimitRequested: discovery.signatureLimitRequested,
+        signatureLimitApplied: discovery.signatureLimitApplied,
+        signaturesExamined: discovery.signaturesExamined,
+        pagesSearched: discovery.pagesSearched,
+        verified: discovery.events.length,
         inserted,
         at: startedAt,
       },
     });
-    return { configured, verified: events.length, inserted };
-  },
-});
-
-export const discoverNow = action({
-  args: {},
-  handler: async (ctx): Promise<ScanResult & { events: LaunchEvent[]; searchedSignatureLimit: number }> => {
-    const searchedSignatureLimit = 60;
-    const events = await fetchLaunchMints(searchedSignatureLimit, 3);
-    const inserted: number = await ingestVerified(ctx, events);
     return {
-      configured: isMarketConfigured(),
-      verified: events.length,
+      configured: discovery.dedicatedRpcConfigured,
+      verified: discovery.events.length,
       inserted,
-      searchedSignatureLimit,
-      events,
+      signaturesExamined: discovery.signaturesExamined,
+      pagesSearched: discovery.pagesSearched,
     };
   },
 });
 
-/** Helius webhook signatures are candidates only; RPC instruction parsing is authority. */
+/**
+ * Judge/runtime proof discovery. The requested window is bounded in market.ts
+ * to 500 signatures so callers can improve recall without creating an
+ * unbounded public RPC crawler.
+ */
+export const discoverNow = action({
+  args: { signatureLimit: v.optional(v.number()) },
+  handler: async (ctx, { signatureLimit }): Promise<ScanResult & {
+    events: LaunchEvent[];
+    signatureLimitRequested: number;
+    signatureLimitApplied: number;
+  }> => {
+    const discovery = await fetchLaunchMintsWithDiagnostics(signatureLimit ?? 120, 3);
+    const inserted: number = await ingestVerified(ctx, discovery.events);
+    return {
+      configured: discovery.dedicatedRpcConfigured,
+      verified: discovery.events.length,
+      inserted,
+      signaturesExamined: discovery.signaturesExamined,
+      pagesSearched: discovery.pagesSearched,
+      signatureLimitRequested: discovery.signatureLimitRequested,
+      signatureLimitApplied: discovery.signatureLimitApplied,
+      events: discovery.events,
+    };
+  },
+});
+
+/** Helius is transport; RPC instruction parsing remains launch authority. */
 export const verifyLaunchSignatures = internalAction({
   args: { signatures: v.array(v.string()) },
   handler: async (ctx, { signatures }): Promise<{ candidates: number; verified: number; inserted: number }> => {
