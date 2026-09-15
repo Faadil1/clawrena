@@ -1,7 +1,8 @@
 project: alpha-scout-clawrena
-handover_version: P5_2026-09-15
+handover_version: P6_2026-09-15
 start_here:
   - state/CURRENT.yaml
+  - evidence/runtime/REVIEW_PREVIEW.json
   - docs/TOKEN_UTILITY.md
   - docs/P4_RUNTIME_SUBMISSION.md
   - docs/DEPLOYMENT_CLOUDFLARE_CONVEX.md
@@ -16,35 +17,39 @@ repo:
   fork: https://github.com/Faadil1/clawrena
   branch: winning-delta-p0-p2
   upstream_pr: https://github.com/opeblow/clawrena/pull/1
+  current_head_before_state_commit: c757bc7a4b169a605c5ceee4f9dfbdc9ec9ed36b
 
-what_changed_p5:
-  - added fail-closed normalization for the public ClawPump creator-fee ledger
-  - added read-only treasuryStatus action for the linked ClawPump agent
-  - added Agent Treasury judge-facing UI on /agent
-  - exposed earned, sent, pending and held creator-fee values without synthetic defaults
-  - documented the real 75 percent creator-share mechanism from ClawPump
-  - made holder revenue share, governance, yield, buybacks and automatic reinvestment explicitly prohibited claims
-  - updated rubric, claim ledger, demo Q&A and build plan around observable token economics
+what_changed_p6:
+  - added honest no-backend review mode so missing VITE_CONVEX_URL never becomes a crash or fake runtime
+  - added exact dist artifact upload to upstream CI
+  - upstream CI run 18 passed security, integrity, logic, typecheck, lint and build
+  - published public Vercel review preview at https://clawrena-alpha-scout-review.vercel.app
+  - verified public preview HTTP 200
+  - preserved the boundary that review-preview reachability is not canonical runtime evidence
+  - canonical runtime remains Cloudflare Pages plus a real Convex target
 
 next_actions_priority:
-  - wait for and respond to Opeyemi review on upstream PR
-  - create Cloudflare Pages preview for winning-delta-p0-p2
-  - deploy a Convex preview target with a preview deploy key
-  - run npm run capture:runtime against the actual public URLs
-  - capture one real live-market REJECT or UNKNOWN decision receipt
+  - discover or provision a real Convex preview deployment and obtain VITE_CONVEX_URL plus Convex HTTP URL
+  - keep HELIUS_API_KEY, HELIUS_WEBHOOK_SECRET, JUPITER_API_KEY and CLAWPUMP_API_KEY server-side only
+  - deploy winning-delta-p0-p2 to Cloudflare Pages against that Convex target
+  - run npm run capture:runtime against the real frontend and /healthz
+  - capture one real live-market REJECT or UNKNOWN receipt and preserve it in evidence/canonical-run/STATUS.json
   - verify registration, X/follow and ClawPump tokenization receipts before 2026-09-20T23:59:00Z
-  - after tokenization, observe the real Agent Treasury ledger and capture it for the demo
-  - run TRACE Gate 6.5 on the deployed desktop/mobile build
-  - run npm run gate:submission; Gate 7 remains blocked until it passes
+  - after tokenization, observe the real Agent Treasury ledger and capture it
+  - run TRACE Gate 6.5 on desktop/mobile deployed runtime
+  - run npm run gate:submission; Gate 7 remains blocked until every hard receipt exists
 
-strategic_after_runtime:
-  - prove token utility with actual creator-fee receipts, even if value is zero initially
-  - only then consider a bounded operating-treasury spending policy with caps and receipts
-  - add verified onchain execution only through a proven signing/execution path
-  - build real onchain volume if risk budget and authority permit
-  - lock the 15-minute stream story and adversarial Q&A
+review_preview:
+  url: https://clawrena-alpha-scout-review.vercel.app
+  vercel_deployment_id: dpl_8KzYivyvtke748j7YiuURbfsM3cw
+  source_sha: c757bc7a4b169a605c5ceee4f9dfbdc9ec9ed36b
+  upstream_ci_run: 18
+  dist_artifact_id: 10392932518
+  backend_connected: false
+  canonical_runtime_evidence: false
 
 never_do:
+  - do_not_convert_REVIEW_PREVIEW_to_CANONICAL_RUNTIME_without_real_convex_health
   - do_not_convert_PREPARE_or_PENDING_to_VERIFIED_without_signature_and_confirmation
   - do_not_use_test_fixture_as_submission_evidence
   - do_not_hide_rejects_unknowns_or_provider_degradation
