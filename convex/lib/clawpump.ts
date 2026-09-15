@@ -21,7 +21,7 @@ export function clawPumpConfigured(): boolean {
 
 async function request<T>(
   path: string,
-  init: RequestInit,
+  init: Parameters<typeof fetch>[1],
   timeoutMs: number,
 ): Promise<ClawPumpResponse<T>> {
   const controller = new AbortController();
@@ -32,7 +32,7 @@ async function request<T>(
       headers: {
         authorization: `Bearer ${apiKey()}`,
         "content-type": "application/json",
-        ...(init.headers ?? {}),
+        ...(init?.headers ?? {}),
       },
       signal: controller.signal,
     });
