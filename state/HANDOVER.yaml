@@ -1,9 +1,8 @@
 project: alpha-scout-clawrena
-handover_version: P7_2026-09-15
+handover_version: P10_2026-09-15
 start_here:
   - state/CURRENT.yaml
   - evidence/runtime/LIVE_FRONTEND.json
-  - evidence/runtime/REVIEW_PREVIEW.json
   - docs/TOKEN_UTILITY.md
   - docs/P4_RUNTIME_SUBMISSION.md
   - docs/DEPLOYMENT_CLOUDFLARE_CONVEX.md
@@ -19,33 +18,50 @@ repo:
   branch: winning-delta-p0-p2
   upstream_pr: https://github.com/opeblow/clawrena/pull/1
 
-what_changed_p7:
-  - user created real Convex Cloud project alpha-scout-clawrena
-  - Convex dev deployment grandiose-poodle-700 provisioned and schema/functions reported ready
-  - GitHub workflow Build Live Alpha Scout Preview #1 succeeded against the real Convex client URL
-  - exact live frontend assets were published to dedicated branch live-preview-dist
-  - stable Vercel URL https://clawrena-alpha-scout-review.vercel.app now serves the Convex-bound frontend
-  - verified HTTP 200 for /, /proof, and /deployment-provenance.json
-  - deployment provenance points to winning-delta-p0-p2 source SHA 47225cf29f1af76bd203657c8d3369cd2f58d9d4 and Convex grandiose-poodle-700
-  - preserved the boundary that frontend reachability plus embedded Convex URL is not yet canonical runtime proof
+what_changed_p10:
+  - approved forensic judge homepage was implemented from the accepted design direction
+  - long SaaS-style landing sequence was replaced by a compact judge-first entry page
+  - homepage now leads with Capital moves only when evidence says yes
+  - status rail exposes live market, authority locked, unknown veto, paper default, and verified on-chain boundary
+  - investigation flow is visible above the fold: discover -> claim -> investigate -> qualify -> execute/refuse -> prove
+  - example dossier is explicitly labeled NOT RUNTIME EVIDENCE to preserve truth boundaries
+  - unique hawk-eye crest replaced the generic A mark
+  - the same crest is used on the homepage, app shell, CTA surfaces, and favicon
+  - browser favicon and theme color were added to index.html
+  - upstream CI run #34 passed security, integrity, logic, typecheck, lint, and build
+  - live static assets were published from source 41926a4b0ae8425a661cd40f30d98316d7079ce0
+  - immutable asset commit is ae2117a58eebdd21ac55b5ccdef7ebc822da9564
+  - Vercel production deployment dpl_Cpo1EUbEymcV3ZdkczKQAXgaaynf is READY
+  - stable URL https://clawrena-alpha-scout-review.vercel.app serves the approved build
+  - deployment provenance and alpha-scout.svg both return HTTP 200
+  - auth round trip has been visually verified by reaching the authenticated dashboard
 
 live_frontend:
   url: https://clawrena-alpha-scout-review.vercel.app
-  vercel_deployment_id: dpl_5DWoXE5AkFBXMPKuqBFyCD5L3e6B
-  source_sha: 47225cf29f1af76bd203657c8d3369cd2f58d9d4
+  vercel_deployment_id: dpl_Cpo1EUbEymcV3ZdkczKQAXgaaynf
+  source_sha: 41926a4b0ae8425a661cd40f30d98316d7079ce0
   static_asset_branch: live-preview-dist
+  asset_commit: ae2117a58eebdd21ac55b5ccdef7ebc822da9564
   convex_client_url: https://grandiose-poodle-700.convex.cloud
   root_http_status: 200
-  proof_http_status: 200
+  provenance_http_status: 200
+  favicon_http_status: 200
   backend_bundle_bound: true
+  auth_round_trip_verified: true
   convex_http_health_verified: false
-  auth_round_trip_verified: false
   canonical_runtime_evidence: false
 
+visual_contract:
+  home: APPROVED_FORENSIC_JUDGE_HOME
+  workstation: P8_FORENSIC_WORKSTATION
+  identity: HAWK_EYE_CREST
+  palette: warm_paper_rust_olive_graphite
+  judge_length: compact_single_entry_sequence
+  example_data_boundary: NOT_RUNTIME_EVIDENCE
+
 next_actions_priority:
+  - visually inspect the deployed P10 homepage against the approved reference on desktop and mobile
   - read the exact VITE_CONVEX_SITE_URL from local .env.local and probe /healthz
-  - configure Convex Auth for https://clawrena-alpha-scout-review.vercel.app if not already completed
-  - verify signup/signin round trip on the public frontend
   - configure HELIUS_API_KEY, HELIUS_WEBHOOK_SECRET and CLAWPUMP_API_KEY in the Convex deployment; JUPITER_API_KEY optional
   - capture one real live-market REJECT or UNKNOWN receipt and preserve it in evidence/canonical-run/STATUS.json
   - deploy the same runtime to Cloudflare Pages as preferred canonical frontend
@@ -55,6 +71,7 @@ next_actions_priority:
   - run npm run gate:submission; Gate 7 remains blocked until every hard receipt exists
 
 never_do:
+  - do_not_convert_example_dossier_to_runtime_evidence
   - do_not_convert_LIVE_FRONTEND_to_CANONICAL_RUNTIME_without_real_convex_health_and_negative_path
   - do_not_convert_PREPARE_or_PENDING_to_VERIFIED_without_signature_and_confirmation
   - do_not_use_test_fixture_as_submission_evidence

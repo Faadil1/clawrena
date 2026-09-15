@@ -1,21 +1,29 @@
 {
   "artifactClass": "PUBLIC_LIVE_FRONTEND_BOUND_TO_CONVEX",
-  "status": "PUBLIC_FRONTEND_REACHABLE_CONVEX_BOUND",
+  "status": "APPROVED_JUDGE_HOME_LIVE",
   "publicUrl": "https://clawrena-alpha-scout-review.vercel.app",
-  "vercelDeploymentId": "dpl_5DWoXE5AkFBXMPKuqBFyCD5L3e6B",
+  "vercelDeploymentId": "dpl_Cpo1EUbEymcV3ZdkczKQAXgaaynf",
   "sourceRef": "winning-delta-p0-p2",
-  "sourceSha": "47225cf29f1af76bd203657c8d3369cd2f58d9d4",
+  "sourceSha": "41926a4b0ae8425a661cd40f30d98316d7079ce0",
   "staticAssetBranch": "live-preview-dist",
+  "assetCommit": "ae2117a58eebdd21ac55b5ccdef7ebc822da9564",
   "convexClientUrl": "https://grandiose-poodle-700.convex.cloud",
-  "builtAt": "2026-09-15T13:19:07Z",
+  "visualSystem": "APPROVED_FORENSIC_JUDGE_HOME",
+  "identity": "HAWK_EYE_CREST",
   "probes": {
     "frontendRoot": { "checked": true, "status": 200 },
-    "frontendProofRoute": { "checked": true, "status": 200 },
     "deploymentProvenance": { "checked": true, "status": 200 },
-    "convexHttpHealth": { "checked": false, "status": null },
-    "authRoundTrip": { "checked": false, "status": null }
+    "favicon": { "checked": true, "status": 200, "contentType": "image/svg+xml" },
+    "authRoundTrip": { "checked": true, "status": "authenticated_dashboard_reached" },
+    "convexHttpHealth": { "checked": false, "status": null }
+  },
+  "truthBoundaries": {
+    "exampleDossier": "NOT_RUNTIME_EVIDENCE",
+    "paperDefault": true,
+    "unknownIsVeto": true,
+    "verifiedOnchainRequires": ["txSignature", "confirmationSlot"]
   },
   "canonicalRuntimeEvidence": false,
   "fakeSuccessForbidden": true,
-  "notes": "The public frontend is built with the real Convex client URL and is reachable. Canonical runtime promotion remains blocked until Convex HTTP health, auth, and a real live-market negative-path receipt are verified."
+  "notes": "The approved judge homepage and hawk-eye identity are live on the stable public URL and built against the real Convex client deployment. Canonical runtime promotion remains blocked until Convex HTTP health and a real live-market negative-path receipt are verified."
 }
