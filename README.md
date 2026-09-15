@@ -2,7 +2,7 @@
 
 **Evidence Underwriter / Execution Authority for autonomous capital on Solana.**
 
-Other agents can discover, analyze, recommend or trade. Alpha Scout sits between a market signal and value movement: it builds an evidence record, keeps critical UNKNOWN states visible, applies deterministic authority gates, and records why capital was authorized, refused, skipped or only prepared.
+Other agents can discover, analyze, recommend or trade. Alpha Scout sits between a market signal and value movement: it independently verifies launch provenance, builds an evidence record, keeps critical UNKNOWN states visible, applies deterministic policy gates, and records why a candidate was qualified, refused, skipped or only prepared.
 
 The current local trading harness is explicitly **PAPER**. A separate ClawPump v1 bridge can create/link an agent, quote a swap, and build a safety-gated unsigned swap transaction. Nothing is counted as **verified on-chain volume** without on-chain execution, a transaction signature and an independently stored confirmation slot.
 
@@ -28,11 +28,16 @@ New decision receipts carry an **Evidence Passport**:
 
 - versioned policy (`AS-AUTHORITY-V1`)
 - deterministic replay key
-- explicit authority state
+- policy state (`QUALIFIED`, `REFUSED`, `ABSTAINED`, `PREPARED`)
 - evidence freshness expiry
 - counterfactual conditions for reconsideration
 
-`GET /authority-policy` exposes the current authority semantics as a machine-readable contract for other agents.
+`QUALIFIED` explicitly means **the evidence gate passed**, not that execution has been authorized. The separate last-mile risk/provider preflight still controls value movement.
+
+The Convex HTTP site exposes two agent-facing contracts:
+
+- `GET /authority-policy` — current machine-readable policy semantics
+- `POST /underwrite` — independently verifies Pump launch provenance from a mint + launch signature, fetches live market/holder evidence, then returns `QUALIFIED` or `REFUSED` with an Evidence Passport. It never signs, submits or moves value.
 
 The repo also includes a reusable ClawPump/Hermes skill:
 
@@ -45,8 +50,9 @@ This is deliberately complementary to ClawPump's existing Alpha Scanner, Meme To
 
 - Watched wallet balance never becomes paper buying power.
 - Unknown liquidity or holder concentration fails closed.
+- Launch provenance requires an official Pump `create` / `create_v2` instruction; token-balance deltas are not launch proof.
 - Signal execution uses an atomic lease to prevent duplicate concurrent entries.
-- PAPER, PREPARED, pending on-chain activity and VERIFIED ONCHAIN volume remain separate.
+- PAPER, QUALIFIED, PREPARED, pending on-chain activity and VERIFIED ONCHAIN remain distinct states/boundaries.
 - ClawPump high-risk/unverified safety gates are not auto-bypassed.
 - Every new decision creates a versioned receipt with observations, unknowns, reasons, risk budget and Evidence Passport metadata.
 - A passing strategy receipt expires before last-mile execution; stale evidence cannot authorize value movement.
@@ -54,7 +60,7 @@ This is deliberately complementary to ClawPump's existing Alpha Scanner, Meme To
 - Creator-fee economics are read from ClawPump's public ledger; missing/invalid values fail closed rather than becoming synthetic zeroes.
 - Agent Treasury is creator-fee observability, **not** a holder revenue-share/governance promise.
 - External incidents and test fixtures are explicitly separated from Alpha Scout runtime evidence.
-- A refusal remains in the evidence record and includes what would need to change before authority is reconsidered.
+- A refusal remains in the evidence record and includes what would need to change before the evidence is reconsidered.
 
 ## Stack
 
@@ -84,7 +90,16 @@ npm run build
 - `/signals` — real launch/signal feed
 - `/proof` — judge-facing decision receipts, Evidence Passports, real-failure grounding and verified-volume boundary
 - `/token/:mint?` — live token shield scan
-- `/authority-policy` — public machine-readable authority contract on the Convex HTTP site
+- Convex HTTP `GET /authority-policy` — public machine-readable policy contract
+- Convex HTTP `POST /underwrite` — live cross-agent evidence underwriting, no value movement
+
+## $ANSEM demo path
+
+ClawPump officially supports ANSEM deposits into agent billing wallets. P11 documents a **planned, not yet claimed** demo in `docs/ANSEM_AUTHORITY_DEMO.md`:
+
+`ANSEM-funded ClawPump/Hermes agent → Evidence Authority skill → Alpha Scout /underwrite → real QUALIFIED/REFUSED result`
+
+Do not describe Alpha Scout as “ANSEM-powered” until the billing/run receipts exist.
 
 ## Judge assurance
 
@@ -97,6 +112,7 @@ Start with:
 - `state/CURRENT.yaml`
 - `docs/WINNING_INTELLIGENCE_P11.md`
 - `docs/COMPETITIVE_INTELLIGENCE_2026-09-15.md`
+- `docs/ANSEM_AUTHORITY_DEMO.md`
 - `docs/JUDGE_ASSURANCE_P3.md`
 - `docs/REAL_FAILURE_EVIDENCE.md`
 - `docs/RUBRIC_EVIDENCE_MATRIX.md`

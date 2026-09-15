@@ -2,7 +2,7 @@ export const EVIDENCE_POLICY_VERSION = "AS-AUTHORITY-V1";
 export const EVIDENCE_PASSPORT_FRESHNESS_MS = 2 * 60 * 1000;
 
 export type EvidenceDecision = "execute" | "reject" | "skip" | "prepare";
-export type EvidenceAuthorityState = "AUTHORIZED" | "REFUSED" | "ABSTAINED" | "PREPARED";
+export type EvidencePolicyState = "QUALIFIED" | "REFUSED" | "ABSTAINED" | "PREPARED";
 
 export type EvidencePassportInput = {
   tokenMint: string;
@@ -20,7 +20,7 @@ export type EvidencePassportInput = {
 export type EvidencePassport = {
   policyVersion: string;
   replayKey: string;
-  authorityState: EvidenceAuthorityState;
+  policyState: EvidencePolicyState;
   freshnessExpiresAt: number;
   counterfactuals: string[];
 };
@@ -63,14 +63,16 @@ export function buildEvidencePassport(input: EvidencePassportInput): EvidencePas
   return {
     policyVersion: EVIDENCE_POLICY_VERSION,
     replayKey: evidenceReplayKey(envelope),
-    authorityState: authorityStateFor(input.decision),
+    policyState: policyStateFor(input.decision),
     freshnessExpiresAt: input.createdAt + EVIDENCE_PASSPORT_FRESHNESS_MS,
     counterfactuals: buildCounterfactuals(input),
   };
 }
 
-function authorityStateFor(decision: EvidenceDecision): EvidenceAuthorityState {
-  if (decision === "execute") return "AUTHORIZED";
+function policyStateFor(decision: EvidenceDecision): EvidencePolicyState {
+  // QUALIFIED means the evidence gate passed. It is deliberately NOT named
+  // AUTHORIZED: last-mile risk/provider checks still control value movement.
+  if (decision === "execute") return "QUALIFIED";
   if (decision === "reject") return "REFUSED";
   if (decision === "prepare") return "PREPARED";
   return "ABSTAINED";

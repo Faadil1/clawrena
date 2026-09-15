@@ -31,7 +31,6 @@ export default defineSchema({
   portfolios: defineTable({
     ownerId: v.id("users"),
     agentId: v.optional(v.id("agents")),
-    // Paper ledger only. A watched wallet balance is never credited here.
     cashSol: v.number(),
     investedSol: v.number(),
     depositedSol: v.optional(v.number()),
@@ -115,13 +114,7 @@ export default defineSchema({
   signals: defineTable({
     tokenMint: v.string(),
     tokenSymbol: v.optional(v.string()),
-    type: v.union(
-      v.literal("buy"),
-      v.literal("sell"),
-      v.literal("warn"),
-      v.literal("new-launch"),
-      v.literal("alert"),
-    ),
+    type: v.union(v.literal("buy"), v.literal("sell"), v.literal("warn"), v.literal("new-launch"), v.literal("alert")),
     confidence: v.number(),
     score: v.number(),
     title: v.string(),
@@ -155,12 +148,7 @@ export default defineSchema({
     agentId: v.id("agents"),
     signalId: v.optional(v.id("signals")),
     tokenMint: v.string(),
-    decision: v.union(
-      v.literal("execute"),
-      v.literal("reject"),
-      v.literal("skip"),
-      v.literal("prepare"),
-    ),
+    decision: v.union(v.literal("execute"), v.literal("reject"), v.literal("skip"), v.literal("prepare")),
     executionMode: v.union(v.literal("paper"), v.literal("onchain")),
     score: v.optional(v.number()),
     observations: v.any(),
@@ -173,8 +161,8 @@ export default defineSchema({
     // P11 Evidence Passport fields are optional for migration compatibility.
     policyVersion: v.optional(v.string()),
     replayKey: v.optional(v.string()),
-    authorityState: v.optional(v.union(
-      v.literal("AUTHORIZED"),
+    policyState: v.optional(v.union(
+      v.literal("QUALIFIED"),
       v.literal("REFUSED"),
       v.literal("ABSTAINED"),
       v.literal("PREPARED"),

@@ -93,10 +93,12 @@ const passportA = buildEvidencePassport(passportBase);
 const passportB = buildEvidencePassport({ ...passportBase, observations: { priceUsd: 0.01, liquidityUsd: 12000 } });
 assert(passportA.policyVersion === EVIDENCE_POLICY_VERSION, "evidence receipts must record a policy version");
 assert(passportA.replayKey === passportB.replayKey, "replay key must be stable across object key order");
-assert(passportA.authorityState === "REFUSED", "reject decisions must remain REFUSED in the passport");
+assert(passportA.policyState === "REFUSED", "reject decisions must remain REFUSED in the passport");
 assert(passportA.counterfactuals.some((x) => x.includes("largest-holder concentration")), "refusal must explain what evidence must change before reconsideration");
 assert(passportA.freshnessExpiresAt === now + EVIDENCE_PASSPORT_FRESHNESS_MS, "passport freshness must be explicit");
 assert(EVIDENCE_PASSPORT_FRESHNESS_MS === MAX_EXECUTION_RECEIPT_AGE_MS, "passport and last-mile authority freshness must not drift");
 assert(evidenceReplayKey({ b: 2, a: 1 }) === evidenceReplayKey({ a: 1, b: 2 }), "canonical replay identifiers must be deterministic");
+const qualifiedPassport = buildEvidencePassport({ ...passportBase, decision: "execute", unknowns: [], reasons: ["evidence gate passed"] });
+assert(qualifiedPassport.policyState === "QUALIFIED", "passing evidence must be QUALIFIED, never overclaim execution authorization");
 
 console.log("Evidence, claim lease, Pump parser, high-water risk, execution authority, token economics + Evidence Passport tests: PASS");

@@ -63,11 +63,13 @@ const http = read("convex/http.ts");
 const skill = read("skills/evidence-authority/SKILL.md");
 const competition = read("docs/COMPETITIVE_INTELLIGENCE_2026-09-15.md");
 assert(passport.includes("EVIDENCE_POLICY_VERSION") && passport.includes("replayKey") && passport.includes("counterfactuals"), "P11 Evidence Passport must remain versioned, replayable and counterfactual-aware");
+assert(passport.includes('return "QUALIFIED"') && !passport.includes('return "AUTHORIZED"'), "evidence qualification must never overclaim last-mile execution authorization");
 assert(evidence.includes("buildEvidencePassport"), "every new decision receipt must receive an Evidence Passport at write time");
-assert(schema.includes("policyVersion") && schema.includes("freshnessExpiresAt") && schema.includes("counterfactuals"), "receipt schema must persist the Evidence Passport without rewriting history");
-assert(proof.includes("TO RECONSIDER") && proof.includes("REPLAY"), "judge-facing proof room must expose replay and counterfactual authority evidence");
-assert(http.includes('path: "/authority-policy"') && http.includes("VETO_WHEN_CRITICAL"), "Alpha Scout authority semantics must be machine-readable for other agents");
-assert(skill.includes("Execution Authority") && skill.includes("PREPARE is not execution") && skill.includes("UNKNOWN"), "Hermes/ClawPump skill must preserve the authority boundary instead of becoming another alpha scanner");
+assert(schema.includes("policyVersion") && schema.includes("policyState") && schema.includes("freshnessExpiresAt") && schema.includes("counterfactuals"), "receipt schema must persist the Evidence Passport without rewriting history");
+assert(proof.includes("TO RECONSIDER") && proof.includes("REPLAY") && proof.includes("qualified ≠ authorized"), "judge-facing proof room must expose replay, counterfactuals and qualification boundary");
+assert(http.includes('path: "/authority-policy"') && http.includes('path: "/underwrite"') && http.includes("findMintCreatedInTx"), "Alpha Scout authority must expose a machine-readable policy plus live cross-agent underwriting with verified Pump provenance");
+assert(http.includes("LAST_MILE_PROVIDER_AND_RISK_PREFLIGHT_REQUIRED") && http.includes("valueMovement: false"), "underwriting must never masquerade as execution");
+assert(skill.includes("Execution Authority") && skill.includes("PREPARE is not execution") && skill.includes("QUALIFIED") && skill.includes("UNKNOWN"), "Hermes/ClawPump skill must preserve the authority boundary instead of becoming another alpha scanner");
 assert(competition.includes("154 tokenized entries") && competition.includes("SelfMade") && competition.includes("HyperBull") && competition.includes("MarketBubbleSearch"), "competitive intelligence snapshot must stay grounded in observed Clawrena surfaces");
 
 console.log("Winning Intelligence P11 integrity gates: PASS");
