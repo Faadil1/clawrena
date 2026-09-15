@@ -3,14 +3,17 @@ import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "../../convex/_generated/api";
 import { useEffect } from "react";
+import "../workstation.css";
 
 const navItems = [
   { to: "/dashboard", label: "Desk", meta: "SURVEILLANCE", code: "01" },
   { to: "/agent", label: "Authority", meta: "AGENT + RISK", code: "02" },
   { to: "/signals", label: "Launch tape", meta: "OBSERVATIONS", code: "03" },
-  { to: "/proof", label: "Receipts", meta: "EVIDENCE", code: "04" },
-  { to: "/token", label: "Token", meta: "ECONOMICS", code: "05" },
+  { to: "/proof", label: "Evidence", meta: "RECEIPTS", code: "04" },
+  { to: "/token", label: "Inspect", meta: "TOKEN DOSSIER", code: "05" },
 ];
+
+const process = ["DISCOVER", "CLAIM", "INVESTIGATE", "QUALIFY", "EXECUTE / REFUSE", "PROVE"];
 
 export function AppShell() {
   const { isAuthenticated } = useConvexAuth();
@@ -24,7 +27,7 @@ export function AppShell() {
     if (isAuthenticated) void ensureUser();
   }, [isAuthenticated, ensureUser]);
 
-  const runtimeState = agent?.status === "running" ? "ARMED / PAPER" : agent?.status === "halted" ? "HALTED" : agent ? "PAUSED" : "NOT DEPLOYED";
+  const runtimeState = agent?.status === "running" ? "ARMED / PAPER" : agent?.status === "halted" ? "HALTED" : agent ? "PAUSED" : "LOCKED";
 
   return (
     <div className="min-h-screen bg-surface">
@@ -33,18 +36,14 @@ export function AppShell() {
           <span className="ops-brand-mark">A</span>
           <span>
             <b>ALPHA SCOUT</b>
-            <small>EVIDENCE DESK</small>
+            <small>LAUNCH EVIDENCE OS</small>
           </span>
         </NavLink>
 
-        <div className="ops-side-label">CONTROL SURFACES</div>
+        <div className="ops-side-label">INVESTIGATION SURFACES</div>
         <nav className="flex flex-col gap-1">
           {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => `ops-nav-link ${isActive ? "ops-nav-link--active" : ""}`}
-            >
+            <NavLink key={item.to} to={item.to} className={({ isActive }) => `ops-nav-link ${isActive ? "ops-nav-link--active" : ""}`}>
               <span className="ops-nav-code">{item.code}</span>
               <span className="min-w-0">
                 <b>{item.label}</b>
@@ -55,18 +54,10 @@ export function AppShell() {
         </nav>
 
         <div className="mt-auto ops-side-status">
-          <div className="ops-side-status-row">
-            <span>EXECUTION</span>
-            <b>PAPER</b>
-          </div>
-          <div className="ops-side-status-row">
-            <span>AUTHORITY</span>
-            <b>{runtimeState}</b>
-          </div>
-          <div className="ops-side-status-row">
-            <span>NETWORK</span>
-            <b className="text-up">SOLANA</b>
-          </div>
+          <div className="ops-side-status-row"><span>EXECUTION</span><b>PAPER</b></div>
+          <div className="ops-side-status-row"><span>AUTHORITY</span><b>{runtimeState}</b></div>
+          <div className="ops-side-status-row"><span>NETWORK</span><b className="text-up">SOLANA</b></div>
+          <div className="ops-side-status-row"><span>TRUTH MODE</span><b>FAIL-CLOSED</b></div>
         </div>
       </aside>
 
@@ -80,17 +71,18 @@ export function AppShell() {
             <div className="hidden md:flex items-center gap-4 text-[10px] font-mono tracking-[0.12em] uppercase text-ink-mid">
               <span className="inline-flex items-center gap-2"><span className="ops-live-dot" /> Convex live</span>
               <span>Solana</span>
-              <span>Execution / paper</span>
-              <span>Proof / fail-closed</span>
+              <span>Authority / {runtimeState}</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
             {currentUser?.walletAddress && <span className="hidden lg:block text-[10px] font-mono tracking-wide text-ink-mid">WATCH {short(currentUser.walletAddress)}</span>}
-            {isAuthenticated && (
-              <button onClick={() => void signOut()} className="ops-text-button">Sign out</button>
-            )}
+            {isAuthenticated && <button onClick={() => void signOut()} className="ops-text-button">Sign out</button>}
           </div>
         </header>
+
+        <div className="fw-processbar hidden lg:grid" aria-label="Alpha Scout decision pipeline">
+          {process.map((step, index) => <div key={step} className="fw-process-step"><span>{String(index + 1).padStart(2, "0")}</span><b>{step}</b></div>)}
+        </div>
 
         <main className="flex-1 min-w-0"><Outlet /></main>
 

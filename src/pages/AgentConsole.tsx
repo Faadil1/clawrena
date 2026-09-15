@@ -1,8 +1,7 @@
 import { useState } from "react";
-import type { FormEvent, ReactNode } from "react";
+import type { FormEvent } from "react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { Card, CardBadge, EmptyState } from "../components/ui";
 import { formatSol, shorten } from "../lib/format";
 
 type TreasuryView = {
@@ -43,8 +42,13 @@ export default function AgentConsole() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
-  if (data === undefined || data === null) return <div className="p-8 text-sm text-ink-mid">Loading agent…</div>;
+  if (data === undefined || data === null) {
+    return <div className="fw-page"><div className="fw-wrap fw-meta">Connecting authority room…</div></div>;
+  }
+
   const { user, agent, portfolio } = data;
+  const authority = agent?.status === "running" ? "ARMED / PAPER" : agent?.status === "halted" ? "HALTED" : agent ? "PAUSED" : "LOCKED";
+  const clawPumpState = agent?.clawPumpAgentId ? "LINKED" : "NOT LINKED";
 
   const paperDeposit = async (event: FormEvent) => {
     event.preventDefault();
@@ -76,7 +80,7 @@ export default function AgentConsole() {
     if (!agent) return;
     await task(async () => {
       await updateRisk({ agentId: agent.id, riskMaxPosition: Number(maxPos), riskMaxDrawdownPct: Number(maxDD) });
-      return "Risk parameters updated.";
+      return "Risk envelope updated.";
     });
   };
 
@@ -89,7 +93,7 @@ export default function AgentConsole() {
       }
       const status = agent.status === "running" ? "paused" : "running";
       await setAgentState({ agentId: agent.id, status });
-      return status === "running" ? "Agent started." : "Agent paused.";
+      return status === "running" ? "Paper authority armed." : "Authority paused.";
     });
   };
 
@@ -124,89 +128,145 @@ export default function AgentConsole() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-[1200px] mx-auto grid lg:grid-cols-3 gap-5 items-start">
-      <div className="lg:col-span-2 flex flex-col gap-5">
-        <Card title="Agent state" badge={<div className="flex gap-2"><PaperPill /><CardBadge>{agent?.status ?? "not deployed"}</CardBadge></div>} bodyClassName="p-5">
-          {agent ? (
-            <div className="text-sm text-ink-mid leading-relaxed">
-              <b className="text-ink">{agent.name}</b> · local risk engine · max {formatSol(agent.riskMaxPosition)} per position · drawdown cap {agent.riskMaxDrawdownPct}%.
-              <div className="mt-3 flex flex-wrap gap-2 text-[12px]">
-                <Tag>{agent.clawPumpAgentId ? `ClawPump linked ${shorten(agent.clawPumpAgentId)}` : "ClawPump not linked"}</Tag>
-                <Tag>{portfolio?.observedWalletSol !== null && portfolio?.observedWalletSol !== undefined ? `watch balance ${formatSol(portfolio.observedWalletSol)}` : "wallet not observed"}</Tag>
-                <Tag>paper cash {formatSol(portfolio?.cashSol ?? 0)}</Tag>
-                {agent.haltReason && <Tag>halt: {agent.haltReason}</Tag>}
-              </div>
+    <div className="fw-page">
+      <div className="fw-wrap">
+        <header className="fw-head">
+          <div className="fw-head-copy">
+            <div className="fw-index">02</div>
+            <div>
+              <div className="fw-kicker">AUTHORITY ROOM / AGENT + RISK</div>
+              <h1>What is this agent allowed to do?</h1>
+              <p>Execution authority is assembled from identity, risk, fresh evidence and provider state. No single signal can move value by itself.</p>
             </div>
-          ) : <EmptyState title="No agent" hint="Attach a watch-only Solana address, deploy the local agent, then optionally link a ClawPump agent." />}
-        </Card>
-
-        <Card title="Decision policy" badge={<CardBadge>evidence first</CardBadge>} bodyClassName="p-5">
-          <div className="grid sm:grid-cols-3 gap-3 text-sm">
-            <Policy title="Observe" body="Price, liquidity, holder concentration and launch age come from live sources." />
-            <Policy title="Refuse unknown" body="Unknown liquidity or holder concentration blocks entry instead of being treated as safe." />
-            <Policy title="Prove" body="Every execute/reject/skip creates a receipt. Unsigned ClawPump swaps never count as on-chain volume." />
           </div>
-        </Card>
+          <div className="fw-head-state">
+            <div><span>Execution</span><b>PAPER</b></div>
+            <div><span>Authority</span><b>{authority}</b></div>
+            <div><span>ClawPump</span><b>{clawPumpState}</b></div>
+          </div>
+        </header>
 
-        <Card title="Agent Treasury" badge={<CardBadge>{treasury ? "OBSERVED" : "TOKEN ECONOMICS"}</CardBadge>} bodyClassName="p-5">
-          {!agent?.clawPumpAgentId ? (
-            <EmptyState title="ClawPump agent not linked" hint="Link the agent first. Creator-fee economics are read from ClawPump's public fee ledger and are never fabricated." />
-          ) : treasury ? (
-            <div className="flex flex-col gap-4">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <TreasuryStat label="Earned" value={formatSol(treasury.totalEarned)} />
-                <TreasuryStat label="Sent" value={formatSol(treasury.totalSent)} />
-                <TreasuryStat label="Pending" value={formatSol(treasury.totalPending)} />
-                <TreasuryStat label="Held" value={formatSol(treasury.totalHeld)} />
+        <section className="fw-strip">
+          <StatusStat label="Observed wallet" value={portfolio?.observedWalletSol !== null && portfolio?.observedWalletSol !== undefined ? formatSol(portfolio.observedWalletSol) : "NOT OBSERVED"} note="read-only observation" />
+          <StatusStat label="Paper cash" value={formatSol(portfolio?.cashSol ?? 0)} note="simulation buying power" />
+          <StatusStat label="Max position" value={agent ? formatSol(agent.riskMaxPosition) : "—"} note="risk ceiling" />
+          <StatusStat label="Drawdown cap" value={agent ? `${agent.riskMaxDrawdownPct}%` : "—"} note="high-water halt" />
+        </section>
+
+        <div className="fw-grid-main">
+          <div className="fw-sheet">
+            <div className="fw-sheet-head">
+              <div className="fw-sheet-title">
+                <span className="fw-sheet-no">A</span>
+                <div><h2>Authority chain</h2><p>Observation → veto → proof. Failure at any stage stops the path.</p></div>
               </div>
-              <div className="rounded-xl border border-line bg-surface p-4 text-[13px] text-ink-mid leading-relaxed">
-                <b className="text-ink">Economic mechanism:</b> ClawPump documents a {treasury.creatorFeeSharePct}% creator share for token trading fees. This card observes the linked agent's public creator-fee ledger; it does <b>not</b> claim holder revenue share, governance, or automated treasury spending.
-                <div className="mt-2 font-mono text-[11px] text-ink-faint">{shorten(treasury.agentId)} · {treasury.recentDistributionCount} recent distribution record(s)</div>
+              <span className={`fw-badge ${agent?.status === "halted" ? "fw-badge--red" : "fw-badge--orange"}`}>FAIL-CLOSED</span>
+            </div>
+
+            <div className="fw-authority-state">
+              <div>
+                <div className="fw-label">CURRENT AUTHORITY STATE</div>
+                <h3>{agent ? authority : "NO AGENT / NO AUTHORITY"}</h3>
+                <p>{agent ? `${agent.name} exists locally, but its execution envelope remains paper-only unless every downstream authority check is satisfied.` : "A watch-only identity may be observed, but nothing is authorized until a local agent and explicit risk envelope exist."}</p>
               </div>
-              <button disabled={busy} onClick={() => void refreshTreasury()} className="self-start px-4 py-2.5 rounded-lg border border-line text-xs font-semibold">Refresh observed fees</button>
+              <div className="fw-lock">{agent ? (agent.status === "running" ? "ARMED" : "LOCKED") : "LOCKED"}</div>
             </div>
-          ) : (
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <p className="text-[13px] text-ink-mid max-w-xl">Token activity can create creator-fee earnings for the linked ClawPump agent. Load the public ledger to show the actual value — including zero.</p>
-              <button disabled={busy} onClick={() => void refreshTreasury()} className="px-4 py-2.5 rounded-lg border border-accent text-accent text-xs font-semibold">Observe creator fees</button>
+
+            <div className="fw-chain">
+              <ChainStep code="01 / OBSERVE" title="Live evidence" body="Price, liquidity, economic-owner concentration and launch age come from live sources." />
+              <ChainStep code="02 / VETO" title="Refuse unknown" body="Unknown or stale critical evidence is a blocking state, not a low-confidence pass." />
+              <ChainStep code="03 / PROVE" title="Receipt first" body="Execute, reject, skip and prepare remain separate. Unsigned or unconfirmed actions never become verified volume." />
             </div>
-          )}
-        </Card>
-      </div>
 
-      <div className="flex flex-col gap-5">
-        <Card title="Deploy local agent" bodyClassName="p-5 flex flex-col gap-3">
-          {!user?.walletAddress && <input value={wallet} onChange={(e) => setWalletInput(e.target.value)} placeholder="Watch-only Solana address" className="px-4 py-3 rounded-lg bg-surface border border-line text-[13px] font-mono" />}
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Agent name" className="px-4 py-3 rounded-lg bg-surface border border-line text-[13px]" />
-          <label className="flex items-center justify-between text-sm"><span>Auto trading (paper)</span><input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} /></label>
-          <button disabled={busy || Boolean(agent)} onClick={() => void deploy()} className="px-5 py-3 rounded-xl bg-accent text-white text-sm font-semibold disabled:opacity-50">{agent ? "Deployed" : "Deploy"}</button>
-        </Card>
+            <div className="fw-sheet-head">
+              <div className="fw-sheet-title">
+                <span className="fw-sheet-no">B</span>
+                <div><h2>Economic boundary</h2><p>What can be observed is not automatically spendable.</p></div>
+              </div>
+              <span className="fw-badge">PAPER ≠ WALLET</span>
+            </div>
+            <div className="fw-row"><span>Watch-only address</span><strong>{user?.walletAddress ? shorten(user.walletAddress) : "NOT ATTACHED"}</strong><small>observation only</small></div>
+            <div className="fw-row"><span>Observed balance</span><strong>{portfolio?.observedWalletSol !== null && portfolio?.observedWalletSol !== undefined ? formatSol(portfolio.observedWalletSol) : "UNKNOWN"}</strong><small>never credits paper cash</small></div>
+            <div className="fw-row"><span>Paper capital</span><strong>{formatSol(portfolio?.cashSol ?? 0)}</strong><small>manual simulation deposit</small></div>
+            <div className="fw-row"><span>On-chain authority</span><strong>SEPARATELY GATED</strong><small>prepare ≠ execute</small></div>
+          </div>
 
-        <Card title="Funding boundary" badge={<CardBadge>PAPER ≠ WALLET</CardBadge>} bodyClassName="p-5 flex flex-col gap-3">
-          <p className="text-[12px] text-ink-mid">Manual deposit adds paper cash. Wallet observation is read-only and never increases buying power.</p>
-          <form onSubmit={(e) => void paperDeposit(e)} className="flex gap-2">
-            <input type="number" min="0.1" step="0.1" value={depositAmt} onChange={(e) => setDepositAmt(Number(e.target.value))} className="min-w-0 flex-1 px-3 py-2.5 rounded-lg border border-line bg-surface font-mono" />
-            <button disabled={busy} className="px-4 py-2.5 rounded-lg bg-accent text-white text-xs font-semibold">Paper deposit</button>
-          </form>
-          {user?.walletAddress && <button disabled={busy} onClick={() => void observe()} className="px-4 py-2.5 rounded-lg border border-line text-xs font-semibold">Observe wallet balance</button>}
-        </Card>
+          <aside className="fw-sheet">
+            <div className="fw-sheet-head">
+              <div className="fw-sheet-title"><span className="fw-sheet-no">C</span><div><h2>Control rail</h2><p>Explicit operator actions only.</p></div></div>
+              <span className="fw-badge">{busy ? "BUSY" : "READY"}</span>
+            </div>
 
-        {agent && <Card title="Risk & runtime" bodyClassName="p-5 flex flex-col gap-3">
-          <label className="text-xs font-semibold">Max position SOL<input type="number" value={maxPos} onChange={(e) => setMaxPos(Number(e.target.value))} className="mt-1 w-full px-3 py-2.5 rounded-lg border border-line bg-surface font-mono" /></label>
-          <label className="text-xs font-semibold">Max drawdown %<input type="number" value={maxDD} onChange={(e) => setMaxDD(Number(e.target.value))} className="mt-1 w-full px-3 py-2.5 rounded-lg border border-line bg-surface font-mono" /></label>
-          <button disabled={busy} onClick={() => void saveRisk()} className="px-4 py-2.5 rounded-lg border border-line text-xs font-semibold">Save risk</button>
-          <button disabled={busy} onClick={() => void toggle()} className="px-4 py-2.5 rounded-lg bg-accent text-white text-xs font-semibold">{agent.status === "halted" ? "Acknowledge risk halt" : agent.status === "running" ? "Pause" : "Start"}</button>
-          <button disabled={busy} onClick={() => void runCycle()} className="px-4 py-2.5 rounded-lg border border-line text-xs font-semibold">Run cycle now</button>
-          <button disabled={busy || Boolean(agent.clawPumpAgentId)} onClick={() => void linkClawPump()} className="px-4 py-2.5 rounded-lg border border-accent text-accent text-xs font-semibold">{agent.clawPumpAgentId ? "ClawPump linked" : "Link ClawPump agent"}</button>
-        </Card>}
+            <div className="fw-control">
+              <div className="fw-control-head"><b>Identity + local agent</b><span>{agent ? "DEPLOYED" : "STEP 01"}</span></div>
+              {!user?.walletAddress && <input value={wallet} onChange={(e) => setWalletInput(e.target.value)} placeholder="Watch-only Solana address" className="fw-input fw-input--mono" />}
+              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Agent name" className="fw-input mt-2" />
+              <label className="mt-3 flex items-center justify-between text-[11px]"><span>Auto trading / paper</span><input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} /></label>
+              <button disabled={busy || Boolean(agent)} onClick={() => void deploy()} className="fw-button fw-button--orange w-full mt-3">{agent ? "LOCAL AGENT DEPLOYED" : "DEPLOY LOCAL AGENT"}</button>
+            </div>
 
-        {msg && <div className="rounded-lg bg-accent-light text-accent px-4 py-3 text-[13px] font-medium">{msg}</div>}
+            <div className="fw-control">
+              <div className="fw-control-head"><b>Funding boundary</b><span>PAPER ONLY</span></div>
+              <form onSubmit={(e) => void paperDeposit(e)} className="fw-inline">
+                <input type="number" min="0.1" step="0.1" value={depositAmt} onChange={(e) => setDepositAmt(Number(e.target.value))} className="fw-input fw-input--mono" />
+                <button disabled={busy} className="fw-button">ADD PAPER</button>
+              </form>
+              {user?.walletAddress && <button disabled={busy} onClick={() => void observe()} className="fw-button fw-button--line w-full mt-2">OBSERVE WALLET BALANCE</button>}
+            </div>
+
+            {agent && <div className="fw-control">
+              <div className="fw-control-head"><b>Risk envelope</b><span>STEP 02</span></div>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="text-[10px] font-semibold">MAX POSITION / SOL<input type="number" value={maxPos} onChange={(e) => setMaxPos(Number(e.target.value))} className="fw-input fw-input--mono mt-1" /></label>
+                <label className="text-[10px] font-semibold">MAX DRAWDOWN / %<input type="number" value={maxDD} onChange={(e) => setMaxDD(Number(e.target.value))} className="fw-input fw-input--mono mt-1" /></label>
+              </div>
+              <button disabled={busy} onClick={() => void saveRisk()} className="fw-button fw-button--line w-full mt-2">COMMIT RISK ENVELOPE</button>
+            </div>}
+
+            {agent && <div className="fw-control">
+              <div className="fw-control-head"><b>Runtime authority</b><span>STEP 03</span></div>
+              <div className="grid grid-cols-2 gap-2">
+                <button disabled={busy} onClick={() => void toggle()} className={`fw-button ${agent.status === "halted" ? "fw-button--danger" : ""}`}>{agent.status === "halted" ? "ACK HALT" : agent.status === "running" ? "PAUSE" : "ARM PAPER"}</button>
+                <button disabled={busy} onClick={() => void runCycle()} className="fw-button fw-button--line">RUN ONE CYCLE</button>
+              </div>
+              <button disabled={busy || Boolean(agent.clawPumpAgentId)} onClick={() => void linkClawPump()} className="fw-button fw-button--line w-full mt-2">{agent.clawPumpAgentId ? "CLAWPUMP LINKED" : "LINK CLAWPUMP AGENT"}</button>
+            </div>}
+
+            {msg && <div className="fw-action-message">{msg}</div>}
+          </aside>
+        </div>
+
+        <section className="fw-sheet mt-[18px]">
+          <div className="fw-sheet-head">
+            <div className="fw-sheet-title"><span className="fw-sheet-no">D</span><div><h2>Agent treasury / observed economics</h2><p>Creator-fee ledger only. No holder revenue-share claim.</p></div></div>
+            <span className={`fw-badge ${treasury ? "fw-badge--green" : ""}`}>{treasury ? "OBSERVED" : agent?.clawPumpAgentId ? "AVAILABLE" : "NOT LINKED"}</span>
+          </div>
+          {treasury ? <>
+            <div className="fw-treasury">
+              <TreasuryCell label="Earned" value={formatSol(treasury.totalEarned)} />
+              <TreasuryCell label="Sent" value={formatSol(treasury.totalSent)} />
+              <TreasuryCell label="Pending" value={formatSol(treasury.totalPending)} />
+              <TreasuryCell label="Held" value={formatSol(treasury.totalHeld)} />
+            </div>
+            <div className="fw-body flex items-start justify-between gap-5 flex-wrap">
+              <p className="max-w-3xl text-[11px] leading-relaxed text-ink-mid">ClawPump documents a {treasury.creatorFeeSharePct}% creator share for token trading fees. This surface observes the linked agent's public fee ledger; it does not imply holder distributions, governance, buybacks, yield or automated treasury spending.</p>
+              <button disabled={busy} onClick={() => void refreshTreasury()} className="fw-button fw-button--line">REFRESH LEDGER</button>
+            </div>
+          </> : <div className="fw-empty"><div className="fw-empty-inner"><div className="fw-empty-mark">T</div><h3>{agent?.clawPumpAgentId ? "Ledger not observed yet" : "No linked ClawPump identity"}</h3><p>{agent?.clawPumpAgentId ? "Read the public creator-fee ledger. A zero balance is still valid evidence." : "Link the agent first. The treasury surface stays empty rather than fabricating token economics."}</p>{agent?.clawPumpAgentId && <button disabled={busy} onClick={() => void refreshTreasury()} className="fw-button mt-4">OBSERVE CREATOR FEES</button>}</div></div>}
+        </section>
+
+        <footer className="fw-footer-rule"><span>Unknown ≠ pass</span><span>Watch-only ≠ buying power</span><span>Prepare ≠ execute</span><span>Real failure &gt; fake success</span></footer>
       </div>
     </div>
   );
 }
 
-function PaperPill() { return <span className="rounded bg-[#FFF4E0] border border-accent/40 text-accent text-[9px] font-bold px-1.5 py-0.5 tracking-wide">PAPER</span>; }
-function Tag({ children }: { children: ReactNode }) { return <span className="rounded-md border border-line bg-surface px-2 py-1">{children}</span>; }
-function Policy({ title, body }: { title: string; body: string }) { return <div className="rounded-xl border border-line bg-surface p-4"><div className="font-bold text-ink">{title}</div><div className="text-ink-mid mt-1 text-[13px] leading-relaxed">{body}</div></div>; }
-function TreasuryStat({ label, value }: { label: string; value: string }) { return <div className="rounded-xl border border-line bg-surface p-3"><div className="text-[10px] uppercase tracking-wide text-ink-faint">{label}</div><div className="font-mono text-lg font-bold mt-1">{value}</div></div>; }
+function StatusStat({ label, value, note }: { label: string; value: string; note: string }) {
+  return <div className="fw-stat"><span className="fw-label">{label}</span><strong>{value}</strong><small>{note}</small></div>;
+}
+function ChainStep({ code, title, body }: { code: string; title: string; body: string }) {
+  return <div className="fw-chain-step"><div className="fw-meta">{code}</div><h4>{title}</h4><p>{body}</p></div>;
+}
+function TreasuryCell({ label, value }: { label: string; value: string }) {
+  return <div className="fw-treasury-cell"><span>{label}</span><b>{value}</b></div>;
+}

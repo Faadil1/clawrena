@@ -7,7 +7,6 @@ type PositionRow = {
   _id: string;
   tokenSymbol?: string;
   tokenMint: string;
-  currentPrice: number;
   sizeSol: number;
   pnlPct: number;
 };
@@ -49,7 +48,7 @@ type SignalRow = {
 export default function Dashboard() {
   const data = useQuery(api.queries.portfolio.dashboard);
   if (data === undefined || data === null) {
-    return <div className="ops-canvas p-8 text-xs font-mono uppercase tracking-wider text-ink-mid">Connecting surveillance desk…</div>;
+    return <div className="fw-page"><div className="fw-wrap fw-meta">Opening surveillance desk…</div></div>;
   }
 
   const portfolio = data.portfolio;
@@ -58,317 +57,193 @@ export default function Dashboard() {
   const positions = (data.positions ?? []) as PositionRow[];
   const trades = (data.trades ?? []) as TradeRow[];
   const signals = (data.signals ?? []) as SignalRow[];
-  const latestReceipt = receipts[0];
-  const authority = agent?.status === "running" ? "ARMED / PAPER" : agent?.status === "halted" ? "HALTED" : agent ? "PAUSED" : "NOT DEPLOYED";
+  const latest = receipts[0];
+  const authority = agent?.status === "running" ? "ARMED / PAPER" : agent?.status === "halted" ? "HALTED" : agent ? "PAUSED" : "LOCKED";
+  const claim = latest ? latest.decision.toUpperCase() : "NO CLAIM";
 
   return (
-    <div className="ops-canvas">
-      <div className="ops-page">
-        <section className="ops-hero">
-          <div>
-            <div className="ops-kicker">SURVEILLANCE DESK / SOLANA LAUNCHES</div>
-            <h1>Alpha Scout</h1>
-            <p>Discover → investigate → qualify → execute / refuse → prove.</p>
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="ops-chip ops-chip--paper">PAPER ENGINE</span>
-            <span className={`ops-chip ${agent?.status === "halted" ? "ops-chip--danger" : ""}`}>{authority}</span>
-            <Link to="/proof" className="ops-primary-action">OPEN PROOF ↗</Link>
-          </div>
-        </section>
-
-        <section className="ops-metric-strip">
-          <Metric label="Paper NAV" value={formatSol(portfolio?.portfolioValue ?? 0)} sub="simulated capital" />
-          <Metric label="Realized PnL" value={formatSol(portfolio?.realizedPnl ?? 0)} sub="paper only" />
-          <Metric label="Verified volume" value={formatSol(portfolio?.verifiedOnchainVolumeSol ?? 0)} sub="sig + confirmation" />
-          <Metric label="Decision receipts" value={String(receipts.length)} sub="immutable reasoning trail" />
-        </section>
-
-        <div className="grid xl:grid-cols-[minmax(0,1.65fr)_minmax(330px,.8fr)] gap-4">
-          <section className="ops-panel overflow-hidden">
-            <div className="ops-panel-head">
-              <div>
-                <span className="ops-panel-index">01</span>
-                <div>
-                  <h2>Launch Tape</h2>
-                  <p>Real observations only. No seeded candidates.</p>
-                </div>
-              </div>
-              <Link to="/signals" className="ops-link">OPEN TAPE →</Link>
+    <div className="fw-page">
+      <div className="fw-wrap">
+        <header className="fw-head">
+          <div className="fw-head-copy">
+            <div className="fw-index">01</div>
+            <div>
+              <div className="fw-kicker">SURVEILLANCE DESK / SOLANA LAUNCHES</div>
+              <h1>Find the launch. Prove the decision.</h1>
+              <p>Alpha Scout watches new launches, investigates the evidence and keeps execution authority locked until the record is good enough to act — or refuse.</p>
             </div>
+          </div>
+          <div className="fw-head-state">
+            <div><span>Execution</span><b>PAPER</b></div>
+            <div><span>Authority</span><b>{authority}</b></div>
+            <div><span>Latest claim</span><b>{claim}</b></div>
+          </div>
+        </header>
 
+        <section className="fw-proof-banner">
+          <div className="fw-proof-banner-main">
+            <div className="fw-label">{latest ? "LATEST DECISION RECEIPT" : "CURRENT MARKET STATE"}</div>
+            <h2>{latest ? decisionHeadline(latest.decision) : "Waiting for a real launch observation."}</h2>
+            <p>{latest ? `${shorten(latest.tokenMint)} · ${latest.executionMode.toUpperCase()} · score ${latest.score ?? "—"}/100. ${latest.reasons[0] ?? "Receipt recorded."}` : "The desk is live, but activity is allowed to be empty. No launch candidate is inserted just to make the demo look active."}</p>
+          </div>
+          <div className="fw-proof-banner-state">
+            <div>
+              <b>{latest ? latest.decision.toUpperCase() : "LOCKED"}</b>
+              <span>{latest ? `${latest.unknowns?.length ?? 0} UNKNOWN` : "NO CLAIM / NO AUTHORITY"}</span>
+            </div>
+          </div>
+        </section>
+
+        <section className="fw-strip">
+          <StatusStat label="Paper NAV" value={formatSol(portfolio?.portfolioValue ?? 0)} note="simulated capital" />
+          <StatusStat label="Realized PnL" value={formatSol(portfolio?.realizedPnl ?? 0)} note="paper only" />
+          <StatusStat label="Verified volume" value={formatSol(portfolio?.verifiedOnchainVolumeSol ?? 0)} note="signature + confirmation" />
+          <StatusStat label="Decision receipts" value={String(receipts.length)} note="audit trail" />
+        </section>
+
+        <div className="fw-grid-main">
+          <section className="fw-sheet">
+            <div className="fw-sheet-head">
+              <div className="fw-sheet-title">
+                <span className="fw-sheet-no">A</span>
+                <div><h2>Launch tape</h2><p>Real observations only. Open a subject to inspect it.</p></div>
+              </div>
+              <Link to="/signals" className="fw-badge">OPEN FULL TAPE →</Link>
+            </div>
             {signals.length === 0 ? (
-              <ScannerIdle />
-            ) : (
-              <div className="divide-y divide-[#D7DAD0]">
-                {signals.slice(0, 7).map((signal) => (
-                  <div key={signal._id} className="ops-tape-row">
-                    <div className="ops-tape-time">{timeAgo(signal.processedAt)}</div>
-                    <div className={`ops-signal-code ops-signal-code--${signal.type}`}>{shortType(signal.type)}</div>
-                    <div className="min-w-0">
-                      <div className="flex items-baseline gap-2 min-w-0">
-                        <b className="truncate">{signal.title}</b>
-                        {signal.tokenSymbol && <span className="font-mono text-[10px] text-ink-faint">${signal.tokenSymbol}</span>}
-                      </div>
-                      <div className="ops-tape-detail">{signal.detail}</div>
-                      <div className="font-mono text-[10px] text-ink-faint mt-1">{shorten(signal.tokenMint)}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-mono text-sm font-bold">{Math.round(signal.confidence)}%</div>
-                      <div className="ops-tape-caption">CONF.</div>
-                    </div>
+              <>
+                <div className="fw-scanline"><span /></div>
+                <div className="fw-empty">
+                  <div className="fw-empty-inner">
+                    <div className="fw-empty-mark">RX</div>
+                    <div className="fw-kicker">SCANNER ARMED</div>
+                    <h3 className="mt-2">No launch has entered the dossier yet.</h3>
+                    <p>Pump create verification, price/liquidity enrichment and owner concentration remain waiting. This is an operational state, not a missing demo fixture.</p>
                   </div>
+                </div>
+              </>
+            ) : (
+              <div className="fw-tape">
+                <div className="fw-tape-head"><span>Observed</span><span>Type</span><span>Finding</span><span>Mint</span><span>Conf.</span></div>
+                {signals.slice(0, 7).map((signal) => (
+                  <Link key={signal._id} to={`/token/${signal.tokenMint}`} className="fw-tape-row">
+                    <span className="font-mono text-[9px] text-ink-faint">{timeAgo(signal.processedAt)}</span>
+                    <span className={`fw-type fw-type--${signal.type}`}>{shortType(signal.type)}</span>
+                    <span className="min-w-0"><b className="block truncate text-[12px]">{signal.title}{signal.tokenSymbol ? ` / $${signal.tokenSymbol}` : ""}</b><small className="block mt-1 text-[10px] text-ink-mid truncate">{signal.detail}</small></span>
+                    <span className="font-mono text-[9px] text-ink-mid">{shorten(signal.tokenMint)}</span>
+                    <span className="font-mono text-[12px] font-extrabold text-right">{Math.round(signal.confidence)}%</span>
+                  </Link>
                 ))}
               </div>
             )}
           </section>
 
-          <section className="ops-panel ops-gate-panel">
-            <div className="ops-panel-head">
-              <div>
-                <span className="ops-panel-index">02</span>
+          <aside className="fw-sheet">
+            <div className="fw-sheet-head">
+              <div className="fw-sheet-title">
+                <span className="fw-sheet-no">B</span>
+                <div><h2>Evidence gate</h2><p>Latest execution authority.</p></div>
+              </div>
+              <span className="fw-badge fw-badge--orange">FAIL-CLOSED</span>
+            </div>
+            <div className="fw-body">
+              <div className={`fw-authority-state !border !min-h-[120px] ${latest?.decision === "reject" ? "!bg-[#f7e7e4]" : ""}`}>
                 <div>
-                  <h2>Evidence Gate</h2>
-                  <p>Latest decision authority.</p>
+                  <div className="fw-label">DECISION STATE</div>
+                  <h3 className="!text-[28px]">{latest ? latest.decision.toUpperCase() : "NO CLAIM"}</h3>
+                  <p>{latest ? `Evidence score ${latest.score ?? "—"}/100 · ${timeAgo(latest.createdAt)}` : "No launch has earned a decision yet."}</p>
                 </div>
+                <div className="fw-lock !w-[68px] !h-[68px]">{latest ? (latest.decision === "execute" ? "PASS" : "VETO") : "LOCK"}</div>
               </div>
-              <span className="ops-mono-label">FAIL-CLOSED</span>
             </div>
-
-            <div className="p-5 sm:p-6 flex flex-col gap-5">
-              <div className={decisionStateClass(latestReceipt?.decision)}>
-                <span>{decisionLabel(latestReceipt?.decision)}</span>
-                <b>{latestReceipt?.score !== undefined ? `${Math.round(latestReceipt.score)}/100` : "—"}</b>
-              </div>
-
-              {latestReceipt ? (
-                <>
-                  <div>
-                    <div className="ops-mono-label mb-2">SUBJECT</div>
-                    <div className="font-mono text-sm font-semibold">{shorten(latestReceipt.tokenMint)}</div>
-                    <div className="text-xs text-ink-mid mt-1">{timeAgo(latestReceipt.createdAt)} · {latestReceipt.executionMode.toUpperCase()}</div>
-                  </div>
-                  <GateRow label="Unknowns" value={String(latestReceipt.unknowns?.length ?? 0)} tone={(latestReceipt.unknowns?.length ?? 0) > 0 ? "warn" : "ok"} />
-                  <div>
-                    <div className="ops-mono-label mb-2">WHY</div>
-                    <div className="space-y-2">
-                      {latestReceipt.reasons.slice(0, 4).map((reason) => (
-                        <div key={reason} className="ops-reason-row"><span>↳</span><span>{reason}</span></div>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="space-y-3">
-                  <GateRow label="Claim" value="NONE" />
-                  <GateRow label="Liquidity" value="WAITING" />
-                  <GateRow label="Owner concentration" value="WAITING" />
-                  <GateRow label="Execution authority" value="LOCKED" tone="warn" />
-                  <p className="text-xs leading-relaxed text-ink-mid pt-2">No decision exists yet. The desk stays locked until a real launch observation produces enough evidence to qualify or refuse.</p>
-                </div>
-              )}
+            <GateRow label="Claim" value={latest ? latest.decision.toUpperCase() : "NONE"} />
+            <GateRow label="Critical unknowns" value={String(latest?.unknowns?.length ?? 0)} />
+            <GateRow label="Execution mode" value={latest?.executionMode.toUpperCase() ?? "PAPER"} />
+            <GateRow label="Authority" value={latest?.decision === "execute" ? "BOUNDED" : "LOCKED"} />
+            <div className="fw-body pt-3">
+              <Link to="/proof" className="fw-button w-full">OPEN EVIDENCE ROOM</Link>
             </div>
-          </section>
+          </aside>
         </div>
 
-        <div className="grid xl:grid-cols-[1.05fr_.95fr] gap-4">
-          <section className="ops-panel overflow-hidden">
-            <div className="ops-panel-head">
-              <div>
-                <span className="ops-panel-index">03</span>
-                <div>
-                  <h2>Authority & Risk</h2>
-                  <p>What the agent is actually allowed to do.</p>
-                </div>
+        <div className="fw-grid-even">
+          <section className="fw-sheet">
+            <div className="fw-sheet-head">
+              <div className="fw-sheet-title">
+                <span className="fw-sheet-no">C</span>
+                <div><h2>Authority + risk</h2><p>What the agent can actually do right now.</p></div>
               </div>
-              <Link to="/agent" className="ops-link">CONTROL →</Link>
+              <Link to="/agent" className="fw-badge">OPEN AUTHORITY →</Link>
             </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 border-b border-[#D7DAD0]">
-              <AuthorityCell label="Agent" value={agent?.name ?? "Not deployed"} />
-              <AuthorityCell label="State" value={authority} />
-              <AuthorityCell label="Max position" value={agent ? formatSol(agent.riskMaxPosition) : "—"} />
-              <AuthorityCell label="Drawdown cap" value={agent ? `${agent.riskMaxDrawdownPct}%` : "—"} />
-            </div>
-            <div className="p-5 grid md:grid-cols-2 gap-5">
-              <div>
-                <div className="ops-section-label">OPEN PAPER POSITIONS / {positions.length}</div>
-                {positions.length === 0 ? (
-                  <CompactEmpty title="NONE OPEN" text="No capital is exposed. A position appears only after evidence and paper risk both pass." />
-                ) : (
-                  <div className="divide-y divide-[#D7DAD0]">
-                    {positions.slice(0, 4).map((position) => (
-                      <div key={position._id} className="py-3 grid grid-cols-[1fr_auto] gap-3 text-xs">
-                        <div>
-                          <b>{position.tokenSymbol ?? "TOKEN"}</b>
-                          <div className="font-mono text-[10px] text-ink-faint mt-1">{shorten(position.tokenMint)}</div>
-                        </div>
-                        <div className="text-right font-mono">
-                          <div>{formatSol(position.sizeSol)}</div>
-                          <div className={position.pnlPct >= 0 ? "text-up" : "text-down"}>{position.pnlPct >= 0 ? "+" : ""}{position.pnlPct.toFixed(2)}%</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <div className="ops-section-label">FUNDING BOUNDARY</div>
-                <div className="ops-boundary-block">
-                  <BoundaryRow label="Paper cash" value={formatSol(portfolio?.cashSol ?? 0)} />
-                  <BoundaryRow label="Observed wallet" value={portfolio?.observedWalletSol !== null && portfolio?.observedWalletSol !== undefined ? formatSol(portfolio.observedWalletSol) : "NOT OBSERVED"} />
-                  <BoundaryRow label="On-chain authority" value="SEPARATELY GATED" />
-                </div>
-                <p className="text-[11px] text-ink-mid leading-relaxed mt-3">Observed wallet balance never becomes paper buying power. A prepared on-chain action is not verified volume.</p>
-              </div>
-            </div>
+            <div className="fw-row"><span>Agent</span><strong>{agent?.name ?? "NOT DEPLOYED"}</strong><small>{authority}</small></div>
+            <div className="fw-row"><span>Max position</span><strong>{agent ? formatSol(agent.riskMaxPosition) : "—"}</strong><small>paper risk envelope</small></div>
+            <div className="fw-row"><span>Drawdown cap</span><strong>{agent ? `${agent.riskMaxDrawdownPct}%` : "—"}</strong><small>high-water halt</small></div>
+            <div className="fw-row"><span>Open paper positions</span><strong>{positions.length}</strong><small>{positions.length ? `${positions[0]?.tokenSymbol ?? "TOKEN"} ${positions[0]?.pnlPct >= 0 ? "+" : ""}${positions[0]?.pnlPct.toFixed(2)}%` : "no exposure"}</small></div>
+            <div className="fw-row"><span>Observed wallet</span><strong>{portfolio?.observedWalletSol !== null && portfolio?.observedWalletSol !== undefined ? formatSol(portfolio.observedWalletSol) : "NOT OBSERVED"}</strong><small>watch-only</small></div>
           </section>
 
-          <section className="ops-panel overflow-hidden">
-            <div className="ops-panel-head">
-              <div>
-                <span className="ops-panel-index">04</span>
-                <div>
-                  <h2>Receipt Ledger</h2>
-                  <p>Execution states stay separated.</p>
-                </div>
+          <section className="fw-sheet">
+            <div className="fw-sheet-head">
+              <div className="fw-sheet-title">
+                <span className="fw-sheet-no">D</span>
+                <div><h2>Execution ledger</h2><p>Paper, pending and verified never collapse.</p></div>
               </div>
-              <span className="ops-mono-label">AUDIT TRAIL</span>
+              <span className="fw-badge">{trades.length} RECORDS</span>
             </div>
-
             {trades.length === 0 ? (
-              <div className="p-5">
-                <CompactEmpty title="NO EXECUTION RECORDS" text="Paper, pending on-chain and independently confirmed records will appear here without collapsing their states." />
+              <div className="fw-empty !min-h-[245px]">
+                <div className="fw-empty-inner"><div className="fw-empty-mark">Ø</div><h3>No execution records.</h3><p>Nothing has moved. That state remains visible instead of being replaced by synthetic success.</p></div>
               </div>
             ) : (
-              <div className="divide-y divide-[#D7DAD0]">
-                {trades.slice(0, 6).map((trade) => {
-                  const mode = trade.executionMode === "onchain"
-                    ? (trade.txSignature && trade.confirmationSlot !== undefined ? "VERIFIED" : "PENDING")
-                    : "PAPER";
-                  return (
-                    <div key={trade._id} className="ops-ledger-row">
-                      <div className="font-mono text-[10px] text-ink-faint">{timeAgo(trade.timestamp)}</div>
-                      <div>
-                        <b className="text-xs">{trade.direction.toUpperCase()} {trade.tokenSymbol ?? "TOKEN"}</b>
-                        <div className="font-mono text-[10px] text-ink-faint mt-1">{shorten(trade.tokenMint)}</div>
+              <>
+                <div className="fw-ledger-head"><span>Observed</span><span>Mode</span><span>Subject</span><span>Amount</span></div>
+                <div className="fw-ledger">
+                  {trades.slice(0, 6).map((trade) => {
+                    const mode = trade.executionMode === "onchain" ? (trade.txSignature && trade.confirmationSlot !== undefined ? "VERIFIED" : "PENDING") : "PAPER";
+                    return (
+                      <div key={trade._id} className="fw-ledger-row">
+                        <span className="font-mono text-[9px] text-ink-faint">{timeAgo(trade.timestamp)}</span>
+                        <span className={`fw-state ${mode === "VERIFIED" ? "fw-state--pass" : mode === "PENDING" ? "fw-state--unknown" : ""}`}>{mode}</span>
+                        <span><b className="text-[11px]">{trade.direction.toUpperCase()} {trade.tokenSymbol ?? "TOKEN"}</b><small className="block mt-1 font-mono text-[9px] text-ink-faint">{shorten(trade.tokenMint)}</small></span>
+                        <span className="font-mono text-[10px] text-right">{formatSol(trade.amountSol)}</span>
                       </div>
-                      <span className={`ops-ledger-mode ops-ledger-mode--${mode.toLowerCase()}`}>{mode}</span>
-                      <div className="text-right font-mono text-xs">{formatSol(trade.amountSol)}</div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              </>
             )}
           </section>
         </div>
 
-        <div className="ops-footer-note">
-          <span>LIVE DATA IS ALLOWED TO BE EMPTY.</span>
-          <span>UNKNOWN ≠ PASS.</span>
-          <span>PREPARE ≠ EXECUTE.</span>
-          <span>REAL FAILURE &gt; FAKE SUCCESS.</span>
-        </div>
+        <footer className="fw-footer-rule">
+          <span>live data may be empty</span>
+          <span>unknown ≠ pass</span>
+          <span>prepare ≠ execute</span>
+          <span>real failure &gt; fake success</span>
+        </footer>
       </div>
     </div>
   );
 }
 
-function Metric({ label, value, sub }: { label: string; value: string; sub: string }) {
-  return (
-    <div className="ops-metric">
-      <div className="ops-metric-label">{label}</div>
-      <div className="ops-metric-value">{value}</div>
-      <div className="ops-metric-sub">{sub}</div>
-    </div>
-  );
+function StatusStat({ label, value, note }: { label: string; value: string; note: string }) {
+  return <div className="fw-stat"><span className="fw-label">{label}</span><strong>{value}</strong><small>{note}</small></div>;
 }
 
-function ScannerIdle() {
-  const channels = [
-    ["Pump create", "LISTENING"],
-    ["Jupiter price / liquidity", "WAITING"],
-    ["Economic owner concentration", "WAITING"],
-    ["Evidence claim", "NO CLAIM"],
-  ];
-  return (
-    <div className="p-5 sm:p-6">
-      <div className="ops-listening-bar"><span /></div>
-      <div className="flex items-start justify-between gap-4 mb-5">
-        <div>
-          <div className="ops-section-label">SCANNER ARMED</div>
-          <h3 className="text-lg font-extrabold mt-1">Waiting for a real launch observation.</h3>
-        </div>
-        <span className="ops-chip">NO SYNTHETIC ROWS</span>
-      </div>
-      <div className="border border-[#D7DAD0] divide-y divide-[#D7DAD0]">
-        {channels.map(([label, value]) => (
-          <div key={label} className="flex items-center justify-between gap-4 px-4 py-3 text-xs">
-            <span className="text-ink-mid">{label}</span>
-            <span className="font-mono text-[10px] tracking-wider font-bold">{value}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function GateRow({ label, value, tone = "neutral" }: { label: string; value: string; tone?: "neutral" | "ok" | "warn" }) {
-  return (
-    <div className="flex items-center justify-between gap-4 border-b border-[#D7DAD0] pb-3 text-xs">
-      <span className="text-ink-mid">{label}</span>
-      <b className={`font-mono text-[10px] tracking-wider ${tone === "ok" ? "text-up" : tone === "warn" ? "text-down" : "text-ink"}`}>{value}</b>
-    </div>
-  );
-}
-
-function AuthorityCell({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="p-4 border-r last:border-r-0 border-[#D7DAD0] min-w-0">
-      <div className="ops-mono-label">{label}</div>
-      <div className="font-mono text-xs font-bold mt-2 truncate">{value}</div>
-    </div>
-  );
-}
-
-function BoundaryRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-4 py-2.5 border-b last:border-b-0 border-[#D7DAD0] text-xs">
-      <span className="text-ink-mid">{label}</span>
-      <b className="font-mono text-[10px] tracking-wide text-right">{value}</b>
-    </div>
-  );
-}
-
-function CompactEmpty({ title, text }: { title: string; text: string }) {
-  return (
-    <div className="mt-3 border-l-2 border-accent pl-4 py-1">
-      <div className="font-mono text-[11px] font-bold tracking-wider">{title}</div>
-      <div className="text-xs text-ink-mid leading-relaxed mt-1 max-w-xl">{text}</div>
-    </div>
-  );
+function GateRow({ label, value }: { label: string; value: string }) {
+  return <div className="fw-row"><span>{label}</span><strong>{value}</strong><small>current state</small></div>;
 }
 
 function shortType(type: SignalRow["type"]): string {
   if (type === "new-launch") return "NEW";
-  if (type === "buy") return "BUY";
-  if (type === "sell") return "SELL";
   if (type === "warn") return "WARN";
-  return "ALERT";
+  if (type === "alert") return "ALERT";
+  return type.toUpperCase();
 }
 
-function decisionLabel(decision?: ReceiptRow["decision"]): string {
-  if (decision === "execute") return "QUALIFIED";
-  if (decision === "reject") return "REFUSED";
-  if (decision === "skip") return "ABSTAIN";
-  if (decision === "prepare") return "PREPARED";
-  return "NO CLAIM";
-}
-
-function decisionStateClass(decision?: ReceiptRow["decision"]): string {
-  if (decision === "execute") return "ops-decision-state ops-decision-state--ok";
-  if (decision === "reject") return "ops-decision-state ops-decision-state--reject";
-  if (decision === "skip") return "ops-decision-state ops-decision-state--skip";
-  if (decision === "prepare") return "ops-decision-state ops-decision-state--prepare";
-  return "ops-decision-state ops-decision-state--idle";
+function decisionHeadline(decision: ReceiptRow["decision"]): string {
+  if (decision === "reject") return "The system refused the trade.";
+  if (decision === "execute") return "The evidence gate allowed bounded action.";
+  if (decision === "prepare") return "The action was prepared, not executed.";
+  return "The system abstained.";
 }
