@@ -10,6 +10,14 @@ Alpha Scout discovers real pump.fun launches, qualifies them with live Jupiter/S
 - Track: ClawPump × pump.fun + Overall Winner
 - Token eligibility deadline: **20 Sep 2026 · 23:59 UTC**
 
+## Public review preview
+
+- **Review URL:** https://clawrena-alpha-scout-review.vercel.app
+- **Source:** `winning-delta-p0-p2` / PR #1
+- **CI:** upstream run #18 passed security, integrity, logic, typecheck, lint and build
+- **Truth boundary:** this public URL is deliberately a **review preview** while Convex is not connected. It is not canonical runtime evidence and does not claim live market activity, eligibility, tokenization or on-chain execution.
+- **Canonical runtime target:** Cloudflare Pages + a real Convex deployment, followed by `capture:runtime` and a live negative-path receipt.
+
 ## Core guarantees
 
 - Watched wallet balance never becomes paper buying power.
@@ -31,6 +39,8 @@ React 18 · Vite · Tailwind · Convex · Solana RPC/Helius · Jupiter · ClawPu
 ## Environment
 
 See `.env.example`. Browser code receives only `VITE_CONVEX_URL`; deploy keys and provider credentials stay server/build-side.
+
+If `VITE_CONVEX_URL` is absent, the frontend now renders an explicit review/deployment state instead of crashing or fabricating live data. Supplying a real Convex URL switches the same build to the authenticated application.
 
 ## Checks
 
@@ -82,6 +92,8 @@ CONVEX_HTTP_URL=https://<deployment>.convex.site \
 DEPLOYED_COMMIT_SHA=$(git rev-parse HEAD) \
 npm run capture:runtime
 ```
+
+`evidence/runtime/REVIEW_PREVIEW.json` records the public review-preview deployment separately from canonical runtime evidence.
 
 `evidence/canonical-run/STATUS.json` deliberately stays **PENDING_REAL_RUNTIME_CAPTURE** until a real runtime negative-path receipt exists. Test fixtures must never be presented as submission proof.
 
