@@ -19,6 +19,20 @@ export type EvidencePassportInput = {
   createdAt: number;
 };
 
+export type EvidenceReplayEnvelope = {
+  policyVersion: string;
+  tokenMint: string;
+  decision: EvidenceDecision;
+  executionMode: "paper" | "onchain";
+  score: number | null;
+  observations: unknown;
+  unknowns: string[];
+  reasons: string[];
+  riskBudgetSol: number | null;
+  requestId: string | null;
+  createdAt: number;
+};
+
 export type EvidencePassport = {
   policyVersion: string;
   replayKey: string;
@@ -43,9 +57,18 @@ export function evidenceReplayKey(value: unknown): string {
   return `AS1-${hash.toString(16).padStart(16, "0")}`;
 }
 
-export function buildEvidencePassport(input: EvidencePassportInput): EvidencePassport {
-  const envelope = {
-    policyVersion: EVIDENCE_POLICY_VERSION,
+/**
+ * Canonical replay envelope. Supplying the stored policyVersion lets a future
+ * verifier recompute an older receipt without silently upgrading it to the
+ * current policy. This checks deterministic consistency only; it is not a
+ * cryptographic signature and does not re-validate live market evidence.
+ */
+export function buildEvidenceReplayEnvelope(
+  input: EvidencePassportInput,
+  policyVersion = EVIDENCE_POLICY_VERSION,
+): EvidenceReplayEnvelope {
+  return {
+    policyVersion,
     tokenMint: input.tokenMint,
     decision: input.decision,
     executionMode: input.executionMode,
@@ -57,10 +80,19 @@ export function buildEvidencePassport(input: EvidencePassportInput): EvidencePas
     requestId: input.requestId ?? null,
     createdAt: input.createdAt,
   };
+}
 
+export function recomputeEvidenceReplayKey(
+  input: EvidencePassportInput,
+  policyVersion = EVIDENCE_POLICY_VERSION,
+): string {
+  return evidenceReplayKey(buildEvidenceReplayEnvelope(input, policyVersion));
+}
+
+export function buildEvidencePassport(input: EvidencePassportInput): EvidencePassport {
   return {
     policyVersion: EVIDENCE_POLICY_VERSION,
-    replayKey: evidenceReplayKey(envelope),
+    replayKey: recomputeEvidenceReplayKey(input, EVIDENCE_POLICY_VERSION),
     policyState: policyStateFor(input.decision),
     freshnessExpiresAt: input.createdAt + EVIDENCE_POLICY.passportFreshnessMs,
     counterfactuals: buildCounterfactuals(input),
