@@ -1,5 +1,7 @@
-export const EVIDENCE_POLICY_VERSION = "AS-AUTHORITY-V1";
-export const EVIDENCE_PASSPORT_FRESHNESS_MS = 2 * 60 * 1000;
+import { EVIDENCE_POLICY, EVIDENCE_POLICY_VERSION } from "./evidencePolicy";
+
+export { EVIDENCE_POLICY_VERSION } from "./evidencePolicy";
+export const EVIDENCE_PASSPORT_FRESHNESS_MS = EVIDENCE_POLICY.passportFreshnessMs;
 
 export type EvidenceDecision = "execute" | "reject" | "skip" | "prepare";
 export type EvidencePolicyState = "QUALIFIED" | "REFUSED" | "ABSTAINED" | "PREPARED";
@@ -25,15 +27,11 @@ export type EvidencePassport = {
   counterfactuals: string[];
 };
 
-/** Stable JSON used to make a receipt replayable across UI, API and judge tooling. */
 export function stableEvidenceString(value: unknown): string {
   return JSON.stringify(canonicalize(value));
 }
 
-/**
- * Deterministic 64-bit FNV-1a replay key. This is an audit/replay identifier,
- * not a cryptographic signature and never authorizes value movement by itself.
- */
+/** Deterministic audit identifier; not a cryptographic signature. */
 export function evidenceReplayKey(value: unknown): string {
   const bytes = new TextEncoder().encode(stableEvidenceString(value));
   let hash = 0xcbf29ce484222325n;
@@ -64,14 +62,12 @@ export function buildEvidencePassport(input: EvidencePassportInput): EvidencePas
     policyVersion: EVIDENCE_POLICY_VERSION,
     replayKey: evidenceReplayKey(envelope),
     policyState: policyStateFor(input.decision),
-    freshnessExpiresAt: input.createdAt + EVIDENCE_PASSPORT_FRESHNESS_MS,
+    freshnessExpiresAt: input.createdAt + EVIDENCE_POLICY.passportFreshnessMs,
     counterfactuals: buildCounterfactuals(input),
   };
 }
 
 function policyStateFor(decision: EvidenceDecision): EvidencePolicyState {
-  // QUALIFIED means the evidence gate passed. It is deliberately NOT named
-  // AUTHORIZED: last-mile risk/provider checks still control value movement.
   if (decision === "execute") return "QUALIFIED";
   if (decision === "reject") return "REFUSED";
   if (decision === "prepare") return "PREPARED";
