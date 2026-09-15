@@ -1,0 +1,4 @@
+Alpha Scout approved judge home deployment trigger
+source: winning-delta-p0-p2
+source_sha: 41926a4b0ae8425a661cd40f30d98316d7079ce0
+visual_direction: approved forensic judge home + hawk-eye identity
