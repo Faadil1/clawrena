@@ -1,0 +1,97 @@
+name: Publish Live Alpha Scout Assets
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: "20"
+  SOURCE_REF: winning-delta-p0-p2
+  VITE_CONVEX_URL: https://grandiose-poodle-700.convex.cloud
+  PUBLISH_BRANCH: live-preview-dist
+
+jobs:
+  publish:
+    name: Build live frontend and publish static assets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout live source branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_REF }}
+          fetch-depth: 1
+
+      - name: Capture source SHA
+        id: source
+        shell: bash
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify before publish
+        run: |
+          npm run verify:integrity
+          npm run test:logic
+          npm run typecheck
+          npm run lint
+
+      - name: Build against live Convex deployment
+        env:
+          VITE_CONVEX_URL: ${{ env.VITE_CONVEX_URL }}
+          VITE_BUILD_SHA: ${{ steps.source.outputs.sha }}
+        run: npm run build
+
+      - name: Add immutable provenance
+        shell: bash
+        run: |
+          cat > dist/deployment-provenance.json <<EOF
+          {
+            "artifactClass": "LIVE_CONVEX_STATIC_ASSETS",
+            "sourceRef": "${SOURCE_REF}",
+            "sourceSha": "${{ steps.source.outputs.sha }}",
+            "convexUrl": "${VITE_CONVEX_URL}",
+            "builtAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "canonicalRuntimeEvidence": false,
+            "note": "Static asset publication only. Runtime proof still requires public reachability and a real negative-path receipt."
+          }
+          EOF
+          touch dist/.nojekyll
+
+      - name: Publish dist to dedicated branch
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          cp -R dist/. "$tmp/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan "$PUBLISH_BRANCH"
+          git rm -rf . >/dev/null 2>&1 || true
+          git clean -fdx >/dev/null 2>&1 || true
+          cp -R "$tmp/." .
+          git add -A
+          git commit -m "deploy: live preview assets from ${SOURCE_SHA}"
+          git push origin "HEAD:${PUBLISH_BRANCH}" --force
+
+      - name: Summary
+        run: |
+          {
+            echo "## Live assets published"
+            echo "- Source: ${SOURCE_REF} @ ${{ steps.source.outputs.sha }}"
+            echo "- Convex: ${VITE_CONVEX_URL}"
+            echo "- Static branch: ${PUBLISH_BRANCH}"
+            echo "- Runtime evidence remains separate from this publication."
+          } >> "$GITHUB_STEP_SUMMARY"
