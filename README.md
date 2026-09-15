@@ -28,12 +28,7 @@ React 18 · Vite · Tailwind · Convex · Solana RPC/Helius · Jupiter · ClawPu
 
 ## Environment
 
-```bash
-HELIUS_API_KEY=...
-HELIUS_WEBHOOK_SECRET=...
-JUPITER_API_KEY=...          # optional
-CLAWPUMP_API_KEY=cpk_...     # server-side only
-```
+See `.env.example`. Browser code receives only `VITE_CONVEX_URL`; deploy keys and provider credentials stay server/build-side.
 
 ## Checks
 
@@ -58,7 +53,7 @@ npm run build
 
 Canonical product cycle:
 
-`RUBRIC → PAIN → PROBLEM → DIFFERENTIATOR → EXECUTION → EVIDENCE → STORY → DEMO → Q&A`
+`RUBRIC → PAIN → PROBLEM → DIFFERENTIATOR → EXECUTION → EVIDENCE → STORY → DEMO → Q&A → RUNTIME → ELIGIBILITY → PROMOTE`
 
 Start with:
 
@@ -70,5 +65,21 @@ Start with:
 - `docs/DEMO_QA_GATE_6_75.md`
 - `docs/COLLISION_AGENT_ADVANTAGE.md`
 - `docs/TRACE_GATE_6_5.md`
+- `docs/P4_RUNTIME_SUBMISSION.md`
+- `docs/DEPLOYMENT_CLOUDFLARE_CONVEX.md`
+- `docs/GATE_7_PROMOTE.md`
 
-`evidence/canonical-run/STATUS.json` deliberately stays **PENDING_REAL_RUNTIME_CAPTURE** until real deployment evidence exists. Test fixtures must never be presented as submission proof.
+## Runtime proof
+
+After a real deployment, capture reachability evidence with:
+
+```bash
+PUBLIC_URL=https://<project>.pages.dev \
+CONVEX_HTTP_URL=https://<deployment>.convex.site \
+DEPLOYED_COMMIT_SHA=$(git rev-parse HEAD) \
+npm run capture:runtime
+```
+
+`evidence/canonical-run/STATUS.json` deliberately stays **PENDING_REAL_RUNTIME_CAPTURE** until a real runtime negative-path receipt exists. Test fixtures must never be presented as submission proof.
+
+`npm run gate:submission` is the final machine-readable Gate 7 check; it is expected to fail until eligibility receipts, public runtime evidence and the canonical live run are actually captured.

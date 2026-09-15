@@ -11,7 +11,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src convex --ext .ts,.tsx",
     "verify:integrity": "node scripts/verify-integrity.mjs",
-    "test:logic": "node scripts/test-logic.mjs"
+    "test:logic": "node scripts/test-logic.mjs",
+    "capture:runtime": "node scripts/capture-runtime-proof.mjs",
+    "gate:submission": "node scripts/gate-submission.mjs"
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.95",

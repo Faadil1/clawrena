@@ -1,27 +1,14 @@
 project: alpha-scout-clawrena
 canonical_branch: winning-delta-p0-p2
 upstream_pr: https://github.com/opeblow/clawrena/pull/1
-phase: P3_JUDGE_ASSURANCE_AND_REAL_FAILURE
-updated_at: 2026-09-14
+phase: P4_RUNTIME_SUBMISSION_READINESS
+updated_at: 2026-09-15
 
 product_truth:
   local_execution: paper
-  clawpump: unsigned_prepare_only
+  clawpump_partner_api: unsigned_prepare_only
   verified_onchain_execution: pending
-  verified_volume_rule: onchain_mode_plus_signature_plus_independent_confirmation_slot_required
-  pending_onchain_is_not_paper: true
-
-ci_evidence:
-  last_fully_green_head_before_security_gate: a951fec88dbb527016971b9905440f4add7478fd
-  upstream_run_id: 34925686416
-  upstream_run_number: 11
-  result: success
-  gates_passed:
-    - integrity
-    - logic
-    - typecheck
-    - lint
-    - build
+  verified_volume_rule: onchain_mode_plus_signature_plus_confirmation_slot
 
 canonical_thesis: >-
   Alpha Scout is an evidence-first autonomous launch trader that can prove why it traded
@@ -37,35 +24,57 @@ completed_gates:
   - execution_receipt_freshness
   - clawpump_provider_preflight
   - authority_boundary
-  - verified_volume_requires_confirmation
+  - dependency_security_gate
+  - cloudflare_pages_config
+  - convex_deploy_contract
+  - runtime_capture_tool
+  - eligibility_receipt_ledger
+  - machine_readable_gate_7
   - canonical_state_handover
 
 conditional_gates:
-  - dependency_security_full_tree_remediation
   - trace_gate_6_5_visual_runtime_review
   - judge_performance_assurance
   - agent_advantage_runtime_demo
+  - verified_onchain_execution_if_attempted
 
 blocking_gates:
   - eligibility_external_receipts
-  - public_runtime_deploy
-  - canonical_real_runtime_capture
-  - sign_submit_confirm_onchain_last_mile
+  - public_cloudflare_runtime_deploy
+  - convex_target_deploy
+  - canonical_real_negative_path_capture
   - gate_7_promote
 
+strategic_open:
+  - real_onchain_volume
+  - attention_and_stream_distribution
+  - token_utility_runtime_proof
+
 eligibility:
+  official_source: https://clawpump.tech/ansemhack
   deadline_utc: 2026-09-20T23:59:00Z
   registration_receipt: pending_external_confirmation
-  x_entry_receipt: pending_external_confirmation
+  x_entry_and_follow_receipt: pending_external_confirmation
   tokenization_receipt: pending_external_confirmation
+
+runtime:
+  preferred_frontend: cloudflare_pages
+  deployment_runbook: docs/DEPLOYMENT_CLOUDFLARE_CONVEX.md
+  reachability_evidence: evidence/runtime/LATEST.json
+  canonical_run_status: evidence/canonical-run/STATUS.json
+  promotion_command: npm run gate:submission
 
 canonical_artifacts:
   real_failure: docs/REAL_FAILURE_EVIDENCE.md
   rubric_matrix: docs/RUBRIC_EVIDENCE_MATRIX.md
   claim_ledger: docs/CLAIM_LEDGER.md
-  security_gate: docs/SECURITY_GATE.md
   p3_gate_matrix: docs/JUDGE_ASSURANCE_P3.md
+  p4_runtime_submission: docs/P4_RUNTIME_SUBMISSION.md
+  deploy_runbook: docs/DEPLOYMENT_CLOUDFLARE_CONVEX.md
+  gate_7: docs/GATE_7_PROMOTE.md
   demo_qa: docs/DEMO_QA_GATE_6_75.md
   collision_agent_advantage: docs/COLLISION_AGENT_ADVANTAGE.md
   trace_6_5: docs/TRACE_GATE_6_5.md
+  eligibility_status: evidence/eligibility/STATUS.json
+  runtime_status: evidence/runtime/LATEST.json
   canonical_run_status: evidence/canonical-run/STATUS.json

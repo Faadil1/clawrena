@@ -1,0 +1,12 @@
+{
+  "artifactClass": "PUBLIC_RUNTIME_CAPTURE_STATUS",
+  "status": "PENDING_DEPLOYMENT",
+  "fakeSuccessForbidden": true,
+  "publicUrl": null,
+  "convexHttpUrl": null,
+  "deployedCommitSha": null,
+  "capturedAt": null,
+  "providerHealth": null,
+  "probes": [],
+  "notes": "This file may be overwritten by npm run capture:runtime only from reachable deployed endpoints. It does not complete the canonical run by itself."
+}

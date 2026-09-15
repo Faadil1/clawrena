@@ -59,27 +59,60 @@ The winning loop is:
 - [x] Gate 6.75 demo/Q&A and TRACE 6.5 packet are present.
 - [x] Canonical CURRENT/HANDOVER state is present.
 
-## Required environment variables
+## P4 — runtime / submission readiness
 
-```bash
-HELIUS_API_KEY=...
-HELIUS_WEBHOOK_SECRET=...
-JUPITER_API_KEY=...          # optional higher limits
-CLAWPUMP_API_KEY=cpk_...     # server-side only
+- [x] Cloudflare Pages assets-only configuration is versioned.
+- [x] SPA deep-link fallback exists for `/proof` and other React Router paths.
+- [x] Convex deploy-key build contract is documented.
+- [x] Runtime capture script records reachable URLs, response hashes, latency and provider health without inventing success.
+- [x] Eligibility requirements are tracked as external receipts.
+- [x] `npm run gate:submission` blocks promotion while eligibility/runtime/canonical-run evidence is incomplete.
+- [ ] Deploy branch preview to Cloudflare Pages + Convex preview.
+- [ ] Run `npm run capture:runtime` against the actual public URLs.
+- [ ] Capture one real live-market REJECT or UNKNOWN decision receipt.
+- [ ] Verify all three official eligibility receipts.
+- [ ] Run TRACE Gate 6.5 on the deployed desktop/mobile runtime.
+
+## Environment boundary
+
+Browser-visible:
+
+```text
+VITE_CONVEX_URL
 ```
 
-Never expose `CLAWPUMP_API_KEY` to Vite/client code.
+Build/CI secret:
 
-## Deployment gate
+```text
+CONVEX_DEPLOY_KEY
+```
+
+Convex backend secrets:
+
+```text
+HELIUS_API_KEY
+HELIUS_WEBHOOK_SECRET
+JUPITER_API_KEY        # optional
+CLAWPUMP_API_KEY
+```
+
+Never expose `CONVEX_DEPLOY_KEY` or provider credentials through a `VITE_` variable.
+
+## Deployment / promotion gate
 
 A release is submission-ready only when:
 
-- `npm run verify:integrity` passes
-- `npm run test:logic` passes
-- `npm run typecheck` passes
-- `npm run lint` passes
-- `npm run build` passes
-- Convex Cloud deploy/codegen succeeds
-- `/proof` renders real receipts
-- verified on-chain volume remains zero for unsigned or unconfirmed activity
-- `evidence/canonical-run/STATUS.json` is populated only from real runtime artifacts
+- production dependency high/critical audit gate passes;
+- `npm run verify:integrity` passes;
+- `npm run test:logic` passes;
+- `npm run typecheck` passes;
+- `npm run lint` passes;
+- `npm run build` passes;
+- Convex target deploy/codegen succeeds;
+- Cloudflare frontend and `/proof` are publicly reachable;
+- `evidence/runtime/LATEST.json` comes from the deployed endpoints;
+- a real negative-path receipt exists in the canonical run;
+- eligibility receipt ledger is VERIFIED;
+- verified on-chain volume remains zero for unsigned or unconfirmed activity;
+- `npm run gate:submission` passes;
+- human evidence review approves Gate 7 PROMOTE.
