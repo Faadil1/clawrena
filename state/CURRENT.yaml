@@ -1,7 +1,7 @@
 project: alpha-scout-clawrena
 canonical_branch: winning-delta-p0-p2
 upstream_pr: https://github.com/opeblow/clawrena/pull/1
-phase: P5_TOKEN_UTILITY_AND_ECONOMIC_PROOF
+phase: P6_PUBLIC_REVIEW_PREVIEW
 updated_at: 2026-09-15
 
 product_truth:
@@ -14,6 +14,9 @@ product_truth:
   alpha_scout_token_live: pending_external_tokenization_receipt
   holder_revenue_share: not_built
   automated_treasury_spending: not_built
+  public_review_preview: reachable
+  public_review_preview_backend: not_connected
+  canonical_public_runtime: pending
 
 canonical_thesis: >-
   Alpha Scout is an evidence-first autonomous launch trader that can prove why it traded,
@@ -38,6 +41,9 @@ completed_gates:
   - creator_fee_ledger_normalization
   - agent_treasury_observability
   - token_utility_claim_boundary
+  - honest_no_backend_review_mode
+  - upstream_ci_dist_artifact
+  - public_review_preview_reachability
   - canonical_state_handover
 
 conditional_gates:
@@ -70,7 +76,16 @@ eligibility:
 runtime:
   preferred_frontend: cloudflare_pages
   deployment_runbook: docs/DEPLOYMENT_CLOUDFLARE_CONVEX.md
+  review_preview_url: https://clawrena-alpha-scout-review.vercel.app
+  review_preview_source_sha: c757bc7a4b169a605c5ceee4f9dfbdc9ec9ed36b
+  review_preview_vercel_deployment_id: dpl_8KzYivyvtke748j7YiuURbfsM3cw
+  review_preview_http_status: 200
+  review_preview_is_canonical_runtime: false
+  upstream_ci_run: 18
+  upstream_ci_conclusion: success
+  dist_artifact_id: 10392932518
   reachability_evidence: evidence/runtime/LATEST.json
+  review_preview_evidence: evidence/runtime/REVIEW_PREVIEW.json
   canonical_run_status: evidence/canonical-run/STATUS.json
   promotion_command: npm run gate:submission
 
@@ -101,4 +116,5 @@ canonical_artifacts:
   trace_6_5: docs/TRACE_GATE_6_5.md
   eligibility_status: evidence/eligibility/STATUS.json
   runtime_status: evidence/runtime/LATEST.json
+  review_preview_status: evidence/runtime/REVIEW_PREVIEW.json
   canonical_run_status: evidence/canonical-run/STATUS.json
