@@ -1,5 +1,6 @@
 import { internalMutation } from "./_generated/server";
 import { v } from "convex/values";
+import { buildEvidencePassport } from "./lib/evidencePassport";
 
 export const recordDecision = internalMutation({
   args: {
@@ -23,9 +24,24 @@ export const recordDecision = internalMutation({
     requestId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const createdAt = Date.now();
+    const passport = buildEvidencePassport({
+      tokenMint: args.tokenMint,
+      decision: args.decision,
+      executionMode: args.executionMode,
+      score: args.score,
+      observations: args.observations,
+      unknowns: args.unknowns,
+      reasons: args.reasons,
+      riskBudgetSol: args.riskBudgetSol,
+      requestId: args.requestId,
+      createdAt,
+    });
+
     return ctx.db.insert("decision_receipts", {
       ...args,
-      createdAt: Date.now(),
+      ...passport,
+      createdAt,
     });
   },
 });

@@ -2,12 +2,34 @@ import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { auth } from "./auth";
 import { internal } from "./_generated/api";
+import { EVIDENCE_POLICY_VERSION, EVIDENCE_PASSPORT_FRESHNESS_MS } from "./lib/evidencePassport";
 
 const http = httpRouter();
 auth.addHttpRoutes(http);
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 
 export const healthz = httpAction(async () => json({ ok: true, service: "alpha-scout", now: Date.now() }));
+
+/** Public, read-only machine contract for agents integrating Alpha Scout authority receipts. */
+export const authorityPolicy = httpAction(async () => json({
+  service: "alpha-scout",
+  role: "evidence-underwriter-and-execution-authority",
+  policyVersion: EVIDENCE_POLICY_VERSION,
+  receiptFreshnessMs: EVIDENCE_PASSPORT_FRESHNESS_MS,
+  semantics: {
+    unknown: "VETO_WHEN_CRITICAL",
+    paper: "SIMULATION_ONLY",
+    prepare: "NOT_EXECUTION",
+    pendingOnchain: "NOT_VERIFIED",
+    verifiedOnchain: "REQUIRES_TX_SIGNATURE_AND_CONFIRMATION_SLOT",
+    replayKey: "DETERMINISTIC_AUDIT_IDENTIFIER_NOT_A_CRYPTOGRAPHIC_SIGNATURE",
+  },
+  pipeline: ["DISCOVER", "CLAIM", "INVESTIGATE", "QUALIFY", "EXECUTE_OR_REFUSE", "PROVE"],
+  authorityStates: ["AUTHORIZED", "REFUSED", "ABSTAINED", "PREPARED"],
+  criticalUnknowns: ["verifiable market price", "liquidity", "largest-holder concentration"],
+  receiptFields: ["policyVersion", "replayKey", "authorityState", "freshnessExpiresAt", "counterfactuals"],
+  fakeSuccessForbidden: true,
+}));
 
 /**
  * Helius is a low-latency transport, not launch authority. We accept only
@@ -30,6 +52,7 @@ export const heliusWebhook = httpAction(async (ctx, request) => {
 });
 
 http.route({ path: "/healthz", method: "GET", handler: healthz });
+http.route({ path: "/authority-policy", method: "GET", handler: authorityPolicy });
 http.route({ path: "/webhooks/helius", method: "POST", handler: heliusWebhook });
 
 function extractSignatures(payload: unknown): string[] {

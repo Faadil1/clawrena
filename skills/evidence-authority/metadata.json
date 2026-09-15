@@ -1,0 +1,7 @@
+{
+  "name": "Evidence Authority",
+  "description": "Fail-closed execution authority for autonomous agents: preserve observed/inferred/unknown evidence, refuse on critical gaps, and issue replayable decision receipts.",
+  "author": "Faadil1",
+  "tags": ["risk", "trading", "evidence", "authority", "solana"],
+  "version": "1.0.0"
+}

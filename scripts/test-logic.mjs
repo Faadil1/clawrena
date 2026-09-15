@@ -15,6 +15,7 @@ const { nextEquityRisk } = loadTs("convex/lib/risk.ts");
 const { isPumpCreateInstructionData, PUMP_CREATE, PUMP_CREATE_V2 } = loadTs("convex/lib/pumpInstruction.ts");
 const { evaluateExecutionAuthority, MAX_EXECUTION_RECEIPT_AGE_MS } = loadTs("convex/lib/executionAuthority.ts");
 const { normalizeClawPumpFeeEarnings, CLAWPUMP_CREATOR_FEE_SHARE_PCT } = loadTs("convex/lib/tokenEconomics.ts");
+const { buildEvidencePassport, evidenceReplayKey, EVIDENCE_POLICY_VERSION, EVIDENCE_PASSPORT_FRESHNESS_MS } = loadTs("convex/lib/evidencePassport.ts");
 const now = Date.now();
 assert(evaluateLaunchEvidence({ processedAt: now - 60_000, now, priceUsd: 0.01, liquidityUsd: 50_000, priceChange24h: 20, largestHolderPct: 12 }).eligible, "qualified launch should pass");
 assert(!evaluateLaunchEvidence({ processedAt: now, now, priceUsd: 0.01, liquidityUsd: 50_000, largestHolderPct: null }).eligible, "unknown holder concentration must fail closed");
@@ -76,4 +77,26 @@ try {
 } catch { badEarningsRejected = true; }
 assert(badEarningsRejected, "invalid economic values must fail closed rather than become fake zeroes");
 
-console.log("Evidence, claim lease, Pump parser, high-water risk, execution authority + token economics tests: PASS");
+const passportBase = {
+  tokenMint: "mint-1",
+  decision: "reject",
+  executionMode: "paper",
+  score: 41,
+  observations: { liquidityUsd: 12000, priceUsd: 0.01 },
+  unknowns: ["largest-holder concentration"],
+  reasons: ["critical holder evidence unavailable"],
+  riskBudgetSol: 0.1,
+  requestId: "req-1",
+  createdAt: now,
+};
+const passportA = buildEvidencePassport(passportBase);
+const passportB = buildEvidencePassport({ ...passportBase, observations: { priceUsd: 0.01, liquidityUsd: 12000 } });
+assert(passportA.policyVersion === EVIDENCE_POLICY_VERSION, "evidence receipts must record a policy version");
+assert(passportA.replayKey === passportB.replayKey, "replay key must be stable across object key order");
+assert(passportA.authorityState === "REFUSED", "reject decisions must remain REFUSED in the passport");
+assert(passportA.counterfactuals.some((x) => x.includes("largest-holder concentration")), "refusal must explain what evidence must change before reconsideration");
+assert(passportA.freshnessExpiresAt === now + EVIDENCE_PASSPORT_FRESHNESS_MS, "passport freshness must be explicit");
+assert(EVIDENCE_PASSPORT_FRESHNESS_MS === MAX_EXECUTION_RECEIPT_AGE_MS, "passport and last-mile authority freshness must not drift");
+assert(evidenceReplayKey({ b: 2, a: 1 }) === evidenceReplayKey({ a: 1, b: 2 }), "canonical replay identifiers must be deterministic");
+
+console.log("Evidence, claim lease, Pump parser, high-water risk, execution authority, token economics + Evidence Passport tests: PASS");

@@ -170,6 +170,17 @@ export default defineSchema({
     quote: v.optional(v.any()),
     txSignature: v.optional(v.string()),
     requestId: v.optional(v.string()),
+    // P11 Evidence Passport fields are optional for migration compatibility.
+    policyVersion: v.optional(v.string()),
+    replayKey: v.optional(v.string()),
+    authorityState: v.optional(v.union(
+      v.literal("AUTHORIZED"),
+      v.literal("REFUSED"),
+      v.literal("ABSTAINED"),
+      v.literal("PREPARED"),
+    )),
+    freshnessExpiresAt: v.optional(v.number()),
+    counterfactuals: v.optional(v.array(v.string())),
     createdAt: v.number(),
   })
     .index("by_agentId_createdAt", ["agentId", "createdAt"])

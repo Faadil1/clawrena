@@ -1,36 +1,60 @@
 # Alpha Scout
 
-**Evidence-first autonomous launch trader for Solana.**
+**Evidence Underwriter / Execution Authority for autonomous capital on Solana.**
 
-Alpha Scout discovers real pump.fun launches, qualifies them with live Jupiter/Solana evidence, applies deterministic risk controls, and records why it executed, rejected or skipped. The current local trading harness is explicitly **PAPER**. A separate ClawPump v1 bridge can create/link an agent, quote a swap, and build a safety-gated unsigned swap transaction. Nothing is counted as **verified on-chain volume** without an on-chain execution row, a transaction signature and an independently stored confirmation slot.
+Other agents can discover, analyze, recommend or trade. Alpha Scout sits between a market signal and value movement: it builds an evidence record, keeps critical UNKNOWN states visible, applies deterministic authority gates, and records why capital was authorized, refused, skipped or only prepared.
+
+The current local trading harness is explicitly **PAPER**. A separate ClawPump v1 bridge can create/link an agent, quote a swap, and build a safety-gated unsigned swap transaction. Nothing is counted as **verified on-chain volume** without on-chain execution, a transaction signature and an independently stored confirmation slot.
 
 ## Hackathon
 
 - AnsemHack Clawrena
 - Track: ClawPump × pump.fun + Overall Winner
 - Token eligibility deadline: **20 Sep 2026 · 23:59 UTC**
+- Winning Intelligence P11: `docs/WINNING_INTELLIGENCE_P11.md`
+- Competitive snapshot: `docs/COMPETITIVE_INTELLIGENCE_2026-09-15.md`
 
-## Public review preview
+## Public live frontend
 
-- **Review URL:** https://clawrena-alpha-scout-review.vercel.app
-- **Source:** `winning-delta-p0-p2` / PR #1
-- **CI:** upstream run #18 passed security, integrity, logic, typecheck, lint and build
-- **Truth boundary:** this public URL is deliberately a **review preview** while Convex is not connected. It is not canonical runtime evidence and does not claim live market activity, eligibility, tokenization or on-chain execution.
-- **Canonical runtime target:** Cloudflare Pages + a real Convex deployment, followed by `capture:runtime` and a live negative-path receipt.
+- **URL:** https://clawrena-alpha-scout-review.vercel.app
+- **Convex:** `grandiose-poodle-700`
+- **Identity:** approved forensic judge home + hawk-eye crest
+- **Truth boundary:** the frontend is live and Convex-bound, but it is **not canonical runtime evidence** until the Convex HTTP health probe and a real live-market negative-path receipt are captured.
+- **Canonical runtime target:** Cloudflare Pages + the same Convex backend, followed by `capture:runtime` and the live negative-path receipt.
+
+## P11 — Proof-of-Authority primitive
+
+New decision receipts carry an **Evidence Passport**:
+
+- versioned policy (`AS-AUTHORITY-V1`)
+- deterministic replay key
+- explicit authority state
+- evidence freshness expiry
+- counterfactual conditions for reconsideration
+
+`GET /authority-policy` exposes the current authority semantics as a machine-readable contract for other agents.
+
+The repo also includes a reusable ClawPump/Hermes skill:
+
+- `skills/evidence-authority/SKILL.md`
+- `skills/evidence-authority/metadata.json`
+
+This is deliberately complementary to ClawPump's existing Alpha Scanner, Meme Token Analyzer and Risk Manager skills. Alpha Scout's category is **execution authority**, not another scanner.
 
 ## Core guarantees
 
 - Watched wallet balance never becomes paper buying power.
 - Unknown liquidity or holder concentration fails closed.
 - Signal execution uses an atomic lease to prevent duplicate concurrent entries.
-- PAPER, pending on-chain activity and VERIFIED ONCHAIN volume are separate metrics.
+- PAPER, PREPARED, pending on-chain activity and VERIFIED ONCHAIN volume remain separate.
 - ClawPump high-risk/unverified safety gates are not auto-bypassed.
-- Every decision creates a receipt with observations, unknowns, reasons and risk budget.
+- Every new decision creates a versioned receipt with observations, unknowns, reasons, risk budget and Evidence Passport metadata.
 - A passing strategy receipt expires before last-mile execution; stale evidence cannot authorize value movement.
 - ClawPump quote/build requires a live provider + linked-agent preflight. Failure is recorded as a REJECT receipt.
 - Creator-fee economics are read from ClawPump's public ledger; missing/invalid values fail closed rather than becoming synthetic zeroes.
 - Agent Treasury is creator-fee observability, **not** a holder revenue-share/governance promise.
 - External incidents and test fixtures are explicitly separated from Alpha Scout runtime evidence.
+- A refusal remains in the evidence record and includes what would need to change before authority is reconsidered.
 
 ## Stack
 
@@ -40,7 +64,7 @@ React 18 · Vite · Tailwind · Convex · Solana RPC/Helius · Jupiter · ClawPu
 
 See `.env.example`. Browser code receives only `VITE_CONVEX_URL`; deploy keys and provider credentials stay server/build-side.
 
-If `VITE_CONVEX_URL` is absent, the frontend now renders an explicit review/deployment state instead of crashing or fabricating live data. Supplying a real Convex URL switches the same build to the authenticated application.
+If `VITE_CONVEX_URL` is absent, the frontend renders an explicit review/deployment state instead of crashing or fabricating live data. Supplying a real Convex URL switches the same build to the authenticated application.
 
 ## Checks
 
@@ -58,8 +82,9 @@ npm run build
 - `/dashboard` — paper portfolio + separated execution records
 - `/agent` — risk controls, watch-only wallet observation, ClawPump link + observed Agent Treasury
 - `/signals` — real launch/signal feed
-- `/proof` — judge-facing decision receipts, real-failure grounding and verified-volume boundary
+- `/proof` — judge-facing decision receipts, Evidence Passports, real-failure grounding and verified-volume boundary
 - `/token/:mint?` — live token shield scan
+- `/authority-policy` — public machine-readable authority contract on the Convex HTTP site
 
 ## Judge assurance
 
@@ -70,6 +95,8 @@ Canonical product cycle:
 Start with:
 
 - `state/CURRENT.yaml`
+- `docs/WINNING_INTELLIGENCE_P11.md`
+- `docs/COMPETITIVE_INTELLIGENCE_2026-09-15.md`
 - `docs/JUDGE_ASSURANCE_P3.md`
 - `docs/REAL_FAILURE_EVIDENCE.md`
 - `docs/RUBRIC_EVIDENCE_MATRIX.md`
@@ -92,8 +119,6 @@ CONVEX_HTTP_URL=https://<deployment>.convex.site \
 DEPLOYED_COMMIT_SHA=$(git rev-parse HEAD) \
 npm run capture:runtime
 ```
-
-`evidence/runtime/REVIEW_PREVIEW.json` records the public review-preview deployment separately from canonical runtime evidence.
 
 `evidence/canonical-run/STATUS.json` deliberately stays **PENDING_REAL_RUNTIME_CAPTURE** until a real runtime negative-path receipt exists. Test fixtures must never be presented as submission proof.
 

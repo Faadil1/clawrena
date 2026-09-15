@@ -56,4 +56,18 @@ assert(read("docs/TOKEN_UTILITY.md").includes("NOT BUILT / prohibited wording"),
 assert(read("evidence/eligibility/STATUS.json").includes("PENDING_EXTERNAL_RECEIPT"), "tokenization eligibility must remain pending until a real receipt exists");
 assert(read("docs/GATE_7_PROMOTE.md").includes("NO_PROMOTE"), "P4 promotion authority must remain fail closed");
 
-console.log("Winning-delta P0-P5 integrity gates: PASS");
+const passport = read("convex/lib/evidencePassport.ts");
+const evidence = read("convex/evidence.ts");
+const proof = read("src/pages/Proof.tsx");
+const http = read("convex/http.ts");
+const skill = read("skills/evidence-authority/SKILL.md");
+const competition = read("docs/COMPETITIVE_INTELLIGENCE_2026-09-15.md");
+assert(passport.includes("EVIDENCE_POLICY_VERSION") && passport.includes("replayKey") && passport.includes("counterfactuals"), "P11 Evidence Passport must remain versioned, replayable and counterfactual-aware");
+assert(evidence.includes("buildEvidencePassport"), "every new decision receipt must receive an Evidence Passport at write time");
+assert(schema.includes("policyVersion") && schema.includes("freshnessExpiresAt") && schema.includes("counterfactuals"), "receipt schema must persist the Evidence Passport without rewriting history");
+assert(proof.includes("TO RECONSIDER") && proof.includes("REPLAY"), "judge-facing proof room must expose replay and counterfactual authority evidence");
+assert(http.includes('path: "/authority-policy"') && http.includes("VETO_WHEN_CRITICAL"), "Alpha Scout authority semantics must be machine-readable for other agents");
+assert(skill.includes("Execution Authority") && skill.includes("PREPARE is not execution") && skill.includes("UNKNOWN"), "Hermes/ClawPump skill must preserve the authority boundary instead of becoming another alpha scanner");
+assert(competition.includes("154 tokenized entries") && competition.includes("SelfMade") && competition.includes("HyperBull") && competition.includes("MarketBubbleSearch"), "competitive intelligence snapshot must stay grounded in observed Clawrena surfaces");
+
+console.log("Winning Intelligence P11 integrity gates: PASS");
