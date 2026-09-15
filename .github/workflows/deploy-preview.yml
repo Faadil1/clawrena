@@ -1,0 +1,176 @@
+name: Deploy Alpha Scout Preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch or commit to deploy
+        required: true
+        default: winning-delta-p0-p2
+      pages_project:
+        description: Cloudflare Pages project name
+        required: true
+        default: alpha-scout-clawrena-preview
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "20"
+
+jobs:
+  deploy:
+    name: Convex + Cloudflare preview + runtime evidence
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check required deployment secrets
+        shell: bash
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in CONVEX_DEPLOY_KEY CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::$name is not configured in this fork's Actions secrets"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "Deployment blocked: required credentials are missing. No runtime success is being claimed." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+      - name: Checkout requested source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Pre-deploy integrity gate
+        run: |
+          npm run verify:integrity
+          npm run test:logic
+          npm run typecheck
+          npm run lint
+
+      - name: Configure optional Convex provider secrets
+        shell: bash
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          HELIUS_API_KEY: ${{ secrets.HELIUS_API_KEY }}
+          HELIUS_WEBHOOK_SECRET: ${{ secrets.HELIUS_WEBHOOK_SECRET }}
+          JUPITER_API_KEY: ${{ secrets.JUPITER_API_KEY }}
+          CLAWPUMP_API_KEY: ${{ secrets.CLAWPUMP_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -n "${HELIUS_API_KEY:-}" ]; then npx convex env set HELIUS_API_KEY "$HELIUS_API_KEY"; fi
+          if [ -n "${HELIUS_WEBHOOK_SECRET:-}" ]; then npx convex env set HELIUS_WEBHOOK_SECRET "$HELIUS_WEBHOOK_SECRET"; fi
+          if [ -n "${JUPITER_API_KEY:-}" ]; then npx convex env set JUPITER_API_KEY "$JUPITER_API_KEY"; fi
+          if [ -n "${CLAWPUMP_API_KEY:-}" ]; then npx convex env set CLAWPUMP_API_KEY "$CLAWPUMP_API_KEY"; fi
+
+      - name: Deploy Convex and build frontend with real backend URL
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+        run: npx convex deploy --cmd 'npm run build' --cmd-url-env-var-name VITE_CONVEX_URL
+
+      - name: Recover deployed Convex URLs from built bundle
+        id: convex_urls
+        shell: bash
+        run: |
+          set -euo pipefail
+          cloud_url=$(grep -RhoE 'https://[a-zA-Z0-9-]+\.convex\.cloud' dist | head -n 1 || true)
+          if [ -z "$cloud_url" ]; then
+            echo "::error::Could not recover the deployed Convex URL from the built frontend"
+            exit 1
+          fi
+          site_url="${cloud_url/.convex.cloud/.convex.site}"
+          echo "cloud_url=$cloud_url" >> "$GITHUB_OUTPUT"
+          echo "site_url=$site_url" >> "$GITHUB_OUTPUT"
+          echo "Convex backend URL recovered from the built bundle." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Ensure Cloudflare Pages project exists
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PROJECT: ${{ inputs.pages_project }}
+        run: |
+          set -euo pipefail
+          npx wrangler@latest pages project list > /tmp/pages-projects.txt
+          if ! grep -q "$PROJECT" /tmp/pages-projects.txt; then
+            npx wrangler@latest pages project create "$PROJECT" --production-branch master
+          fi
+
+      - name: Deploy Cloudflare Pages preview
+        id: pages
+        shell: bash
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PROJECT: ${{ inputs.pages_project }}
+        run: |
+          set -euo pipefail
+          npx wrangler@latest pages deploy dist \
+            --project-name "$PROJECT" \
+            --branch "winning-delta-p0-p2" \
+            --commit-hash "$GITHUB_SHA" | tee /tmp/pages-deploy.txt
+          public_url=$(grep -Eo 'https://[^ ]+\.pages\.dev' /tmp/pages-deploy.txt | tail -n 1 || true)
+          if [ -z "$public_url" ]; then
+            public_url="https://winning-delta-p0-p2.${PROJECT}.pages.dev"
+          fi
+          echo "public_url=$public_url" >> "$GITHUB_OUTPUT"
+          echo "Cloudflare preview: $public_url" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Configure Convex Auth for deployed origin
+        shell: bash
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          PUBLIC_URL: ${{ steps.pages.outputs.public_url }}
+        run: |
+          set -euo pipefail
+          npx @convex-dev/auth --skip-git-check --web-server-url "$PUBLIC_URL"
+
+      - name: Capture real runtime reachability evidence
+        shell: bash
+        env:
+          PUBLIC_URL: ${{ steps.pages.outputs.public_url }}
+          CONVEX_HTTP_URL: ${{ steps.convex_urls.outputs.site_url }}
+          DEPLOYED_COMMIT_SHA: ${{ github.sha }}
+        run: npm run capture:runtime
+
+      - name: Upload runtime evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: alpha-scout-runtime-evidence-${{ github.sha }}
+          path: evidence/runtime/LATEST.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Deployment truth summary
+        shell: bash
+        env:
+          PUBLIC_URL: ${{ steps.pages.outputs.public_url }}
+          CONVEX_URL: ${{ steps.convex_urls.outputs.cloud_url }}
+          CONVEX_HTTP_URL: ${{ steps.convex_urls.outputs.site_url }}
+        run: |
+          {
+            echo "## Alpha Scout preview deployed"
+            echo "- Frontend: $PUBLIC_URL"
+            echo "- Convex client: $CONVEX_URL"
+            echo "- Convex HTTP: $CONVEX_HTTP_URL"
+            echo "- Source ref: ${{ inputs.ref }}"
+            echo "- Reachability evidence: uploaded as an artifact"
+            echo "- Gate 7 remains blocked until eligibility receipts and a real canonical negative-path receipt exist."
+          } >> "$GITHUB_STEP_SUMMARY"
