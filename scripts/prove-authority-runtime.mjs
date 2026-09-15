@@ -4,6 +4,7 @@ import path from "node:path";
 const cloud = stripSlash(process.env.CONVEX_CLOUD_URL);
 const site = stripSlash(process.env.CONVEX_HTTP_URL);
 const sourceSha = process.env.DEPLOYED_COMMIT_SHA?.trim() || null;
+const requestedScanLimit = boundedInt(process.env.PUMP_SIGNATURE_SCAN_LIMIT, 300, 1, 500);
 if (!cloud || !site) {
   console.error("CONVEX_CLOUD_URL and CONVEX_HTTP_URL are required");
   process.exit(2);
@@ -17,6 +18,7 @@ const evidence = {
   convexCloudUrl: cloud,
   convexHttpUrl: site,
   capturedAt: new Date().toISOString(),
+  requestedPumpSignatureScanLimit: requestedScanLimit,
   reachability: {},
   discovery: null,
   underwriting: null,
@@ -37,10 +39,15 @@ try {
   evidence.reachability.openapi = await getJson(`${site}/authority-openapi`);
   evidence.reachability.statsBefore = await getJson(`${site}/authority-stats`);
 
-  const discovery = await runFunction(cloud, "scanner/discoverNow", {});
+  const discovery = await runFunction(cloud, "scanner/discoverNow", { signatureLimit: requestedScanLimit });
   evidence.discovery = discovery;
   const event = discovery?.value?.events?.[0];
-  if (!event?.mint || !event?.signature) throw new Error("No verified Pump create/create_v2 launch was discovered; no synthetic candidate was substituted.");
+  if (!event?.mint || !event?.signature) {
+    const value = discovery?.value ?? {};
+    throw new Error(
+      `No verified Pump create/create_v2 launch was discovered after ${value.signaturesExamined ?? "unknown"} examined signatures across ${value.pagesSearched ?? "unknown"} page(s); dedicated RPC configured=${Boolean(value.configured)}. No synthetic candidate was substituted.`,
+    );
+  }
 
   const underwriting = await postJson(`${site}/underwrite`, {
     tokenMint: event.mint,
@@ -48,7 +55,7 @@ try {
   });
   evidence.underwriting = underwriting;
   if (!underwriting?.ok || underwriting?.valueMovement !== false) throw new Error("Underwriting contract failed or value-movement boundary was violated.");
-  if (!['QUALIFIED', 'REFUSED'].includes(underwriting.policyState)) throw new Error("Underwriting returned an invalid policy state.");
+  if (!["QUALIFIED", "REFUSED"].includes(underwriting.policyState)) throw new Error("Underwriting returned an invalid policy state.");
   if (!Array.isArray(underwriting.sourceLedger) || underwriting.sourceLedger.length === 0) throw new Error("Underwriting returned no source ledger.");
 
   const replayKey = underwriting?.passport?.replayKey;
@@ -77,7 +84,7 @@ if (evidence.status !== "CAPTURED") process.exit(1);
 async function runFunction(base, identifier, args) {
   const response = await fetch(`${base}/api/run/${identifier}`, {
     method: "POST",
-    headers: { "content-type": "application/json", "user-agent": "alpha-scout-runtime-proof/2.0" },
+    headers: { "content-type": "application/json", "user-agent": "alpha-scout-runtime-proof/2.1" },
     body: JSON.stringify({ args, format: "json" })
   });
   const body = await response.json();
@@ -86,7 +93,7 @@ async function runFunction(base, identifier, args) {
 }
 
 async function getJson(url) {
-  const response = await fetch(url, { headers: { "user-agent": "alpha-scout-runtime-proof/2.0" } });
+  const response = await fetch(url, { headers: { "user-agent": "alpha-scout-runtime-proof/2.1" } });
   const body = await response.json();
   if (!response.ok) throw new Error(`GET ${url} failed with ${response.status}`);
   return body;
@@ -95,12 +102,18 @@ async function getJson(url) {
 async function postJson(url, body) {
   const response = await fetch(url, {
     method: "POST",
-    headers: { "content-type": "application/json", "user-agent": "alpha-scout-runtime-proof/2.0" },
+    headers: { "content-type": "application/json", "user-agent": "alpha-scout-runtime-proof/2.1" },
     body: JSON.stringify(body)
   });
   const payload = await response.json();
   if (!response.ok) throw new Error(`POST ${url} failed with ${response.status}: ${JSON.stringify(payload)}`);
   return payload;
+}
+
+function boundedInt(value, fallback, min, max) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(min, Math.min(max, Math.floor(parsed)));
 }
 
 function stripSlash(value) {
