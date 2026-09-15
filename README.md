@@ -2,7 +2,7 @@
 
 **Evidence-first autonomous launch trader for Solana.**
 
-Alpha Scout discovers real pump.fun launches, qualifies them with live Jupiter/Solana evidence, applies deterministic risk controls, and records why it executed, rejected or skipped. The current local trading harness is explicitly **PAPER**. A separate ClawPump v1 bridge can create/link an agent, quote a swap, and build a safety-gated unsigned swap transaction. Nothing is counted as on-chain execution without a transaction signature.
+Alpha Scout discovers real pump.fun launches, qualifies them with live Jupiter/Solana evidence, applies deterministic risk controls, and records why it executed, rejected or skipped. The current local trading harness is explicitly **PAPER**. A separate ClawPump v1 bridge can create/link an agent, quote a swap, and build a safety-gated unsigned swap transaction. Nothing is counted as **verified on-chain volume** without an on-chain execution row, a transaction signature and an independently stored confirmation slot.
 
 ## Hackathon
 
@@ -15,7 +15,7 @@ Alpha Scout discovers real pump.fun launches, qualifies them with live Jupiter/S
 - Watched wallet balance never becomes paper buying power.
 - Unknown liquidity or holder concentration fails closed.
 - Signal execution uses an atomic lease to prevent duplicate concurrent entries.
-- Paper volume and verified on-chain volume are separate metrics.
+- PAPER, pending on-chain activity and VERIFIED ONCHAIN volume are separate metrics.
 - ClawPump high-risk/unverified safety gates are not auto-bypassed.
 - Every decision creates a receipt with observations, unknowns, reasons and risk budget.
 - A passing strategy receipt expires before last-mile execution; stale evidence cannot authorize value movement.

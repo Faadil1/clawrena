@@ -25,16 +25,18 @@ export default function Proof() {
 
   const receipts = data.decisionReceipts ?? [];
   const verifiedVolume = stats?.verifiedOnchainVolumeSol ?? 0;
+  const pendingVolume = stats?.pendingOnchainVolumeSol ?? 0;
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-[1200px] mx-auto flex flex-col gap-5">
       <div>
         <div className="text-xs font-bold uppercase tracking-wider text-accent">Live Proof</div>
         <h1 className="text-3xl font-extrabold mt-1">What the agent knew, refused, and executed.</h1>
-        <p className="text-ink-mid mt-2 max-w-3xl">Every entry decision separates observed evidence, unknowns, reasons and execution mode. Only confirmed on-chain trades with a transaction signature count toward verified volume.</p>
+        <p className="text-ink-mid mt-2 max-w-3xl">Every entry decision separates observed evidence, unknowns, reasons and execution mode. Verified volume requires an on-chain trade, a transaction signature and an independently stored confirmation slot.</p>
       </div>
 
-      <div className="grid sm:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Stat label="Verified on-chain volume" value={formatSol(verifiedVolume)} />
+        <Stat label="Pending on-chain volume" value={formatSol(pendingVolume)} />
         <Stat label="Paper volume" value={formatSol(data.portfolio?.paperVolumeSol ?? 0)} />
         <Stat label="Decision receipts" value={String(receipts.length)} />
       </div>
@@ -42,8 +44,8 @@ export default function Proof() {
       <Card title="Execution boundary" badge={<CardBadge>FAIL CLOSED</CardBadge>} bodyClassName="p-5">
         <div className="grid md:grid-cols-3 gap-3 text-sm">
           <Boundary title="OBSERVED" body="Live Jupiter price/liquidity, Solana holder concentration, launch timestamp and provider request ids." />
-          <Boundary title="UNKNOWN" body="Unknown holder or liquidity evidence blocks entry. Stale evidence or an unhealthy execution provider blocks the last mile." />
-          <Boundary title="PROVED" body="On-chain volume requires executionMode=onchain plus a stored transaction signature; final live flow must independently confirm it." />
+          <Boundary title="UNKNOWN" body="Unknown holder or liquidity evidence blocks entry. Stale evidence, an unhealthy execution provider, or unconfirmed submission blocks verified volume." />
+          <Boundary title="PROVED" body="Verified on-chain volume requires executionMode=onchain, a stored transaction signature and an independent confirmation slot." />
         </div>
       </Card>
 

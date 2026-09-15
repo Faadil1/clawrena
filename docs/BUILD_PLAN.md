@@ -3,7 +3,7 @@
 > **Hackathon:** AnsemHack Clawrena · Solana  
 > **Eligibility token deadline:** **20 Sep 2026 · 23:59 UTC**  
 > **Track:** ClawPump × pump.fun + Overall Winner  
-> **Product state:** evidence-first paper engine + safety-gated ClawPump execution bridge; no on-chain volume is claimed without a confirmed transaction signature.
+> **Product state:** evidence-first paper engine + safety-gated ClawPump execution bridge; no on-chain volume is called verified without a transaction signature **and** independently stored confirmation.
 
 ## North star
 
@@ -13,7 +13,7 @@ Alpha Scout is not "a bot that buys every fresh launch." It is an autonomous lau
 2. What remains unknown?
 3. Why did it execute, reject, or skip?
 4. What risk budget was authorized?
-5. Was execution paper, merely prepared, or independently verified on-chain?
+5. Was execution paper, submitted/pending, merely prepared, or independently verified on-chain?
 
 The winning loop is:
 
@@ -22,8 +22,8 @@ The winning loop is:
 ## P0 — correctness and honesty
 
 - [x] Wallet balance is watch-only and cannot create paper buying power.
-- [x] Paper vs on-chain execution is explicit in schema and metrics.
-- [x] Verified on-chain volume requires `executionMode=onchain` **and** a transaction signature.
+- [x] Paper, pending on-chain and independently verified on-chain metrics are distinct.
+- [x] Verified on-chain volume requires `executionMode=onchain`, a transaction signature **and** a stored confirmation slot.
 - [x] Landing claims match what is actually built.
 - [x] New-launch confidence is no longer a fixed invented number; evidence score is computed after live checks.
 - [x] ClawPump v1 adapter exists for agent creation, swap quote and unsigned swap build.
@@ -41,12 +41,23 @@ The winning loop is:
 ## P2 — judge proof plane
 
 - [x] `decision_receipts` table records observations, unknowns, reasons, score, risk budget, execution mode, provider request id and optional transaction signature.
-- [x] `/proof` renders recent receipts and separates paper from verified on-chain volume.
+- [x] `/proof` renders recent receipts and separates paper, pending on-chain and verified on-chain volume.
 - [x] ClawPump swap build records `PREPARE`, not `EXECUTE`, because the v1 endpoint returns an unsigned transaction.
-- [ ] Add wallet signing/submit flow or a supported ClawPump server-side execution primitive, then independently verify the Solana signature before inserting an on-chain trade row.
+- [ ] Add wallet signing/submit flow or a supported ClawPump server-side execution primitive, independently verify confirmation, then insert/update an on-chain trade row with signature + confirmation slot.
 - [ ] Launch/tokenize project on ClawPump by 20 Sep 2026 23:59 UTC.
 - [ ] Attach live project URL + reachable X account to hackathon entry.
 - [ ] Capture at least one verified live execution receipt for the demo if risk budget permits.
+
+## P3 — judge assurance / real failure
+
+- [x] External real failures are stored separately from runtime proof.
+- [x] Rubric → evidence matrix and public Claim Ledger are canonical.
+- [x] Stored execution authority expires stale strategy evidence.
+- [x] ClawPump exact linked-agent preflight can veto quote/build.
+- [x] Provider/freshness failures persist a REJECT receipt.
+- [x] Negative-path fixture is labelled non-runtime evidence.
+- [x] Gate 6.75 demo/Q&A and TRACE 6.5 packet are present.
+- [x] Canonical CURRENT/HANDOVER state is present.
 
 ## Required environment variables
 
@@ -64,9 +75,11 @@ Never expose `CLAWPUMP_API_KEY` to Vite/client code.
 A release is submission-ready only when:
 
 - `npm run verify:integrity` passes
+- `npm run test:logic` passes
 - `npm run typecheck` passes
 - `npm run lint` passes
 - `npm run build` passes
 - Convex Cloud deploy/codegen succeeds
 - `/proof` renders real receipts
-- verified on-chain volume remains zero unless a confirmed signature exists
+- verified on-chain volume remains zero for unsigned or unconfirmed activity
+- `evidence/canonical-run/STATUS.json` is populated only from real runtime artifacts

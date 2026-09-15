@@ -48,10 +48,13 @@ export const dashboard = query({
     const portfolioValue = (portfolio?.cashSol ?? 0) + positionValue;
     const realizedPnl = portfolio ? await sumPaperPnl(ctx, portfolio._id) : 0;
     const verifiedOnchainVolumeSol = trades
-      .filter((t) => t.executionMode === "onchain" && Boolean(t.txSignature))
+      .filter((t) => t.executionMode === "onchain" && Boolean(t.txSignature) && t.confirmationSlot !== undefined)
+      .reduce((sum, t) => sum + t.amountSol, 0);
+    const pendingOnchainVolumeSol = trades
+      .filter((t) => t.executionMode === "onchain" && (!t.txSignature || t.confirmationSlot === undefined))
       .reduce((sum, t) => sum + t.amountSol, 0);
     const paperVolumeSol = trades
-      .filter((t) => t.executionMode !== "onchain" || !t.txSignature)
+      .filter((t) => t.executionMode !== "onchain")
       .reduce((sum, t) => sum + t.amountSol, 0);
 
     const signals = await ctx.db.query("signals").withIndex("by_processedAt").order("desc").take(20);
@@ -71,6 +74,7 @@ export const dashboard = query({
             portfolioValue,
             realizedPnl,
             paperVolumeSol,
+            pendingOnchainVolumeSol,
             verifiedOnchainVolumeSol,
           }
         : null,

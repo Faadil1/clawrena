@@ -13,7 +13,8 @@ const clawPumpAction = read("convex/clawPump.ts");
 
 assert(portfolio.includes("recordWalletObservation"), "wallet observations must have a dedicated path");
 assert(wallet.includes("importedSol: 0"), "wallet observation must never mint paper cash");
-assert(publicStats.includes('executionMode === "onchain"') && publicStats.includes("txSignature"), "verified volume must require on-chain mode + signature");
+assert(publicStats.includes('executionMode === "onchain"') && publicStats.includes("txSignature") && publicStats.includes("confirmationSlot"), "verified volume must require on-chain mode + signature + independent confirmation slot");
+assert(publicStats.includes("pendingOnchainVolumeSol"), "submitted/unconfirmed on-chain activity must stay separate from paper and verified volume");
 assert(runner.includes("claimSignal") && runner.includes("releaseSignalClaim"), "signal execution must use an atomic claim lease");
 assert(runner.includes("evaluateLaunchEvidence"), "entry loop must pass through evidence scoring");
 assert(clawPumpLib.includes("acknowledgeHighRisk: false") && clawPumpLib.includes("acknowledgeUnverified: false"), "ClawPump safety gates must not be bypassed");

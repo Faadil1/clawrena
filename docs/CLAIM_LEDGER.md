@@ -11,10 +11,11 @@ This is the canonical boundary between what Alpha Scout may say publicly and wha
 | Prevents duplicate concurrent entries | BUILT | `(agentId, signalId)` leases + run token | “Concurrent cycles cannot independently consume the same signal for one agent.” |
 | Has real drawdown protection | BUILT for paper ledger | persisted equity high-water mark | “Paper risk engine halts on high-water drawdown.” |
 | Records failures | BUILT | decision receipts include reject/skip/prepare | “Rejects stay in the evidence record.” |
-| Venue/provider degradation can veto value movement | BUILT in P3 for ClawPump last mile | live agent-catalogue preflight + execution-authority gate | “ClawPump preparation fails closed when the provider/linked agent preflight is unhealthy.” |
+| Venue/provider degradation can veto value movement | BUILT in P3 for ClawPump last mile | exact linked-agent provider preflight + execution-authority gate | “ClawPump preparation fails closed when the provider/linked agent preflight is unhealthy.” |
 | Evidence cannot be reused forever | BUILT in P3 | execution receipt TTL | “Execution requires fresh evidence.” |
 | Executes verified on-chain trades | NOT YET COMPLETE | unsigned build only | Say “prepares safety-gated swaps”; do not say “executes on-chain” until sign/submit/confirm is built. |
-| Verified on-chain volume | MEASUREMENT BUILT; CURRENT VALUE MAY BE ZERO | requires onchain mode + tx signature | Report the actual current number, including zero. |
+| Verified on-chain volume | MEASUREMENT BUILT; CURRENT VALUE MAY BE ZERO | requires onchain mode + tx signature + independent confirmation slot | Report the actual current number, including zero. |
+| Pending on-chain activity | MEASUREMENT BUILT | onchain-mode row missing signature or confirmation | Keep separate from both PAPER and VERIFIED. |
 | Realised trading performance | UNPROVEN | no confirmed live performance series | Do not claim alpha/performance. |
 | “Finds alpha before it moves” | PROHIBITED UNTIL PROVEN | no realised benchmark | Use “evidence-first launch trader/investigator.” |
 | Wash-trading detection | UNKNOWN / NOT IMPLEMENTED | shield reports UNKNOWN | Never claim classifier exists. |
