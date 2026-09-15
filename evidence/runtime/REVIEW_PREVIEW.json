@@ -1,0 +1,22 @@
+{
+  "artifactClass": "PUBLIC_REVIEW_PREVIEW",
+  "status": "PUBLIC_REVIEW_PREVIEW_REACHABLE",
+  "url": "https://clawrena-alpha-scout-review.vercel.app",
+  "vercelDeploymentId": "dpl_8KzYivyvtke748j7YiuURbfsM3cw",
+  "sourceHeadSha": "c757bc7a4b169a605c5ceee4f9dfbdc9ec9ed36b",
+  "ci": {
+    "repository": "opeblow/clawrena",
+    "runNumber": 18,
+    "runId": 34960171610,
+    "conclusion": "success",
+    "distArtifactId": 10392932518
+  },
+  "reachability": {
+    "checked": true,
+    "httpStatus": 200
+  },
+  "backendConnected": false,
+  "canonicalRuntimeEvidence": false,
+  "fakeSuccessForbidden": true,
+  "notes": "Public reviewer surface only. It proves review-preview reachability, not Convex runtime, live market ingestion, a canonical negative path, eligibility, tokenization, or on-chain execution."
+}
