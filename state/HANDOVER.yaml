@@ -1,7 +1,8 @@
 project: alpha-scout-clawrena
-handover_version: P6_2026-09-15
+handover_version: P7_2026-09-15
 start_here:
   - state/CURRENT.yaml
+  - evidence/runtime/LIVE_FRONTEND.json
   - evidence/runtime/REVIEW_PREVIEW.json
   - docs/TOKEN_UTILITY.md
   - docs/P4_RUNTIME_SUBMISSION.md
@@ -17,39 +18,44 @@ repo:
   fork: https://github.com/Faadil1/clawrena
   branch: winning-delta-p0-p2
   upstream_pr: https://github.com/opeblow/clawrena/pull/1
-  current_head_before_state_commit: c757bc7a4b169a605c5ceee4f9dfbdc9ec9ed36b
 
-what_changed_p6:
-  - added honest no-backend review mode so missing VITE_CONVEX_URL never becomes a crash or fake runtime
-  - added exact dist artifact upload to upstream CI
-  - upstream CI run 18 passed security, integrity, logic, typecheck, lint and build
-  - published public Vercel review preview at https://clawrena-alpha-scout-review.vercel.app
-  - verified public preview HTTP 200
-  - preserved the boundary that review-preview reachability is not canonical runtime evidence
-  - canonical runtime remains Cloudflare Pages plus a real Convex target
+what_changed_p7:
+  - user created real Convex Cloud project alpha-scout-clawrena
+  - Convex dev deployment grandiose-poodle-700 provisioned and schema/functions reported ready
+  - GitHub workflow Build Live Alpha Scout Preview #1 succeeded against the real Convex client URL
+  - exact live frontend assets were published to dedicated branch live-preview-dist
+  - stable Vercel URL https://clawrena-alpha-scout-review.vercel.app now serves the Convex-bound frontend
+  - verified HTTP 200 for /, /proof, and /deployment-provenance.json
+  - deployment provenance points to winning-delta-p0-p2 source SHA 47225cf29f1af76bd203657c8d3369cd2f58d9d4 and Convex grandiose-poodle-700
+  - preserved the boundary that frontend reachability plus embedded Convex URL is not yet canonical runtime proof
 
-next_actions_priority:
-  - discover or provision a real Convex preview deployment and obtain VITE_CONVEX_URL plus Convex HTTP URL
-  - keep HELIUS_API_KEY, HELIUS_WEBHOOK_SECRET, JUPITER_API_KEY and CLAWPUMP_API_KEY server-side only
-  - deploy winning-delta-p0-p2 to Cloudflare Pages against that Convex target
-  - run npm run capture:runtime against the real frontend and /healthz
-  - capture one real live-market REJECT or UNKNOWN receipt and preserve it in evidence/canonical-run/STATUS.json
-  - verify registration, X/follow and ClawPump tokenization receipts before 2026-09-20T23:59:00Z
-  - after tokenization, observe the real Agent Treasury ledger and capture it
-  - run TRACE Gate 6.5 on desktop/mobile deployed runtime
-  - run npm run gate:submission; Gate 7 remains blocked until every hard receipt exists
-
-review_preview:
+live_frontend:
   url: https://clawrena-alpha-scout-review.vercel.app
-  vercel_deployment_id: dpl_8KzYivyvtke748j7YiuURbfsM3cw
-  source_sha: c757bc7a4b169a605c5ceee4f9dfbdc9ec9ed36b
-  upstream_ci_run: 18
-  dist_artifact_id: 10392932518
-  backend_connected: false
+  vercel_deployment_id: dpl_5DWoXE5AkFBXMPKuqBFyCD5L3e6B
+  source_sha: 47225cf29f1af76bd203657c8d3369cd2f58d9d4
+  static_asset_branch: live-preview-dist
+  convex_client_url: https://grandiose-poodle-700.convex.cloud
+  root_http_status: 200
+  proof_http_status: 200
+  backend_bundle_bound: true
+  convex_http_health_verified: false
+  auth_round_trip_verified: false
   canonical_runtime_evidence: false
 
+next_actions_priority:
+  - read the exact VITE_CONVEX_SITE_URL from local .env.local and probe /healthz
+  - configure Convex Auth for https://clawrena-alpha-scout-review.vercel.app if not already completed
+  - verify signup/signin round trip on the public frontend
+  - configure HELIUS_API_KEY, HELIUS_WEBHOOK_SECRET and CLAWPUMP_API_KEY in the Convex deployment; JUPITER_API_KEY optional
+  - capture one real live-market REJECT or UNKNOWN receipt and preserve it in evidence/canonical-run/STATUS.json
+  - deploy the same runtime to Cloudflare Pages as preferred canonical frontend
+  - verify registration, X/follow and ClawPump tokenization receipts before 2026-09-20T23:59:00Z
+  - after tokenization, observe the real Agent Treasury ledger and capture it
+  - run TRACE Gate 6.5 on desktop/mobile runtime
+  - run npm run gate:submission; Gate 7 remains blocked until every hard receipt exists
+
 never_do:
-  - do_not_convert_REVIEW_PREVIEW_to_CANONICAL_RUNTIME_without_real_convex_health
+  - do_not_convert_LIVE_FRONTEND_to_CANONICAL_RUNTIME_without_real_convex_health_and_negative_path
   - do_not_convert_PREPARE_or_PENDING_to_VERIFIED_without_signature_and_confirmation
   - do_not_use_test_fixture_as_submission_evidence
   - do_not_hide_rejects_unknowns_or_provider_degradation
