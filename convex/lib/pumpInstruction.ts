@@ -35,3 +35,27 @@ export function isPumpCreateInstructionData(data: string): boolean {
     return false;
   }
 }
+
+export type SolanaInstructionLike = {
+  programId?: string;
+  accounts?: string[];
+  data?: string;
+};
+
+/**
+ * Resolve the mint from already-flattened top-level + CPI instructions.
+ * This intentionally performs no heuristic inference: the Pump program id and
+ * an official create/create_v2 discriminator must both match.
+ */
+export function findPumpCreateMintInInstructions(
+  instructions: SolanaInstructionLike[],
+  pumpProgramId: string,
+): string | null {
+  for (const instruction of instructions) {
+    if (instruction.programId !== pumpProgramId || typeof instruction.data !== "string") continue;
+    if (!isPumpCreateInstructionData(instruction.data)) continue;
+    const mint = instruction.accounts?.[0];
+    if (typeof mint === "string" && mint.length > 0) return mint;
+  }
+  return null;
+}
