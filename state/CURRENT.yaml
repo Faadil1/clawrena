@@ -1,7 +1,7 @@
 project: alpha-scout-clawrena
 canonical_branch: winning-delta-p0-p2
 upstream_pr: https://github.com/opeblow/clawrena/pull/1
-phase: P4_RUNTIME_SUBMISSION_READINESS
+phase: P5_TOKEN_UTILITY_AND_ECONOMIC_PROOF
 updated_at: 2026-09-15
 
 product_truth:
@@ -9,10 +9,15 @@ product_truth:
   clawpump_partner_api: unsigned_prepare_only
   verified_onchain_execution: pending
   verified_volume_rule: onchain_mode_plus_signature_plus_confirmation_slot
+  creator_fee_observability: built_for_linked_clawpump_agent
+  creator_fee_share_source: clawpump_documented_75_percent_creator_share
+  alpha_scout_token_live: pending_external_tokenization_receipt
+  holder_revenue_share: not_built
+  automated_treasury_spending: not_built
 
 canonical_thesis: >-
-  Alpha Scout is an evidence-first autonomous launch trader that can prove why it traded
-  and, more importantly, why it refused.
+  Alpha Scout is an evidence-first autonomous launch trader that can prove why it traded,
+  why it refused, and what the linked agent actually earned instead of inventing token utility.
 
 completed_gates:
   - rubric_mapping
@@ -30,6 +35,9 @@ completed_gates:
   - runtime_capture_tool
   - eligibility_receipt_ledger
   - machine_readable_gate_7
+  - creator_fee_ledger_normalization
+  - agent_treasury_observability
+  - token_utility_claim_boundary
   - canonical_state_handover
 
 conditional_gates:
@@ -40,15 +48,17 @@ conditional_gates:
 
 blocking_gates:
   - eligibility_external_receipts
+  - alpha_scout_tokenization_receipt
   - public_cloudflare_runtime_deploy
   - convex_target_deploy
   - canonical_real_negative_path_capture
+  - real_agent_treasury_capture_after_tokenization
   - gate_7_promote
 
 strategic_open:
   - real_onchain_volume
   - attention_and_stream_distribution
-  - token_utility_runtime_proof
+  - bounded_treasury_spending_policy_with_receipts
 
 eligibility:
   official_source: https://clawpump.tech/ansemhack
@@ -64,10 +74,24 @@ runtime:
   canonical_run_status: evidence/canonical-run/STATUS.json
   promotion_command: npm run gate:submission
 
+token_economics:
+  official_source: https://clawpump.tech/docs
+  public_fee_ledger: https://clawpump.tech/api/fees/earnings?agentId=<agent-id>
+  canonical_doc: docs/TOKEN_UTILITY.md
+  current_surface: /agent
+  permitted_claim: linked_agent_creator_fee_treasury_is_observable
+  prohibited_claims:
+    - holder_revenue_share
+    - governance
+    - buybacks_or_burns
+    - yield_or_appreciation
+    - automated_reinvestment
+
 canonical_artifacts:
   real_failure: docs/REAL_FAILURE_EVIDENCE.md
   rubric_matrix: docs/RUBRIC_EVIDENCE_MATRIX.md
   claim_ledger: docs/CLAIM_LEDGER.md
+  token_utility: docs/TOKEN_UTILITY.md
   p3_gate_matrix: docs/JUDGE_ASSURANCE_P3.md
   p4_runtime_submission: docs/P4_RUNTIME_SUBMISSION.md
   deploy_runbook: docs/DEPLOYMENT_CLOUDFLARE_CONVEX.md

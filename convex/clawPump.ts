@@ -10,11 +10,13 @@ import {
   clawPumpConfigured,
   createClawPumpAgent,
   getClawPumpAgent,
+  getClawPumpFeeEarnings,
   listClawPumpAgents,
   quoteClawPumpSwap,
 } from "./lib/clawpump";
 import { SOL_MINT } from "./lib/market";
 import { evaluateExecutionAuthority } from "./lib/executionAuthority";
+import { CLAWPUMP_CREATOR_FEE_SHARE_PCT } from "./lib/tokenEconomics";
 
 const MINT_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 
@@ -72,6 +74,21 @@ type BuildEntryResult = {
   tokenMint: string;
   amountSol: number;
   transaction: Record<string, unknown>;
+};
+
+type TreasuryStatusResult = {
+  source: "clawpump_public_fee_ledger";
+  sourceUrl: string;
+  observedAt: number;
+  agentId: string;
+  creatorFeeSharePct: 75;
+  totalEarned: number;
+  totalSent: number;
+  totalPending: number;
+  totalHeld: number;
+  recentDistributionCount: number;
+  holderRevenueShare: false;
+  automatedTreasurySpending: false;
 };
 
 export const connectionStatus = action({
@@ -134,6 +151,36 @@ export const syncAgent = action({
       walletAddress: created.walletAddress ?? null,
       requestId: created.meta?.requestId ?? null,
       existing: Boolean(existingRemote),
+    };
+  },
+});
+
+/**
+ * Judge-facing token economics proof. This is read-only observation of the
+ * linked ClawPump agent's public creator-fee ledger. It does not imply holder
+ * revenue share, governance, or an automated treasury spending policy.
+ */
+export const treasuryStatus = action({
+  args: {},
+  handler: async (ctx): Promise<TreasuryStatusResult> => {
+    const local = await ctx.runQuery(internal.queries.internal.getMyAgentForClawPump, {}) as LocalAgent | null;
+    if (!local) throw new Error("Not authenticated or no local agent");
+    if (!local.clawPumpAgentId) throw new Error("Link a ClawPump agent before observing creator-fee economics");
+
+    const earnings = await getClawPumpFeeEarnings(local.clawPumpAgentId);
+    return {
+      source: "clawpump_public_fee_ledger",
+      sourceUrl: `https://clawpump.tech/api/fees/earnings?agentId=${encodeURIComponent(local.clawPumpAgentId)}`,
+      observedAt: Date.now(),
+      agentId: earnings.agentId,
+      creatorFeeSharePct: CLAWPUMP_CREATOR_FEE_SHARE_PCT,
+      totalEarned: earnings.totalEarned,
+      totalSent: earnings.totalSent,
+      totalPending: earnings.totalPending,
+      totalHeld: earnings.totalHeld,
+      recentDistributionCount: earnings.recentDistributions.length,
+      holderRevenueShare: false,
+      automatedTreasurySpending: false,
     };
   },
 });

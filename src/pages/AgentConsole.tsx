@@ -5,6 +5,21 @@ import { api } from "../../convex/_generated/api";
 import { Card, CardBadge, EmptyState } from "../components/ui";
 import { formatSol, shorten } from "../lib/format";
 
+type TreasuryView = {
+  source: "clawpump_public_fee_ledger";
+  sourceUrl: string;
+  observedAt: number;
+  agentId: string;
+  creatorFeeSharePct: 75;
+  totalEarned: number;
+  totalSent: number;
+  totalPending: number;
+  totalHeld: number;
+  recentDistributionCount: number;
+  holderRevenueShare: false;
+  automatedTreasurySpending: false;
+};
+
 export default function AgentConsole() {
   const data = useQuery(api.queries.portfolio.dashboard);
   const setWallet = useMutation(api.users.setWallet);
@@ -16,6 +31,7 @@ export default function AgentConsole() {
   const observeBalance = useAction(api.wallet.importWalletBalance);
   const runNow = useAction(api.runAgent.runNow);
   const syncClawPump = useAction(api.clawPump.syncAgent);
+  const loadTreasury = useAction(api.clawPump.treasuryStatus);
 
   const [wallet, setWalletInput] = useState("");
   const [name, setName] = useState("Alpha Scout");
@@ -23,6 +39,7 @@ export default function AgentConsole() {
   const [maxPos, setMaxPos] = useState(2);
   const [maxDD, setMaxDD] = useState(10);
   const [depositAmt, setDepositAmt] = useState(1);
+  const [treasury, setTreasury] = useState<TreasuryView | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -90,6 +107,14 @@ export default function AgentConsole() {
     });
   };
 
+  const refreshTreasury = async () => {
+    await task(async () => {
+      const r = await loadTreasury();
+      setTreasury(r as TreasuryView);
+      return `Observed ClawPump creator-fee ledger for ${shorten(r.agentId)}.`;
+    });
+  };
+
   async function task(fn: () => Promise<string>) {
     setBusy(true);
     setMsg(null);
@@ -121,6 +146,31 @@ export default function AgentConsole() {
             <Policy title="Refuse unknown" body="Unknown liquidity or holder concentration blocks entry instead of being treated as safe." />
             <Policy title="Prove" body="Every execute/reject/skip creates a receipt. Unsigned ClawPump swaps never count as on-chain volume." />
           </div>
+        </Card>
+
+        <Card title="Agent Treasury" badge={<CardBadge>{treasury ? "OBSERVED" : "TOKEN ECONOMICS"}</CardBadge>} bodyClassName="p-5">
+          {!agent?.clawPumpAgentId ? (
+            <EmptyState title="ClawPump agent not linked" hint="Link the agent first. Creator-fee economics are read from ClawPump's public fee ledger and are never fabricated." />
+          ) : treasury ? (
+            <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <TreasuryStat label="Earned" value={formatSol(treasury.totalEarned)} />
+                <TreasuryStat label="Sent" value={formatSol(treasury.totalSent)} />
+                <TreasuryStat label="Pending" value={formatSol(treasury.totalPending)} />
+                <TreasuryStat label="Held" value={formatSol(treasury.totalHeld)} />
+              </div>
+              <div className="rounded-xl border border-line bg-surface p-4 text-[13px] text-ink-mid leading-relaxed">
+                <b className="text-ink">Economic mechanism:</b> ClawPump documents a {treasury.creatorFeeSharePct}% creator share for token trading fees. This card observes the linked agent's public creator-fee ledger; it does <b>not</b> claim holder revenue share, governance, or automated treasury spending.
+                <div className="mt-2 font-mono text-[11px] text-ink-faint">{shorten(treasury.agentId)} · {treasury.recentDistributionCount} recent distribution record(s)</div>
+              </div>
+              <button disabled={busy} onClick={() => void refreshTreasury()} className="self-start px-4 py-2.5 rounded-lg border border-line text-xs font-semibold">Refresh observed fees</button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <p className="text-[13px] text-ink-mid max-w-xl">Token activity can create creator-fee earnings for the linked ClawPump agent. Load the public ledger to show the actual value — including zero.</p>
+              <button disabled={busy} onClick={() => void refreshTreasury()} className="px-4 py-2.5 rounded-lg border border-accent text-accent text-xs font-semibold">Observe creator fees</button>
+            </div>
+          )}
         </Card>
       </div>
 
@@ -159,3 +209,4 @@ export default function AgentConsole() {
 function PaperPill() { return <span className="rounded bg-[#FFF4E0] border border-accent/40 text-accent text-[9px] font-bold px-1.5 py-0.5 tracking-wide">PAPER</span>; }
 function Tag({ children }: { children: ReactNode }) { return <span className="rounded-md border border-line bg-surface px-2 py-1">{children}</span>; }
 function Policy({ title, body }: { title: string; body: string }) { return <div className="rounded-xl border border-line bg-surface p-4"><div className="font-bold text-ink">{title}</div><div className="text-ink-mid mt-1 text-[13px] leading-relaxed">{body}</div></div>; }
+function TreasuryStat({ label, value }: { label: string; value: string }) { return <div className="rounded-xl border border-line bg-surface p-3"><div className="text-[10px] uppercase tracking-wide text-ink-faint">{label}</div><div className="font-mono text-lg font-bold mt-1">{value}</div></div>; }

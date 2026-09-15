@@ -24,7 +24,12 @@ This is the canonical boundary between what Alpha Scout may say publicly and wha
 | Perps / prediction-market execution | NOT BUILT | none | Roadmap only. |
 | AI is the sole risk authority | FALSE BY DESIGN | deterministic gates own authority | Say “agent proposes/operates; deterministic evidence and risk gates authorize.” |
 | User traction | UNPROVEN | none in repo | Do not invent users. |
-| Token-holder revenue share/governance | NOT BUILT | none | Do not advertise. |
+| ClawPump creator-fee split | PLATFORM MECHANISM, OBSERVABLE | official ClawPump docs + public `/api/fees/earnings` | “ClawPump documents a 75% creator share for token trading fees.” |
+| Agent Treasury creator-fee observability | BUILT in P5 | `treasuryStatus`, public fee ledger, `/agent` treasury card | “Alpha Scout observes earned/sent/pending/held creator fees for the linked ClawPump agent.” |
+| Token activity can create an agent operating treasury | MECHANICALLY TRUE AFTER TOKEN LAUNCH | ClawPump creator-fee mechanism; launch receipt still external | “Token activity can produce creator-fee treasury for the agent.” Do not say our token is live until receipt exists. |
+| Creator fees automatically fund data/inference/trading | ROADMAP / NOT BUILT | no spend-authority/accounting path | Do not claim automatic reinvestment. |
+| Token-holder revenue share/governance | NOT BUILT | none | Do not advertise. The 75% creator share belongs to the creator/agent payout path, not holders. |
+| Buybacks/burns/yield | NOT BUILT | none | Do not advertise or imply financial return. |
 
 ## Claim-lock gate
 

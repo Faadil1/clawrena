@@ -1,6 +1,10 @@
 "use node";
 
+import { normalizeClawPumpFeeEarnings } from "./tokenEconomics";
+import type { ClawPumpFeeEarnings } from "./tokenEconomics";
+
 const BASE_URL = "https://clawpump.tech/api/v1";
+const PUBLIC_API_URL = "https://clawpump.tech/api";
 
 export type ClawPumpMeta = { timestamp?: string; requestId?: string };
 export type ClawPumpResponse<T> = T & { meta?: ClawPumpMeta };
@@ -55,6 +59,27 @@ export async function listClawPumpAgents(): Promise<ClawPumpResponse<{ agents: C
 /** Exact linked-agent preflight used at the last-mile execution boundary. */
 export async function getClawPumpAgent(agentId: string): Promise<ClawPumpResponse<ClawPumpAgent>> {
   return request(`/agents/${encodeURIComponent(agentId)}`, { method: "GET" }, 30_000);
+}
+
+/**
+ * Public, read-only creator-fee ledger. ClawPump documents this endpoint as
+ * unauthenticated platform data, so observing earnings never requires a secret.
+ */
+export async function getClawPumpFeeEarnings(agentId: string): Promise<ClawPumpFeeEarnings> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 30_000);
+  try {
+    const res = await fetch(`${PUBLIC_API_URL}/fees/earnings?agentId=${encodeURIComponent(agentId)}`, {
+      method: "GET",
+      headers: { accept: "application/json" },
+      signal: controller.signal,
+    });
+    const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+    if (!res.ok) throw new Error(`ClawPump fee ledger ${res.status}`);
+    return normalizeClawPumpFeeEarnings(body, agentId);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export async function createClawPumpAgent(input: {

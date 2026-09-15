@@ -46,4 +46,14 @@ assert(read("evidence/canonical-run/STATUS.json").includes("PENDING_REAL_RUNTIME
 assert(read("evidence/negative-path/FAIL-CLOSED-FIXTURE.json").includes("TEST_FIXTURE_NOT_RUNTIME_EVIDENCE"), "negative-path fixture must never masquerade as runtime evidence");
 assert(read("state/CURRENT.yaml").includes("gate_7_promote"), "canonical state must preserve promotion gate");
 
-console.log("Winning-delta P0-P3 integrity gates: PASS");
+const tokenEconomics = read("convex/lib/tokenEconomics.ts");
+const agentConsole = read("src/pages/AgentConsole.tsx");
+assert(tokenEconomics.includes("CLAWPUMP_CREATOR_FEE_SHARE_PCT = 75"), "creator-fee share must be explicit and testable");
+assert(clawPumpLib.includes("/fees/earnings?agentId=") && clawPumpLib.includes("normalizeClawPumpFeeEarnings"), "token economics must come from ClawPump's public fee ledger, not invented values");
+assert(clawPumpAction.includes("treasuryStatus") && clawPumpAction.includes("holderRevenueShare: false") && clawPumpAction.includes("automatedTreasurySpending: false"), "treasury observation must preserve token-utility claim boundaries");
+assert(agentConsole.includes("Agent Treasury") && agentConsole.includes("does <b>not</b> claim holder revenue share"), "judge-facing treasury UI must state the non-holder-revenue boundary");
+assert(read("docs/TOKEN_UTILITY.md").includes("NOT BUILT / prohibited wording"), "token utility doc must preserve prohibited financial claims");
+assert(read("evidence/eligibility/STATUS.json").includes("PENDING_EXTERNAL_RECEIPT"), "tokenization eligibility must remain pending until a real receipt exists");
+assert(read("docs/GATE_7_PROMOTE.md").includes("NO_PROMOTE"), "P4 promotion authority must remain fail closed");
+
+console.log("Winning-delta P0-P5 integrity gates: PASS");

@@ -15,8 +15,9 @@ Target: 3–5 minutes for an async video; expandable to the official 15-minute s
 5. **Positive bounded path, 45s** — show a fresh candidate that passes the deterministic evidence gate and opens a PAPER position, or use a passing stored receipt for ClawPump quote/build.
 6. **Execution authority, 45s** — live provider preflight + receipt TTL. Build unsigned swap. Show status `PREPARE`, with wallet signature and Solana confirmation still UNKNOWN.
 7. **Proof, 30s** — `/proof`: negative receipt still present; paper/verified volumes separate.
-8. **If live signing is complete, 30s** — sign, submit, independently confirm, then and only then show verified volume changing.
-9. **Close, 15s** — “We do not make the agent sound safer than it is. The evidence boundary is the product.”
+8. **Token economics, 30s** — `/agent`: observe the linked ClawPump creator-fee ledger. Show actual earned/sent/pending/held values, including zero. State that this is agent/creator treasury evidence, not holder revenue share.
+9. **If live signing is complete, 30s** — sign, submit, independently confirm, then and only then show verified volume changing.
+10. **Close, 15s** — “We do not make the agent sound safer or more profitable than it is. The evidence boundary is the product.”
 
 ## Required canonical-run artifacts
 
@@ -25,6 +26,7 @@ Target: 3–5 minutes for an async video; expandable to the official 15-minute s
 - decision receipt id;
 - reject/UNKNOWN receipt id;
 - provider request id for PREPARE;
+- creator-fee ledger observation after a real ClawPump agent/token exists;
 - tx signature + confirmation slot only if actual live execution occurs;
 - screen recording link/hash;
 - public runtime URL;
@@ -56,10 +58,19 @@ A strategy receipt is not perpetual execution authority. P3 expires the executio
 Not yet. Those checks remain UNKNOWN. The claim ledger explicitly prohibits describing them as implemented classifiers.
 
 ### “What is your actual on-chain volume?”
-Whatever the verified metric says at demo time, including zero. Alpha Scout only counts rows with on-chain mode and a transaction signature, and final live flow should additionally persist independent confirmation.
+Whatever the verified metric says at demo time, including zero. Alpha Scout only counts rows with on-chain mode, a transaction signature and independent confirmation.
+
+### “Why does the token exist?”
+ClawPump's token-launch mechanism can generate creator fees from token trading, with a documented 75% creator share. P5 makes that agent treasury observable in-product. The next bounded step could let the agent spend from an explicit operating policy with caps and receipts, but automated treasury spending is not claimed today.
+
+### “Do holders receive the 75%?”
+No. That would be a false claim. The documented 75% is the creator/agent payout share. Alpha Scout does not currently promise holder revenue share, governance, buybacks, burns, yield or appreciation.
+
+### “Is the Alpha Scout token already live?”
+Only if the eligibility ledger contains a real token URL/mint/launch receipt. Until then, the honest answer is no/pending. Product code does not turn an external launch requirement into a completed fact.
 
 ### “What proves this is different from other Clawrena traders?”
-The crowded space already has many trader/agent projects, and Anima has adjacent risk/wallet/swap semantics. Alpha Scout's differentiation is the evidence/authority layer: structured refusal receipts, fresh-evidence execution authority, deterministic risk vetoes and an explicit distinction between recommendation, preparation and verified execution.
+The crowded space already has many trader/agent projects, and Anima has adjacent risk/wallet/swap semantics. Alpha Scout's differentiation is the evidence/authority layer: structured refusal receipts, fresh-evidence execution authority, deterministic risk vetoes, observable agent economics, and an explicit distinction between recommendation, preparation and verified execution.
 
 ### “Does the LIBRA incident prove Alpha Scout would have prevented losses?”
 No. It proves the failure mode is real. We use it to justify requirements. We do not claim a counterfactual win without a historical replay/backtest that uses data available at the time.

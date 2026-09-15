@@ -3,7 +3,7 @@
 > **Hackathon:** AnsemHack Clawrena · Solana  
 > **Eligibility token deadline:** **20 Sep 2026 · 23:59 UTC**  
 > **Track:** ClawPump × pump.fun + Overall Winner  
-> **Product state:** evidence-first paper engine + safety-gated ClawPump execution bridge; no on-chain volume is called verified without a transaction signature **and** independently stored confirmation.
+> **Product state:** evidence-first paper engine + safety-gated ClawPump execution bridge + observable creator-fee economics; no on-chain volume is called verified without a transaction signature **and** independently stored confirmation.
 
 ## North star
 
@@ -14,6 +14,7 @@ Alpha Scout is not "a bot that buys every fresh launch." It is an autonomous lau
 3. Why did it execute, reject, or skip?
 4. What risk budget was authorized?
 5. Was execution paper, submitted/pending, merely prepared, or independently verified on-chain?
+6. What economic value has the linked ClawPump agent actually earned, rather than merely promised?
 
 The winning loop is:
 
@@ -73,6 +74,18 @@ The winning loop is:
 - [ ] Verify all three official eligibility receipts.
 - [ ] Run TRACE Gate 6.5 on the deployed desktop/mobile runtime.
 
+## P5 — token utility / economic proof
+
+- [x] Creator-fee economics use ClawPump's documented public fee ledger rather than invented token utility.
+- [x] `treasuryStatus` observes earned/sent/pending/held creator fees for the linked agent.
+- [x] `/agent` exposes Agent Treasury with the actual observed values, including zero.
+- [x] Economic parsing fails closed on missing/invalid monetary fields.
+- [x] Claim Ledger explicitly separates creator/agent fees from holder revenue share.
+- [x] Demo/Q&A explains token purpose without governance/yield/buyback fiction.
+- [ ] Actual Alpha Scout token launch receipt exists.
+- [ ] Treasury observation is captured from the real launched agent/token runtime.
+- [ ] Automated operating-treasury spending remains roadmap until spend authority, caps and receipts exist.
+
 ## Environment boundary
 
 Browser-visible:
@@ -113,6 +126,7 @@ A release is submission-ready only when:
 - `evidence/runtime/LATEST.json` comes from the deployed endpoints;
 - a real negative-path receipt exists in the canonical run;
 - eligibility receipt ledger is VERIFIED;
+- creator-fee/token claims match the real tokenization and fee ledger state;
 - verified on-chain volume remains zero for unsigned or unconfirmed activity;
 - `npm run gate:submission` passes;
 - human evidence review approves Gate 7 PROMOTE.

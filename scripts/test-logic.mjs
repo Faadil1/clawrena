@@ -14,6 +14,7 @@ const { canAcquireClaim, CLAIM_LEASE_MS } = loadTs("convex/lib/claimLease.ts");
 const { nextEquityRisk } = loadTs("convex/lib/risk.ts");
 const { isPumpCreateInstructionData, PUMP_CREATE, PUMP_CREATE_V2 } = loadTs("convex/lib/pumpInstruction.ts");
 const { evaluateExecutionAuthority, MAX_EXECUTION_RECEIPT_AGE_MS } = loadTs("convex/lib/executionAuthority.ts");
+const { normalizeClawPumpFeeEarnings, CLAWPUMP_CREATOR_FEE_SHARE_PCT } = loadTs("convex/lib/tokenEconomics.ts");
 const now = Date.now();
 assert(evaluateLaunchEvidence({ processedAt: now - 60_000, now, priceUsd: 0.01, liquidityUsd: 50_000, priceChange24h: 20, largestHolderPct: 12 }).eligible, "qualified launch should pass");
 assert(!evaluateLaunchEvidence({ processedAt: now, now, priceUsd: 0.01, liquidityUsd: 50_000, largestHolderPct: null }).eligible, "unknown holder concentration must fail closed");
@@ -58,4 +59,21 @@ assert(evaluateExecutionAuthority(authorityBase).authorized, "fresh passing rece
 assert(!evaluateExecutionAuthority({ ...authorityBase, receiptCreatedAt: now - MAX_EXECUTION_RECEIPT_AGE_MS - 1 }).authorized, "stale execution evidence must fail closed");
 assert(!evaluateExecutionAuthority({ ...authorityBase, providerHealthy: false }).authorized, "unhealthy provider must fail closed");
 assert(!evaluateExecutionAuthority({ ...authorityBase, unknowns: ["liquidity"] }).authorized, "critical unknown must fail closed at execution boundary");
-console.log("Evidence, claim lease, Pump parser, high-water risk + execution authority tests: PASS");
+
+assert(CLAWPUMP_CREATOR_FEE_SHARE_PCT === 75, "canonical ClawPump creator fee share must remain explicit");
+const earnings = normalizeClawPumpFeeEarnings({
+  agentId: "agent-1",
+  totalEarned: 1.25,
+  totalSent: 1,
+  totalPending: 0.2,
+  totalHeld: 0.05,
+  recentDistributions: [{ signature: "example" }],
+}, "agent-1");
+assert(earnings.totalEarned === 1.25 && earnings.recentDistributions.length === 1, "valid creator-fee ledger must normalize without changing observed values");
+let badEarningsRejected = false;
+try {
+  normalizeClawPumpFeeEarnings({ agentId: "agent-1", totalEarned: -1, totalSent: 0, totalPending: 0, totalHeld: 0 }, "agent-1");
+} catch { badEarningsRejected = true; }
+assert(badEarningsRejected, "invalid economic values must fail closed rather than become fake zeroes");
+
+console.log("Evidence, claim lease, Pump parser, high-water risk, execution authority + token economics tests: PASS");

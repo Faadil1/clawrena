@@ -20,6 +20,8 @@ Alpha Scout discovers real pump.fun launches, qualifies them with live Jupiter/S
 - Every decision creates a receipt with observations, unknowns, reasons and risk budget.
 - A passing strategy receipt expires before last-mile execution; stale evidence cannot authorize value movement.
 - ClawPump quote/build requires a live provider + linked-agent preflight. Failure is recorded as a REJECT receipt.
+- Creator-fee economics are read from ClawPump's public ledger; missing/invalid values fail closed rather than becoming synthetic zeroes.
+- Agent Treasury is creator-fee observability, **not** a holder revenue-share/governance promise.
 - External incidents and test fixtures are explicitly separated from Alpha Scout runtime evidence.
 
 ## Stack
@@ -44,7 +46,7 @@ npm run build
 ## Product surfaces
 
 - `/dashboard` — paper portfolio + separated execution records
-- `/agent` — risk controls, watch-only wallet observation, ClawPump link
+- `/agent` — risk controls, watch-only wallet observation, ClawPump link + observed Agent Treasury
 - `/signals` — real launch/signal feed
 - `/proof` — judge-facing decision receipts, real-failure grounding and verified-volume boundary
 - `/token/:mint?` — live token shield scan
@@ -62,6 +64,7 @@ Start with:
 - `docs/REAL_FAILURE_EVIDENCE.md`
 - `docs/RUBRIC_EVIDENCE_MATRIX.md`
 - `docs/CLAIM_LEDGER.md`
+- `docs/TOKEN_UTILITY.md`
 - `docs/DEMO_QA_GATE_6_75.md`
 - `docs/COLLISION_AGENT_ADVANTAGE.md`
 - `docs/TRACE_GATE_6_5.md`

@@ -1,7 +1,8 @@
 project: alpha-scout-clawrena
-handover_version: P4_2026-09-15
+handover_version: P5_2026-09-15
 start_here:
   - state/CURRENT.yaml
+  - docs/TOKEN_UTILITY.md
   - docs/P4_RUNTIME_SUBMISSION.md
   - docs/DEPLOYMENT_CLOUDFLARE_CONVEX.md
   - docs/GATE_7_PROMOTE.md
@@ -16,15 +17,14 @@ repo:
   branch: winning-delta-p0-p2
   upstream_pr: https://github.com/opeblow/clawrena/pull/1
 
-what_changed_p4:
-  - added Cloudflare Pages SPA configuration and conservative response headers
-  - documented Convex deploy-key build contract
-  - added real public-runtime reachability capture script
-  - added machine-readable eligibility receipt ledger
-  - added machine-readable Gate 7 submission check
-  - separated runtime reachability from canonical negative-path evidence
-  - documented current ClawPump Partner API PREPARE boundary versus MCP execution capability
-  - extended canonical cycle through RUNTIME, ELIGIBILITY and PROMOTE
+what_changed_p5:
+  - added fail-closed normalization for the public ClawPump creator-fee ledger
+  - added read-only treasuryStatus action for the linked ClawPump agent
+  - added Agent Treasury judge-facing UI on /agent
+  - exposed earned, sent, pending and held creator-fee values without synthetic defaults
+  - documented the real 75 percent creator-share mechanism from ClawPump
+  - made holder revenue share, governance, yield, buybacks and automatic reinvestment explicitly prohibited claims
+  - updated rubric, claim ledger, demo Q&A and build plan around observable token economics
 
 next_actions_priority:
   - wait for and respond to Opeyemi review on upstream PR
@@ -32,13 +32,14 @@ next_actions_priority:
   - deploy a Convex preview target with a preview deploy key
   - run npm run capture:runtime against the actual public URLs
   - capture one real live-market REJECT or UNKNOWN decision receipt
-  - fill evidence/canonical-run/STATUS.json only from real runtime evidence
   - verify registration, X/follow and ClawPump tokenization receipts before 2026-09-20T23:59:00Z
+  - after tokenization, observe the real Agent Treasury ledger and capture it for the demo
   - run TRACE Gate 6.5 on the deployed desktop/mobile build
   - run npm run gate:submission; Gate 7 remains blocked until it passes
 
 strategic_after_runtime:
-  - prove token utility in the product rather than only in submission copy
+  - prove token utility with actual creator-fee receipts, even if value is zero initially
+  - only then consider a bounded operating-treasury spending policy with caps and receipts
   - add verified onchain execution only through a proven signing/execution path
   - build real onchain volume if risk budget and authority permit
   - lock the 15-minute stream story and adversarial Q&A
@@ -50,3 +51,5 @@ never_do:
   - do_not_claim_realised_alpha_without_real_performance_evidence
   - do_not_claim_wash_bundle_honeypot_classifiers_are_live
   - do_not_mark_eligibility_verified_without_receipt_links
+  - do_not_claim_creator_fee_share_is_holder_revenue_share
+  - do_not_claim_automated_treasury_spending_before_it_exists
