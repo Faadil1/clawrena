@@ -20,11 +20,19 @@ export const discover = internalAction({
   handler: async (ctx): Promise<ScanResult> => {
     const startedAt = Date.now();
     const configured = isMarketConfigured();
-    const events = await fetchLaunchMints(25);
+    const events = await fetchLaunchMints(40, 2);
     const inserted: number = await ingestVerified(ctx, events);
     await ctx.runMutation(internal.signals.recordTelemetry, {
       eventType: "scanner.run",
-      payload: { source: "pump.fun", verification: "create-discriminator", configured, verified: events.length, inserted, at: startedAt },
+      payload: {
+        source: "pump.fun",
+        verification: "create-discriminator",
+        configured,
+        searchedSignatureLimit: 40,
+        verified: events.length,
+        inserted,
+        at: startedAt,
+      },
     });
     return { configured, verified: events.length, inserted };
   },
@@ -32,10 +40,17 @@ export const discover = internalAction({
 
 export const discoverNow = action({
   args: {},
-  handler: async (ctx): Promise<ScanResult & { events: LaunchEvent[] }> => {
-    const events = await fetchLaunchMints(15);
+  handler: async (ctx): Promise<ScanResult & { events: LaunchEvent[]; searchedSignatureLimit: number }> => {
+    const searchedSignatureLimit = 60;
+    const events = await fetchLaunchMints(searchedSignatureLimit, 3);
     const inserted: number = await ingestVerified(ctx, events);
-    return { configured: isMarketConfigured(), verified: events.length, inserted, events };
+    return {
+      configured: isMarketConfigured(),
+      verified: events.length,
+      inserted,
+      searchedSignatureLimit,
+      events,
+    };
   },
 });
 
