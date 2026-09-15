@@ -1,8 +1,8 @@
 project: alpha-scout-clawrena
-canonical_branch: winning-intelligence-p11-white-space
+canonical_branch: winning-intelligence-p11
 upstream_merge_commit: 171576483ff589dcf41c07f25a671134628ef073
 upstream_merged_pr: https://github.com/opeblow/clawrena/pull/1
-phase: P11_1_WHITE_SPACE_AUTHORITY_NETWORK_CODE_VALIDATED
+phase: P11_2_RUNTIME_DISCOVERY_HARDENED_AWAITING_REAL_UNDERWRITE
 updated_at: 2026-09-15
 
 product_truth:
@@ -14,12 +14,12 @@ product_truth:
   qualified_means_execution_authorized: false
   replay_key_is_crypto_signature: false
   underwriting_moves_value: false
-  shadow_underwriting: coded_not_deployed
-  durable_underwriting_ledger: coded_not_deployed
-  decision_lineage_reunderwrite: coded_not_deployed
-  source_ledger: coded_not_deployed
-  authority_openapi: coded_not_deployed
-  authority_activity_stats: coded_not_deployed
+  shadow_underwriting: deployed_dev_runtime_not_yet_real_capture
+  durable_underwriting_ledger: deployed_dev_runtime_empty_at_first_capture
+  decision_lineage_reunderwrite: deployed_dev_runtime_not_yet_exercised
+  source_ledger: deployed_not_yet_real_capture
+  authority_openapi: deployed_dev_runtime_verified_by_user_capture
+  authority_activity_stats: deployed_dev_runtime_verified_by_user_capture
   authority_activity_counts_are_unique_agents: false
   authority_activity_counts_are_trading_volume: false
   clawpump_partner_api: unsigned_prepare_only
@@ -31,7 +31,9 @@ product_truth:
   automated_treasury_spending: not_built
   convex_cloud_project: created
   convex_cloud_deployment: grandiose-poodle-700
-  p11_1_convex_deployed: false
+  p11_1_convex_deployed: true
+  p11_1_deployed_source_sha: 78a0c7de0b3b9e2ea0dcabc384037379747f5ea3
+  p11_2_discovery_hardening: code_validated_not_yet_redeployed
   evidence_authority_skill: packaged_not_imported
   ansem_funded_underwriting_demo: planned_not_proved
   x402_authority_service: ready_to_activate_not_deployed_no_revenue_claim
@@ -65,6 +67,31 @@ winning_intelligence_p11_1:
   observed_tokenized_entries_at_review: 154
   observed_fee_generating_entries_at_review: 85
 
+p11_2_runtime_discovery:
+  first_runtime_capture: evidence/runtime/P11-DISCOVERY-FAIL-CLOSED-2026-09-15.json
+  first_capture_status: FAILED_CLOSED
+  convex_healthz: passed_user_terminal_capture
+  authority_policy_route: passed_user_terminal_capture
+  authority_openapi_route: passed_user_terminal_capture
+  authority_stats_route: passed_user_terminal_capture
+  first_capture_underwriting_decisions: 0
+  first_capture_dedicated_rpc_configured: false
+  first_capture_signature_window: 60
+  first_capture_verified_launches: 0
+  first_capture_synthetic_candidate_substituted: false
+  canonical_negative_path_receipt_created: false
+  diagnosis: discovery_recall_not_authority_runtime
+  remediation_doc: docs/P11_RUNTIME_DISCOVERY_DIAGNOSIS.md
+  top_level_and_cpi_create_verification: implemented
+  bounded_paginated_signature_search: implemented_max_500
+  bounded_parallel_verification: implemented
+  discovery_diagnostics: implemented
+  runtime_default_signature_scan_limit: 300
+  validation_run: https://github.com/Faadil1/clawrena/actions/runs/35009694932
+  validation_result: pass
+  validated_code_head: de7cfadd450d1c505f7552d064f8680bdc6e5dbb
+  integrated_head_before_state_evidence: 952b77f485e8d46502c21035997696e847c72e4d
+
 white_space_exploited:
   - cross_agent_execution_authority
   - centralized_versioned_policy_manifest
@@ -79,15 +106,17 @@ white_space_exploited:
 
 validation:
   p11_1_final_ci_run: https://github.com/Faadil1/clawrena/actions/runs/35003316923
-  validated_head: e1f8d959ec8d898e8f2827796c3b3bd15655a7fa
+  p11_1_validated_head: e1f8d959ec8d898e8f2827796c3b3bd15655a7fa
+  p11_2_runtime_discovery_ci_run: https://github.com/Faadil1/clawrena/actions/runs/35009694932
+  p11_2_runtime_discovery_validated_head: de7cfadd450d1c505f7552d064f8680bdc6e5dbb
   production_dependency_security_gate: pass
   integrity: pass
   logic_tests: pass
   typecheck: pass
   lint: pass
   build: pass
-  temporary_validation_workflow: removed_after_green_run
-  post_validation_changes: state_metadata_and_workflow_removal_only
+  runtime_script_syntax: pass
+  temporary_validation_workflows: removed_after_green_runs
 
 completed_gates:
   - rubric_mapping
@@ -120,6 +149,12 @@ completed_gates:
   - p11_1_openapi_contract
   - p11_1_honest_authority_stats
   - p11_1_full_ci_green
+  - p11_1_convex_http_health
+  - p11_1_authority_endpoint_reachability
+  - p11_2_runtime_failure_preserved_fail_closed
+  - p11_2_top_level_and_cpi_launch_verification
+  - p11_2_bounded_paginated_discovery
+  - p11_2_runtime_discovery_full_ci_green
 
 conditional_gates:
   - trace_gate_6_5_visual_runtime_review
@@ -128,13 +163,14 @@ conditional_gates:
   - verified_onchain_execution_if_attempted
   - ansem_funded_underwriting_demo
   - x402_underwriting_service_if_real_paid_service_is_deployed
+  - dedicated_helius_rpc_for_runtime_reliability
 
 blocking_gates:
-  - p11_1_convex_deploy_and_endpoint_probes
-  - evidence_authority_skill_import_into_real_clawpump_or_hermes_agent
+  - p11_2_redeploy_to_grandiose_poodle_700
   - real_external_or_shadow_underwriting_capture
-  - convex_http_health_probe
-  - runtime_provider_secret_configuration
+  - evidence_passport_runtime_consistency_match
+  - reunderwriting_runtime_lineage_capture
+  - evidence_authority_skill_import_into_real_clawpump_or_hermes_agent
   - eligibility_external_receipts
   - alpha_scout_tokenization_receipt
   - public_cloudflare_runtime_deploy
@@ -149,6 +185,7 @@ strategic_open:
   - ansem_funded_live_underwriting_run
   - specialized_x402_paid_underwriting_after_real_service_setup
   - bounded_treasury_spending_policy_with_receipts
+  - dedicated_rpc_configuration_for_higher_runtime_discovery_reliability
 
 eligibility:
   official_source: https://clawpump.tech/ansemhack
@@ -161,15 +198,18 @@ runtime:
   preferred_frontend: cloudflare_pages
   current_p10_live_frontend_url: https://clawrena-alpha-scout-review.vercel.app
   current_p10_convex_client_url: https://grandiose-poodle-700.convex.cloud
-  p11_1_source_branch: winning-intelligence-p11-white-space
-  p11_1_deployed: false
+  current_p11_convex_http_url: https://grandiose-poodle-700.convex.site
+  p11_source_branch: winning-intelligence-p11
+  p11_1_deployed: true
+  p11_2_redeploy_pending: true
   live_frontend_is_canonical_runtime: false
+  first_p11_runtime_capture: evidence/runtime/P11-DISCOVERY-FAIL-CLOSED-2026-09-15.json
   canonical_run_status: evidence/canonical-run/STATUS.json
   promotion_command: npm run gate:submission
 
 visual_system:
   current_p10_direction: forensic_editorial_judge_entry
-  next_visual_pass_status: blocked_until_p11_1_runtime_proof
+  next_visual_pass_status: blocked_until_real_p11_underwriting_receipt
   next_visual_category: proof_of_authority_workstation
   next_visual_rule: do_not_start_from_generic_trading_dashboard_references
   identity_asset: public/alpha-scout.svg
@@ -177,6 +217,8 @@ visual_system:
 canonical_artifacts:
   winning_intelligence_p11: docs/WINNING_INTELLIGENCE_P11.md
   white_space_p11_1: docs/WHITE_SPACE_P11_1.md
+  runtime_discovery_diagnosis: docs/P11_RUNTIME_DISCOVERY_DIAGNOSIS.md
+  first_runtime_fail_closed: evidence/runtime/P11-DISCOVERY-FAIL-CLOSED-2026-09-15.json
   competitive_intelligence: docs/COMPETITIVE_INTELLIGENCE_2026-09-15.md
   ansem_demo: docs/ANSEM_AUTHORITY_DEMO.md
   x402_authority_service: docs/X402_AUTHORITY_SERVICE.md
