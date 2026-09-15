@@ -1,0 +1,83 @@
+project: alpha-scout-clawrena
+handover_version: P10_2026-09-15
+start_here:
+  - state/CURRENT.yaml
+  - evidence/runtime/LIVE_FRONTEND.json
+  - docs/TOKEN_UTILITY.md
+  - docs/P4_RUNTIME_SUBMISSION.md
+  - docs/DEPLOYMENT_CLOUDFLARE_CONVEX.md
+  - docs/GATE_7_PROMOTE.md
+  - docs/JUDGE_ASSURANCE_P3.md
+  - docs/REAL_FAILURE_EVIDENCE.md
+  - docs/RUBRIC_EVIDENCE_MATRIX.md
+  - docs/CLAIM_LEDGER.md
+  - docs/DEMO_QA_GATE_6_75.md
+
+repo:
+  fork: https://github.com/Faadil1/clawrena
+  branch: winning-delta-p0-p2
+  upstream_pr: https://github.com/opeblow/clawrena/pull/1
+
+what_changed_p10:
+  - approved forensic judge homepage was implemented from the accepted design direction
+  - long SaaS-style landing sequence was replaced by a compact judge-first entry page
+  - homepage now leads with Capital moves only when evidence says yes
+  - status rail exposes live market, authority locked, unknown veto, paper default, and verified on-chain boundary
+  - investigation flow is visible above the fold: discover -> claim -> investigate -> qualify -> execute/refuse -> prove
+  - example dossier is explicitly labeled NOT RUNTIME EVIDENCE to preserve truth boundaries
+  - unique hawk-eye crest replaced the generic A mark
+  - the same crest is used on the homepage, app shell, CTA surfaces, and favicon
+  - browser favicon and theme color were added to index.html
+  - upstream CI run #34 passed security, integrity, logic, typecheck, lint, and build
+  - live static assets were published from source 41926a4b0ae8425a661cd40f30d98316d7079ce0
+  - immutable asset commit is ae2117a58eebdd21ac55b5ccdef7ebc822da9564
+  - Vercel production deployment dpl_Cpo1EUbEymcV3ZdkczKQAXgaaynf is READY
+  - stable URL https://clawrena-alpha-scout-review.vercel.app serves the approved build
+  - deployment provenance and alpha-scout.svg both return HTTP 200
+  - auth round trip has been visually verified by reaching the authenticated dashboard
+
+live_frontend:
+  url: https://clawrena-alpha-scout-review.vercel.app
+  vercel_deployment_id: dpl_Cpo1EUbEymcV3ZdkczKQAXgaaynf
+  source_sha: 41926a4b0ae8425a661cd40f30d98316d7079ce0
+  static_asset_branch: live-preview-dist
+  asset_commit: ae2117a58eebdd21ac55b5ccdef7ebc822da9564
+  convex_client_url: https://grandiose-poodle-700.convex.cloud
+  root_http_status: 200
+  provenance_http_status: 200
+  favicon_http_status: 200
+  backend_bundle_bound: true
+  auth_round_trip_verified: true
+  convex_http_health_verified: false
+  canonical_runtime_evidence: false
+
+visual_contract:
+  home: APPROVED_FORENSIC_JUDGE_HOME
+  workstation: P8_FORENSIC_WORKSTATION
+  identity: HAWK_EYE_CREST
+  palette: warm_paper_rust_olive_graphite
+  judge_length: compact_single_entry_sequence
+  example_data_boundary: NOT_RUNTIME_EVIDENCE
+
+next_actions_priority:
+  - visually inspect the deployed P10 homepage against the approved reference on desktop and mobile
+  - read the exact VITE_CONVEX_SITE_URL from local .env.local and probe /healthz
+  - configure HELIUS_API_KEY, HELIUS_WEBHOOK_SECRET and CLAWPUMP_API_KEY in the Convex deployment; JUPITER_API_KEY optional
+  - capture one real live-market REJECT or UNKNOWN receipt and preserve it in evidence/canonical-run/STATUS.json
+  - deploy the same runtime to Cloudflare Pages as preferred canonical frontend
+  - verify registration, X/follow and ClawPump tokenization receipts before 2026-09-20T23:59:00Z
+  - after tokenization, observe the real Agent Treasury ledger and capture it
+  - run TRACE Gate 6.5 on desktop/mobile runtime
+  - run npm run gate:submission; Gate 7 remains blocked until every hard receipt exists
+
+never_do:
+  - do_not_convert_example_dossier_to_runtime_evidence
+  - do_not_convert_LIVE_FRONTEND_to_CANONICAL_RUNTIME_without_real_convex_health_and_negative_path
+  - do_not_convert_PREPARE_or_PENDING_to_VERIFIED_without_signature_and_confirmation
+  - do_not_use_test_fixture_as_submission_evidence
+  - do_not_hide_rejects_unknowns_or_provider_degradation
+  - do_not_claim_realised_alpha_without_real_performance_evidence
+  - do_not_claim_wash_bundle_honeypot_classifiers_are_live
+  - do_not_mark_eligibility_verified_without_receipt_links
+  - do_not_claim_creator_fee_share_is_holder_revenue_share
+  - do_not_claim_automated_treasury_spending_before_it_exists

@@ -1,0 +1,15 @@
+{
+  "artifactClass": "CANONICAL_RUNTIME_EVIDENCE_STATUS",
+  "status": "PENDING_REAL_RUNTIME_CAPTURE",
+  "fakeSuccessForbidden": true,
+  "requiredBeforePromotion": [
+    "public runtime URL",
+    "deployed commit SHA",
+    "real Pump launch signature",
+    "real negative-path decision receipt id",
+    "real provider request id for PREPARE if exercised",
+    "screen recording link or immutable hash",
+    "transaction signature and confirmation slot only if actual on-chain execution occurs"
+  ],
+  "captured": {}
+}

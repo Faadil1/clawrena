@@ -1,28 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Alpha Scout logo">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0b1220"/>
-      <stop offset="1" stop-color="#0e1a2b"/>
-    </linearGradient>
-    <linearGradient id="sweep" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#22d3ee" stop-opacity="0"/>
-      <stop offset="1" stop-color="#22d3ee" stop-opacity="0.45"/>
-    </linearGradient>
-    <linearGradient id="blip" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#4ade80"/>
-      <stop offset="1" stop-color="#22d3ee"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <g stroke="#22d3ee">
-    <circle cx="256" cy="256" r="150" fill="none" stroke-width="8" stroke-opacity="0.35"/>
-    <circle cx="256" cy="256" r="100" fill="none" stroke-width="6" stroke-opacity="0.28"/>
-    <circle cx="256" cy="256" r="50" fill="none" stroke-width="4" stroke-opacity="0.22"/>
-  </g>
-  <line x1="256" y1="256" x2="256" y2="106" stroke="#22d3ee" stroke-width="6" stroke-opacity="0.8"/>
-  <line x1="256" y1="256" x2="406" y2="256" stroke="#22d3ee" stroke-width="6" stroke-opacity="0.8"/>
-  <path d="M256 256 L256 106 A150 150 0 0 1 406 256 Z" fill="url(#sweep)" transform="rotate(-35 256 256)"/>
-  <circle cx="256" cy="256" r="14" fill="none" stroke="#22d3ee" stroke-width="8" stroke-opacity="0.9"/>
-  <circle cx="330" cy="165" r="18" fill="url(#blip)"/>
-  <circle cx="330" cy="165" r="34" fill="#4ade80" opacity="0.25"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Alpha Scout">
+  <title>Alpha Scout</title>
+  <path fill="#D94D1B" d="M32 4 57 17 47 29 42 52 32 43 22 52 17 29 7 17Z"/>
+  <path fill="#F3EFE4" d="M15 20.5c5.8-5.2 11.5-7.7 17-7.7 7 0 12.9 3.2 17.7 8.2-4.7 6.2-10.5 9.4-17.6 9.4-7.2 0-12.8-3.4-17.1-9.9Z"/>
+  <path fill="#324638" d="M20.5 21.3c3.9-3 7.8-4.5 11.8-4.5 4.1 0 8 1.6 11.7 4.8-3.4 3.2-7.3 4.9-11.7 4.9-4.6 0-8.5-1.8-11.8-5.2Z"/>
+  <circle cx="32.2" cy="21.6" r="4.1" fill="#F3EFE4"/>
+  <circle cx="32.2" cy="21.6" r="2.2" fill="#171913"/>
+  <path fill="#F3EFE4" d="M31.8 32 40.2 30.2 36 42.2 31.9 38.2 27.7 42.2 23.6 30.2Z"/>
+  <path fill="#324638" d="M13.8 16.4 32 7.4l18.2 9-5.2.2L32 10.8 19 16.6Z" opacity=".88"/>
 </svg>

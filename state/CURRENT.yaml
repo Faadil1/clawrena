@@ -1,0 +1,138 @@
+project: alpha-scout-clawrena
+canonical_branch: winning-delta-p0-p2
+upstream_pr: https://github.com/opeblow/clawrena/pull/1
+phase: P10_APPROVED_JUDGE_HOME_LIVE
+updated_at: 2026-09-15
+
+product_truth:
+  local_execution: paper
+  clawpump_partner_api: unsigned_prepare_only
+  verified_onchain_execution: pending
+  verified_volume_rule: onchain_mode_plus_signature_plus_confirmation_slot
+  creator_fee_observability: built_for_linked_clawpump_agent
+  creator_fee_share_source: clawpump_documented_75_percent_creator_share
+  alpha_scout_token_live: pending_external_tokenization_receipt
+  holder_revenue_share: not_built
+  automated_treasury_spending: not_built
+  convex_cloud_project: created
+  convex_cloud_deployment: grandiose-poodle-700
+  convex_functions_ready: true
+  public_live_frontend: reachable
+  public_live_frontend_convex_bound: true
+  public_home_visual: approved_forensic_judge_home
+  brand_identity: hawk_eye_crest
+  favicon_verified: true
+  auth_round_trip_verified: true
+  convex_http_health_verified: false
+  canonical_public_runtime: pending
+
+canonical_thesis: >-
+  Alpha Scout is an evidence-first autonomous launch trader that can prove why it traded,
+  why it refused, and what the linked agent actually earned instead of inventing token utility.
+
+completed_gates:
+  - rubric_mapping
+  - real_failure_evidence
+  - negative_path_structure
+  - claim_ledger
+  - idempotency
+  - paper_drawdown_high_water
+  - execution_receipt_freshness
+  - clawpump_provider_preflight
+  - authority_boundary
+  - dependency_security_gate
+  - cloudflare_pages_config
+  - convex_deploy_contract
+  - runtime_capture_tool
+  - eligibility_receipt_ledger
+  - machine_readable_gate_7
+  - creator_fee_ledger_normalization
+  - agent_treasury_observability
+  - token_utility_claim_boundary
+  - convex_cloud_project_created
+  - convex_dev_schema_and_functions_deployed
+  - live_frontend_built_against_real_convex_url
+  - public_live_frontend_root_reachability
+  - public_live_frontend_proof_route_reachability
+  - public_auth_round_trip
+  - p8_forensic_workstation
+  - p10_approved_judge_home_implementation
+  - hawk_eye_logo_and_favicon
+  - immutable_live_asset_publication
+  - public_deployment_provenance_verified
+  - upstream_ci_34_green
+
+conditional_gates:
+  - trace_gate_6_5_visual_runtime_review
+  - judge_performance_assurance
+  - agent_advantage_runtime_demo
+  - verified_onchain_execution_if_attempted
+
+blocking_gates:
+  - convex_http_health_probe
+  - runtime_provider_secret_configuration
+  - eligibility_external_receipts
+  - alpha_scout_tokenization_receipt
+  - public_cloudflare_runtime_deploy
+  - canonical_real_negative_path_capture
+  - real_agent_treasury_capture_after_tokenization
+  - gate_7_promote
+
+strategic_open:
+  - real_onchain_volume
+  - attention_and_stream_distribution
+  - bounded_treasury_spending_policy_with_receipts
+
+eligibility:
+  official_source: https://clawpump.tech/ansemhack
+  deadline_utc: 2026-09-20T23:59:00Z
+  registration_receipt: pending_external_confirmation
+  x_entry_and_follow_receipt: pending_external_confirmation
+  tokenization_receipt: pending_external_confirmation
+
+runtime:
+  preferred_frontend: cloudflare_pages
+  deployment_runbook: docs/DEPLOYMENT_CLOUDFLARE_CONVEX.md
+  live_frontend_url: https://clawrena-alpha-scout-review.vercel.app
+  live_frontend_vercel_deployment_id: dpl_Cpo1EUbEymcV3ZdkczKQAXgaaynf
+  live_frontend_source_sha: 41926a4b0ae8425a661cd40f30d98316d7079ce0
+  live_asset_branch: live-preview-dist
+  live_asset_commit: ae2117a58eebdd21ac55b5ccdef7ebc822da9564
+  live_frontend_root_http_status: 200
+  live_frontend_provenance_http_status: 200
+  live_frontend_favicon_http_status: 200
+  convex_client_url: https://grandiose-poodle-700.convex.cloud
+  convex_http_url: pending_verified_value_from_env_local
+  live_frontend_is_canonical_runtime: false
+  live_frontend_evidence: evidence/runtime/LIVE_FRONTEND.json
+  reachability_evidence: evidence/runtime/LATEST.json
+  canonical_run_status: evidence/canonical-run/STATUS.json
+  promotion_command: npm run gate:submission
+
+visual_system:
+  approved_home_reference: forensic_editorial_judge_entry
+  home_message: Capital moves only when evidence says yes.
+  palette:
+    paper: '#F3EFE4'
+    rust: '#D94D1B'
+    olive: '#324638'
+    ink: '#171913'
+  identity_asset: public/alpha-scout.svg
+  example_dossier_rule: NOT_RUNTIME_EVIDENCE
+
+canonical_artifacts:
+  real_failure: docs/REAL_FAILURE_EVIDENCE.md
+  rubric_matrix: docs/RUBRIC_EVIDENCE_MATRIX.md
+  claim_ledger: docs/CLAIM_LEDGER.md
+  token_utility: docs/TOKEN_UTILITY.md
+  p3_gate_matrix: docs/JUDGE_ASSURANCE_P3.md
+  p4_runtime_submission: docs/P4_RUNTIME_SUBMISSION.md
+  deploy_runbook: docs/DEPLOYMENT_CLOUDFLARE_CONVEX.md
+  gate_7: docs/GATE_7_PROMOTE.md
+  demo_qa: docs/DEMO_QA_GATE_6_75.md
+  collision_agent_advantage: docs/COLLISION_AGENT_ADVANTAGE.md
+  trace_6_5: docs/TRACE_GATE_6_5.md
+  eligibility_status: evidence/eligibility/STATUS.json
+  runtime_status: evidence/runtime/LATEST.json
+  live_frontend_status: evidence/runtime/LIVE_FRONTEND.json
+  canonical_run_status: evidence/canonical-run/STATUS.json

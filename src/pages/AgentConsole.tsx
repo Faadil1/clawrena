@@ -1,20 +1,36 @@
 import { useState } from "react";
-import type { ReactNode, FormEvent } from "react";
+import type { FormEvent } from "react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { Card, CardBadge, EmptyState } from "../components/ui";
 import { formatSol, shorten } from "../lib/format";
+
+type TreasuryView = {
+  source: "clawpump_public_fee_ledger";
+  sourceUrl: string;
+  observedAt: number;
+  agentId: string;
+  creatorFeeSharePct: 75;
+  totalEarned: number;
+  totalSent: number;
+  totalPending: number;
+  totalHeld: number;
+  recentDistributionCount: number;
+  holderRevenueShare: false;
+  automatedTreasurySpending: false;
+};
 
 export default function AgentConsole() {
   const data = useQuery(api.queries.portfolio.dashboard);
   const setWallet = useMutation(api.users.setWallet);
   const deployAgent = useMutation(api.agents.deployAgent);
   const setAgentState = useMutation(api.agents.setAgentState);
+  const acknowledgeRiskHalt = useMutation(api.agents.acknowledgeRiskHalt);
   const updateRisk = useMutation(api.agents.updateAgentRisk);
   const depositSol = useMutation(api.portfolio.depositSol);
-  const importBalance = useAction(api.wallet.importWalletBalance);
+  const observeBalance = useAction(api.wallet.importWalletBalance);
   const runNow = useAction(api.runAgent.runNow);
-  const [running, setRunning] = useState(false);
+  const syncClawPump = useAction(api.clawPump.syncAgent);
+  const loadTreasury = useAction(api.clawPump.treasuryStatus);
 
   const [wallet, setWalletInput] = useState("");
   const [name, setName] = useState("Alpha Scout");
@@ -22,376 +38,229 @@ export default function AgentConsole() {
   const [maxPos, setMaxPos] = useState(2);
   const [maxDD, setMaxDD] = useState(10);
   const [depositAmt, setDepositAmt] = useState(1);
-  const [funding, setFunding] = useState(false);
+  const [treasury, setTreasury] = useState<TreasuryView | null>(null);
+  const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
-  const user = data?.user;
-  const agent = data?.agent;
-  const portfolio = data?.portfolio;
-  const agentRuns = data?.agentRuns ?? [];
+  if (data === undefined || data === null) {
+    return <div className="fw-page"><div className="fw-wrap fw-meta">Connecting authority room…</div></div>;
+  }
 
-  const handleDeposit = async (event: FormEvent) => {
+  const { user, agent, portfolio } = data;
+  const authority = agent?.status === "running" ? "ARMED / PAPER" : agent?.status === "halted" ? "HALTED" : agent ? "PAUSED" : "LOCKED";
+  const clawPumpState = agent?.clawPumpAgentId ? "LINKED" : "NOT LINKED";
+
+  const paperDeposit = async (event: FormEvent) => {
     event.preventDefault();
-    setMsg(null);
-    setFunding(true);
-    try {
+    await task(async () => {
       await depositSol({ amountSol: Number(depositAmt) });
-      setMsg(`Deposited ${formatSol(Number(depositAmt))}. Ready to trade.`);
-    } catch (e) {
-      setMsg(e instanceof Error ? e.message : "Deposit failed.");
-    } finally {
-      setFunding(false);
-    }
+      return `Added ${formatSol(Number(depositAmt))} to PAPER cash only.`;
+    });
   };
 
-  const handleImport = async () => {
-    setMsg(null);
-    setFunding(true);
-    try {
-      const r = await importBalance();
-      setMsg(
-        r.importedSol > 0
-          ? `Imported ${formatSol(r.importedSol)} from your wallet (${formatSol(r.balanceSol)} balance).`
-          : `Wallet balance ${formatSol(r.balanceSol)} already reflected in your portfolio.`,
-      );
-    } catch (e) {
-      setMsg(e instanceof Error ? e.message : "Import failed.");
-    } finally {
-      setFunding(false);
-    }
+  const observe = async () => {
+    await task(async () => {
+      const r = await observeBalance();
+      return `Observed ${formatSol(r.balanceSol)} at ${shorten(r.walletAddress)}. Watch-only: 0 SOL was credited to paper cash.`;
+    });
   };
 
-  const handleDeploy = async () => {
-    setMsg(null);
-    try {
+  const deploy = async () => {
+    await task(async () => {
       if (!user?.walletAddress) {
-        if (!wallet.trim()) {
-          setMsg("Attach a Solana wallet address first.");
-          return;
-        }
+        if (!wallet.trim()) throw new Error("Attach a Solana address first");
         await setWallet({ walletAddress: wallet.trim() });
       }
       await deployAgent({ name, autoTrading: auto });
-      setMsg("Agent deployed (idle). Fund the wallet and start trading.");
-    } catch (e) {
-      setMsg(e instanceof Error ? e.message : "Deploy failed.");
-    }
+      return "Local Alpha Scout agent deployed in PAPER mode.";
+    });
   };
 
-  const handleRunCycle = async () => {
+  const saveRisk = async () => {
     if (!agent) return;
-    setMsg(null);
-    setRunning(true);
-    try {
+    await task(async () => {
+      await updateRisk({ agentId: agent.id, riskMaxPosition: Number(maxPos), riskMaxDrawdownPct: Number(maxDD) });
+      return "Risk envelope updated.";
+    });
+  };
+
+  const toggle = async () => {
+    if (!agent) return;
+    await task(async () => {
+      if (agent.status === "halted") {
+        await acknowledgeRiskHalt({ agentId: agent.id, acknowledgement: "I understand the risk halt" });
+        return "Risk halt acknowledged. Agent moved to paused; start it explicitly when ready.";
+      }
+      const status = agent.status === "running" ? "paused" : "running";
+      await setAgentState({ agentId: agent.id, status });
+      return status === "running" ? "Paper authority armed." : "Authority paused.";
+    });
+  };
+
+  const runCycle = async () => {
+    await task(async () => {
       const r = await runNow();
-      setMsg(
-        `Cycle complete — outcome ${r.outcome}, ${r.positionsProcessed ?? 0} positions processed, ${r.tradesExecuted ?? 0} trade(s).`,
-      );
-    } catch (e) {
-      setMsg(e instanceof Error ? e.message : "Cycle failed.");
-    } finally {
-      setRunning(false);
-    }
+      return `Cycle ${r.outcome}: ${r.positionsProcessed ?? 0} checked, ${r.tradesExecuted ?? 0} paper execution(s).`;
+    });
   };
 
-  const handleRisk = async () => {
-    if (!agent) return;
-    try {
-      await updateRisk({
-        agentId: agent.id,
-        riskMaxPosition: Number(maxPos),
-        riskMaxDrawdownPct: Number(maxDD),
-      });
-      setMsg("Risk parameters updated.");
-    } catch (e) {
-      setMsg(e instanceof Error ? e.message : "Update failed.");
-    }
+  const linkClawPump = async () => {
+    await task(async () => {
+      const r = await syncClawPump();
+      return `ClawPump agent ${r.existing ? "already linked" : "created and linked"}: ${r.id}. Live swaps still require signature + confirmation.`;
+    });
   };
 
-/** Honesty marker: execution is paper until live swaps are wired. */
-const PaperModePill = () => (
-  <span className="rounded bg-[#FFF4E0] border border-accent/40 text-accent text-[9px] font-bold px-1.5 py-0.5 tracking-wide">
-    PAPER
-  </span>
-);
+  const refreshTreasury = async () => {
+    await task(async () => {
+      const r = await loadTreasury();
+      setTreasury(r as TreasuryView);
+      return `Observed ClawPump creator-fee ledger for ${shorten(r.agentId)}.`;
+    });
+  };
 
-  return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-[1200px] mx-auto w-full">
-      <div className="grid lg:grid-cols-3 gap-5 items-start">
-        <div className="lg:col-span-2 flex flex-col gap-5">
-          <Card
-            title={
-              <div className="flex items-center gap-3">
-                <span className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent to-accent-dark flex items-center justify-center text-white text-xl">
-                  ▲
-                </span>
-                <div>
-                  <div className="text-[16px] font-bold leading-tight">
-                    {agent ? agent.name : "Alpha Scout"}
-                  </div>
-                  <div className="text-[12px] text-ink-mid">autonomous trading agent</div>
-                </div>
-              </div>
-            }
-            badge={
-              <div className="flex items-center gap-2">
-                <PaperModePill />
-                <CardBadge>{agent ? agent.status : "not deployed"}</CardBadge>
-              </div>
-            }
-          >
-            <div className="px-6 py-4 text-sm text-ink-mid leading-relaxed">
-              {agent ? (
-                <>
-                  Status <b className="text-ink">{agent.status}</b> · wallet{" "}
-                  <span className="font-mono text-[12px]">{shorten(agent.walletAddress ?? "")}</span> ·{" "}
-                  auto-trading <b className="text-ink">{agent.autoTrading ? "on" : "off"}</b>.{" "}
-                  {agent.status !== "running" && "No trades executed yet."}
-                </>
-              ) : (
-                "Deploy your agent below. This console remembers real decisions and trades — there is no seeded history."
-              )}
-            </div>
-          </Card>
-
-          <Card title="Conversation" badge={<CardBadge>live</CardBadge>} bodyClassName="">
-            <div className="px-6 py-5">
-              {agent ? (
-                <div className="flex flex-col gap-4 text-sm">
-                  <AgentLine who="scout">
-                    I'm standing by. Give me a funded Solana wallet and a risk
-                    budget, and I'll start scanning for real alpha.
-                  </AgentLine>
-                  <AgentLine who="user">Show me your current risk settings.</AgentLine>
-                  <AgentLine who="scout">
-                    Max position per trade: <b className="text-ink">{formatSol(agent.riskMaxPosition)}</b>. Max
-                    portfolio drawdown: <b className="text-ink">{agent.riskMaxDrawdownPct}%</b>. Adjust them below.
-                  </AgentLine>
-                </div>
-              ) : (
-                <EmptyState
-                  icon="▲"
-                  title="No agent yet"
-                  hint="Deploy Alpha Scout to open the live console. Until then there are no messages — nothing is simulated."
-                />
-              )}
-            </div>
-          </Card>
-        </div>
-
-        <div className="flex flex-col gap-5">
-          <Card title="Deploy Agent" bodyClassName="p-5 flex flex-col gap-3">
-            {user?.walletAddress ? (
-              <div className="rounded-lg bg-surface border border-line px-4 py-3 text-[13px]">
-                Wallet attached: <span className="font-mono">{shorten(user.walletAddress)}</span>
-              </div>
-            ) : (
-              <input
-                value={wallet}
-                onChange={(e) => setWalletInput(e.target.value)}
-                placeholder="Solana wallet address"
-                className="px-4 py-3 rounded-lg bg-surface border border-line text-[13px] font-mono outline-none focus:border-accent"
-              />
-            )}
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Agent name"
-              className="px-4 py-3 rounded-lg bg-surface border border-line text-[13px] outline-none focus:border-accent"
-            />
-            <label className="flex items-center justify-between text-[13px]">
-              <span className="font-medium">Auto-trading</span>
-              <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} />
-            </label>
-            <button
-              onClick={() => void handleDeploy()}
-              disabled={!!agent}
-              className="px-5 py-3 rounded-xl bg-accent text-white text-sm font-semibold disabled:opacity-50"
-            >
-              {agent ? "Deployed" : "Deploy agent"}
-            </button>
-          </Card>
-
-          <Card title="Fund Portfolio" badge={<CardBadge>{portfolio ? formatSol(portfolio.cashSol) : "0 SOL"}</CardBadge>} bodyClassName="p-5 flex flex-col gap-3">
-            <p className="text-[13px] text-ink-mid leading-relaxed">
-              Add paper SOL to trade with, or import the real balance of your
-              attached wallet. Nothing trades until the portfolio holds cash.
-            </p>
-            <form onSubmit={handleDeposit} className="flex gap-2">
-              <input
-                type="number"
-                min="0"
-                step="0.1"
-                value={depositAmt}
-                onChange={(e) => setDepositAmt(Number(e.target.value))}
-                className="flex-1 px-4 py-3 rounded-lg bg-surface border border-line text-[13px] font-mono outline-none focus:border-accent"
-              />
-              <button
-                type="submit"
-                disabled={funding}
-                className="px-4 py-3 rounded-lg bg-accent text-white text-[13px] font-semibold disabled:opacity-60"
-              >
-                Deposit
-              </button>
-            </form>
-            {user?.walletAddress ? (
-              <button
-                onClick={() => void handleImport()}
-                disabled={funding}
-                className="px-4 py-3 rounded-lg border border-line text-[13px] font-semibold hover:border-accent hover:text-accent disabled:opacity-60"
-              >
-                Import wallet balance
-              </button>
-            ) : (
-              <p className="text-[12px] text-ink-faint">
-                Attach a wallet above to import its real SOL balance.
-              </p>
-            )}
-          </Card>
-
-          {agent && (
-            <>
-              <Card
-                title="Harness Audit Log"
-                badge={<CardBadge>{agentRuns.length} runs</CardBadge>}
-                bodyClassName="p-2"
-              >
-                {agentRuns.length === 0 ? (
-                  <div className="px-4 py-4 text-[13px] text-ink-mid">
-                    No cycles recorded yet. Every harness run lands here with its
-                    real outcome and counts — nothing is simulated.
-                  </div>
-                ) : (
-                  <div className="flex flex-col">
-                    {agentRuns.slice(0, 6).map((r) => (
-                      <div
-                        key={r._id}
-                        className="flex items-center gap-3 px-4 py-2.5 text-[13px] border-b border-line last:border-0"
-                      >
-                        <span
-                          className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                            r.outcome === "ok"
-                              ? "bg-up"
-                              : r.outcome === "halted"
-                                ? "bg-accent"
-                                : "bg-down"
-                          }`}
-                        />
-                        <span className="font-mono w-24 text-ink-faint">
-                          {new Date(r.startedAt).toLocaleTimeString()}
-                        </span>
-                        <span className="font-semibold text-ink uppercase text-[11px] w-16">
-                          {r.outcome}
-                        </span>
-                        <span className="text-ink-mid">
-                          {r.scansProcessed} scanned · {r.tradesExecuted} traded
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </Card>
-
-              <Card
-                title="Risk Controls"
-                bodyClassName="p-5 flex flex-col gap-3"
-                badge={<CardBadge>owner</CardBadge>}
-              >
-                <label className="text-[13px] font-medium">
-                  Max position (SOL)
-                  <input
-                    type="number"
-                    value={maxPos}
-                    onChange={(e) => setMaxPos(Number(e.target.value))}
-                    className="mt-1 w-full px-4 py-3 rounded-lg bg-surface border border-line text-[13px] font-mono outline-none focus:border-accent"
-                  />
-                </label>
-                <label className="text-[13px] font-medium">
-                  Max drawdown (%)
-                  <input
-                    type="number"
-                    value={maxDD}
-                    onChange={(e) => setMaxDD(Number(e.target.value))}
-                    className="mt-1 w-full px-4 py-3 rounded-lg bg-surface border border-line text-[13px] font-mono outline-none focus:border-accent"
-                  />
-                </label>
-                <button
-                  onClick={() => void handleRisk()}
-                  className="px-5 py-3 rounded-xl border border-line text-sm font-semibold hover:border-accent hover:text-accent"
-                >
-                  Save risk settings
-                </button>
-                <button
-                  onClick={() =>
-                    void setAgentState({
-                      agentId: agent.id,
-                      status: agent.status === "running" ? "paused" : "running",
-                    }).then(() => setMsg(agent.status === "running" ? "Agent paused." : "Agent started."))
-                  }
-                  className="px-5 py-3 rounded-xl bg-accent text-white text-sm font-semibold"
-                >
-                  {agent.status === "running" ? "Pause agent" : "Start agent"}
-                </button>
-                <button
-                  onClick={() => void handleRunCycle()}
-                  disabled={running}
-                  className="px-5 py-3 rounded-xl border border-line text-sm font-semibold hover:border-accent hover:text-accent disabled:opacity-60"
-                >
-                  {running ? "Running cycle…" : "Run cycle now"}
-                </button>
-              </Card>
-
-              <Card title="Capabilities" bodyClassName="p-2">
-                {[
-                  ["DeFi Trading", true],
-                  ["Alpha Scanner", true],
-                  ["Manipulation Shield", true],
-                  ["Risk Manager", true],
-                  ["Perps Trading", false],
-                ].map(([label, on]) => (
-                  <div
-                    key={label as string}
-                    className="flex items-center justify-between px-3 py-2.5 text-sm"
-                  >
-                    <span className="font-medium">{label}</span>
-                    <span className={`text-[11px] font-bold ${on ? "text-up" : "text-ink-faint"}`}>
-                      {on ? "ON" : "OFF"}
-                    </span>
-                  </div>
-                ))}
-              </Card>
-            </>
-          )}
-
-          {msg && (
-            <div className="rounded-lg bg-accent-light text-accent px-4 py-3 text-[13px] font-medium">
-              {msg}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function AgentLine({ who, children }: { who: "scout" | "user"; children: ReactNode }) {
-  if (who === "user") {
-    return (
-      <div className="flex justify-end">
-        <div className="max-w-[85%] px-4 py-3 rounded-xl rounded-br-sm bg-accent text-white">
-          {children}
-        </div>
-      </div>
-    );
+  async function task(fn: () => Promise<string>) {
+    setBusy(true);
+    setMsg(null);
+    try { setMsg(await fn()); }
+    catch (e) { setMsg(e instanceof Error ? e.message : "Action failed"); }
+    finally { setBusy(false); }
   }
+
   return (
-    <div className="flex gap-3">
-      <span className="w-8 h-8 rounded-lg bg-accent-light text-accent flex items-center justify-center text-sm flex-shrink-0">
-        ▲
-      </span>
-      <div className="max-w-[85%] px-4 py-3 rounded-xl rounded-bl-sm bg-surface border border-line text-ink-mid">
-        {children}
+    <div className="fw-page">
+      <div className="fw-wrap">
+        <header className="fw-head">
+          <div className="fw-head-copy">
+            <div className="fw-index">02</div>
+            <div>
+              <div className="fw-kicker">AUTHORITY ROOM / AGENT + RISK</div>
+              <h1>What is this agent allowed to do?</h1>
+              <p>Execution authority is assembled from identity, risk, fresh evidence and provider state. No single signal can move value by itself.</p>
+            </div>
+          </div>
+          <div className="fw-head-state">
+            <div><span>Execution</span><b>PAPER</b></div>
+            <div><span>Authority</span><b>{authority}</b></div>
+            <div><span>ClawPump</span><b>{clawPumpState}</b></div>
+          </div>
+        </header>
+
+        <section className="fw-strip">
+          <StatusStat label="Observed wallet" value={portfolio?.observedWalletSol !== null && portfolio?.observedWalletSol !== undefined ? formatSol(portfolio.observedWalletSol) : "NOT OBSERVED"} note="read-only observation" />
+          <StatusStat label="Paper cash" value={formatSol(portfolio?.cashSol ?? 0)} note="simulation buying power" />
+          <StatusStat label="Max position" value={agent ? formatSol(agent.riskMaxPosition) : "—"} note="risk ceiling" />
+          <StatusStat label="Drawdown cap" value={agent ? `${agent.riskMaxDrawdownPct}%` : "—"} note="high-water halt" />
+        </section>
+
+        <div className="fw-grid-main">
+          <div className="fw-sheet">
+            <div className="fw-sheet-head">
+              <div className="fw-sheet-title">
+                <span className="fw-sheet-no">A</span>
+                <div><h2>Authority chain</h2><p>Observation → veto → proof. Failure at any stage stops the path.</p></div>
+              </div>
+              <span className={`fw-badge ${agent?.status === "halted" ? "fw-badge--red" : "fw-badge--orange"}`}>FAIL-CLOSED</span>
+            </div>
+
+            <div className="fw-authority-state">
+              <div>
+                <div className="fw-label">CURRENT AUTHORITY STATE</div>
+                <h3>{agent ? authority : "NO AGENT / NO AUTHORITY"}</h3>
+                <p>{agent ? `${agent.name} exists locally, but its execution envelope remains paper-only unless every downstream authority check is satisfied.` : "A watch-only identity may be observed, but nothing is authorized until a local agent and explicit risk envelope exist."}</p>
+              </div>
+              <div className="fw-lock">{agent ? (agent.status === "running" ? "ARMED" : "LOCKED") : "LOCKED"}</div>
+            </div>
+
+            <div className="fw-chain">
+              <ChainStep code="01 / OBSERVE" title="Live evidence" body="Price, liquidity, economic-owner concentration and launch age come from live sources." />
+              <ChainStep code="02 / VETO" title="Refuse unknown" body="Unknown or stale critical evidence is a blocking state, not a low-confidence pass." />
+              <ChainStep code="03 / PROVE" title="Receipt first" body="Execute, reject, skip and prepare remain separate. Unsigned or unconfirmed actions never become verified volume." />
+            </div>
+
+            <div className="fw-sheet-head">
+              <div className="fw-sheet-title">
+                <span className="fw-sheet-no">B</span>
+                <div><h2>Economic boundary</h2><p>What can be observed is not automatically spendable.</p></div>
+              </div>
+              <span className="fw-badge">PAPER ≠ WALLET</span>
+            </div>
+            <div className="fw-row"><span>Watch-only address</span><strong>{user?.walletAddress ? shorten(user.walletAddress) : "NOT ATTACHED"}</strong><small>observation only</small></div>
+            <div className="fw-row"><span>Observed balance</span><strong>{portfolio?.observedWalletSol !== null && portfolio?.observedWalletSol !== undefined ? formatSol(portfolio.observedWalletSol) : "UNKNOWN"}</strong><small>never credits paper cash</small></div>
+            <div className="fw-row"><span>Paper capital</span><strong>{formatSol(portfolio?.cashSol ?? 0)}</strong><small>manual simulation deposit</small></div>
+            <div className="fw-row"><span>On-chain authority</span><strong>SEPARATELY GATED</strong><small>prepare ≠ execute</small></div>
+          </div>
+
+          <aside className="fw-sheet">
+            <div className="fw-sheet-head">
+              <div className="fw-sheet-title"><span className="fw-sheet-no">C</span><div><h2>Control rail</h2><p>Explicit operator actions only.</p></div></div>
+              <span className="fw-badge">{busy ? "BUSY" : "READY"}</span>
+            </div>
+
+            <div className="fw-control">
+              <div className="fw-control-head"><b>Identity + local agent</b><span>{agent ? "DEPLOYED" : "STEP 01"}</span></div>
+              {!user?.walletAddress && <input value={wallet} onChange={(e) => setWalletInput(e.target.value)} placeholder="Watch-only Solana address" className="fw-input fw-input--mono" />}
+              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Agent name" className="fw-input mt-2" />
+              <label className="mt-3 flex items-center justify-between text-[11px]"><span>Auto trading / paper</span><input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} /></label>
+              <button disabled={busy || Boolean(agent)} onClick={() => void deploy()} className="fw-button fw-button--orange w-full mt-3">{agent ? "LOCAL AGENT DEPLOYED" : "DEPLOY LOCAL AGENT"}</button>
+            </div>
+
+            <div className="fw-control">
+              <div className="fw-control-head"><b>Funding boundary</b><span>PAPER ONLY</span></div>
+              <form onSubmit={(e) => void paperDeposit(e)} className="fw-inline">
+                <input type="number" min="0.1" step="0.1" value={depositAmt} onChange={(e) => setDepositAmt(Number(e.target.value))} className="fw-input fw-input--mono" />
+                <button disabled={busy} className="fw-button">ADD PAPER</button>
+              </form>
+              {user?.walletAddress && <button disabled={busy} onClick={() => void observe()} className="fw-button fw-button--line w-full mt-2">OBSERVE WALLET BALANCE</button>}
+            </div>
+
+            {agent && <div className="fw-control">
+              <div className="fw-control-head"><b>Risk envelope</b><span>STEP 02</span></div>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="text-[10px] font-semibold">MAX POSITION / SOL<input type="number" value={maxPos} onChange={(e) => setMaxPos(Number(e.target.value))} className="fw-input fw-input--mono mt-1" /></label>
+                <label className="text-[10px] font-semibold">MAX DRAWDOWN / %<input type="number" value={maxDD} onChange={(e) => setMaxDD(Number(e.target.value))} className="fw-input fw-input--mono mt-1" /></label>
+              </div>
+              <button disabled={busy} onClick={() => void saveRisk()} className="fw-button fw-button--line w-full mt-2">COMMIT RISK ENVELOPE</button>
+            </div>}
+
+            {agent && <div className="fw-control">
+              <div className="fw-control-head"><b>Runtime authority</b><span>STEP 03</span></div>
+              <div className="grid grid-cols-2 gap-2">
+                <button disabled={busy} onClick={() => void toggle()} className={`fw-button ${agent.status === "halted" ? "fw-button--danger" : ""}`}>{agent.status === "halted" ? "ACK HALT" : agent.status === "running" ? "PAUSE" : "ARM PAPER"}</button>
+                <button disabled={busy} onClick={() => void runCycle()} className="fw-button fw-button--line">RUN ONE CYCLE</button>
+              </div>
+              <button disabled={busy || Boolean(agent.clawPumpAgentId)} onClick={() => void linkClawPump()} className="fw-button fw-button--line w-full mt-2">{agent.clawPumpAgentId ? "CLAWPUMP LINKED" : "LINK CLAWPUMP AGENT"}</button>
+            </div>}
+
+            {msg && <div className="fw-action-message">{msg}</div>}
+          </aside>
+        </div>
+
+        <section className="fw-sheet mt-[18px]">
+          <div className="fw-sheet-head">
+            <div className="fw-sheet-title"><span className="fw-sheet-no">D</span><div><h2>Agent Treasury</h2><p>Observed creator-fee ledger only.</p></div></div>
+            <span className={`fw-badge ${treasury ? "fw-badge--green" : ""}`}>{treasury ? "OBSERVED" : agent?.clawPumpAgentId ? "AVAILABLE" : "NOT LINKED"}</span>
+          </div>
+          {treasury ? <>
+            <div className="fw-treasury">
+              <TreasuryCell label="Earned" value={formatSol(treasury.totalEarned)} />
+              <TreasuryCell label="Sent" value={formatSol(treasury.totalSent)} />
+              <TreasuryCell label="Pending" value={formatSol(treasury.totalPending)} />
+              <TreasuryCell label="Held" value={formatSol(treasury.totalHeld)} />
+            </div>
+            <div className="fw-body flex items-start justify-between gap-5 flex-wrap">
+              <p className="max-w-3xl text-[11px] leading-relaxed text-ink-mid">ClawPump documents a {treasury.creatorFeeSharePct}% creator share for token trading fees. This surface observes the linked agent's public fee ledger and does <b>not</b> claim holder revenue share, governance, buybacks, yield or automated treasury spending.</p>
+              <button disabled={busy} onClick={() => void refreshTreasury()} className="fw-button fw-button--line">REFRESH LEDGER</button>
+            </div>
+          </> : <div className="fw-empty"><div className="fw-empty-inner"><div className="fw-empty-mark">T</div><h3>{agent?.clawPumpAgentId ? "Ledger not observed yet" : "No linked ClawPump identity"}</h3><p>{agent?.clawPumpAgentId ? "Read the public creator-fee ledger. A zero balance is still valid evidence." : "Link the agent first. The treasury surface stays empty rather than fabricating token economics."}</p>{agent?.clawPumpAgentId && <button disabled={busy} onClick={() => void refreshTreasury()} className="fw-button mt-4">OBSERVE CREATOR FEES</button>}</div></div>}
+        </section>
+
+        <footer className="fw-footer-rule"><span>Unknown ≠ pass</span><span>Watch-only ≠ buying power</span><span>Prepare ≠ execute</span><span>Real failure &gt; fake success</span></footer>
       </div>
     </div>
   );
 }
+
+function StatusStat({ label, value, note }: { label: string; value: string; note: string }) { return <div className="fw-stat"><span className="fw-label">{label}</span><strong>{value}</strong><small>{note}</small></div>; }
+function ChainStep({ code, title, body }: { code: string; title: string; body: string }) { return <div className="fw-chain-step"><div className="fw-meta">{code}</div><h4>{title}</h4><p>{body}</p></div>; }
+function TreasuryCell({ label, value }: { label: string; value: string }) { return <div className="fw-treasury-cell"><span>{label}</span><b>{value}</b></div>; }

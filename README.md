@@ -1,174 +1,100 @@
-<p align="center">
-  <img src="public/alpha-scout.svg" width="80" height="80" alt="Alpha Scout logo">
-</p>
+# Alpha Scout
 
-<h1 align="center">Alpha Scout</h1>
+**Evidence-first autonomous launch trader for Solana.**
 
-<p align="center">
-  <em>Real-data autonomous trading agent for Solana pump launches.</em>
-</p>
+Alpha Scout discovers real pump.fun launches, qualifies them with live Jupiter/Solana evidence, applies deterministic risk controls, and records why it executed, rejected or skipped. The current local trading harness is explicitly **PAPER**. A separate ClawPump v1 bridge can create/link an agent, quote a swap, and build a safety-gated unsigned swap transaction. Nothing is counted as **verified on-chain volume** without an on-chain execution row, a transaction signature and an independently stored confirmation slot.
 
-<p align="center">
-  <a href="#"><img src="https://img.shields.io/badge/build-passing-brightgreen" alt="build"></a>
-  <a href="#"><img src="https://img.shields.io/badge/TypeScript-5-blue" alt="typescript"></a>
-  <a href="#"><img src="https://img.shields.io/badge/Convex-1.45-f56513" alt="convex"></a>
-  <a href="#"><img src="https://img.shields.io/badge/Solana-000000" alt="solana"></a>
-  <a href="#"><img src="https://img.shields.io/badge/license-MIT-green" alt="license"></a>
-</p>
+## Hackathon
 
-https://github.com/user-attachments/assets/7f6f2cde-fd2a-414f-b274-39e756f3aef5
+- AnsemHack Clawrena
+- Track: ClawPump × pump.fun + Overall Winner
+- Token eligibility deadline: **20 Sep 2026 · 23:59 UTC**
 
-Real-data autonomous trading agent for Solana pump launches. The agent **finds
-alpha before it moves — verifiably, onchain.** No mocked or seeded numbers: every
-signal, position and trade derives from live system state.
+## Public review preview
 
-> **Hackathon:** AnsemHack Clawrena (19 Aug – 1 Oct 2026).
-> **Track:** ClawPump × pump.fun + Overall Winner.
+- **Review URL:** https://clawrena-alpha-scout-review.vercel.app
+- **Source:** `winning-delta-p0-p2` / PR #1
+- **CI:** upstream run #18 passed security, integrity, logic, typecheck, lint and build
+- **Truth boundary:** this public URL is deliberately a **review preview** while Convex is not connected. It is not canonical runtime evidence and does not claim live market activity, eligibility, tokenization or on-chain execution.
+- **Canonical runtime target:** Cloudflare Pages + a real Convex deployment, followed by `capture:runtime` and a live negative-path receipt.
 
----
+## Core guarantees
 
-## Status
-
-**Pre-launch.** No users, no live trades yet. The full loop is buildable end to
-end and type-checks clean, but the execution layer waits on a funded wallet and
-ClawPump / Hermes credentials. Until then, everything demonstrates real zeros —
-nothing is fabricated.
-
----
-
-## Features
-
-- **Autonomous agent harness** (`convex/runAgent.ts`) — a simplified Hermes-style
-  loop that:
-  - loads real open positions, prices them live from Jupiter,
-  - enforces stop-loss / take-profit exits and records matched sell trades,
-  - opens fresh positions on real `new-launch` signals (one per launch, sized
-    by your risk limit and capped by available cash),
-  - halts the agent when the portfolio's configured drawdown cap is breached.
-- **Launch-discovery scanner** (`convex/scanner.ts`) — polls pump.fun's recent
-  signatures through a real RPC, resolves actual mint addresses, and ingests
-  them as deduped `new-launch` signals (Helius-gated: with no key configured it
-  writes nothing and records no fake activity).
-- **Manipulation shield** (`convex/shieldScan.ts`) — price, liquidity, decimals
-  and largest-holder concentration computed live; deep wash/bundle/honeypot
-  checks report "unknown" until live streaming is configured.
-- **Funding path** — a paper/import wallet bridge: deposit SOL into your
-  portfolio, or import your attached wallet's live balance. Nothing trades until
-  a portfolio holds cash.
-- **Server-verified pricing** — buy prices are fetched server-side from Jupiter
-  and never trusted from the client.
-- **Telemetry with retention** — 14-day sweep keeps the log bounded.
+- Watched wallet balance never becomes paper buying power.
+- Unknown liquidity or holder concentration fails closed.
+- Signal execution uses an atomic lease to prevent duplicate concurrent entries.
+- PAPER, pending on-chain activity and VERIFIED ONCHAIN volume are separate metrics.
+- ClawPump high-risk/unverified safety gates are not auto-bypassed.
+- Every decision creates a receipt with observations, unknowns, reasons and risk budget.
+- A passing strategy receipt expires before last-mile execution; stale evidence cannot authorize value movement.
+- ClawPump quote/build requires a live provider + linked-agent preflight. Failure is recorded as a REJECT receipt.
+- Creator-fee economics are read from ClawPump's public ledger; missing/invalid values fail closed rather than becoming synthetic zeroes.
+- Agent Treasury is creator-fee observability, **not** a holder revenue-share/governance promise.
+- External incidents and test fixtures are explicitly separated from Alpha Scout runtime evidence.
 
 ## Stack
 
-| Layer | Tech |
-|---|---|
-| Backend | [Convex](https://convex.dev) — queries, mutations, actions, crons, auth, realtime |
-| Frontend | React 18 · Vite · Tailwind CSS |
-| Chain | Solana — Jupiter (pricing), public RPC + Helius (wallet/launch data) |
-| Auth | Convex Auth (sign-in) |
+React 18 · Vite · Tailwind · Convex · Solana RPC/Helius · Jupiter · ClawPump Partner API v1
 
-## Project structure
+## Environment
 
-```
-.
-├── convex/                    # Convex backend (schema, queries, mutations, actions)
-│   ├── _generated/            # Convex-generated client + schema types (hand-synced locally)
-│   ├── lib/                   # Shared serverside helpers (HTTP, market data)
-│   ├── queries/               # Read-path queries (public, portfolio, signals, signal, internal)
-│   ├── agents.ts              # Agent profile model
-│   ├── auth.ts                # Convex Auth wiring
-│   ├── auth.config.ts         # Auth app config
-│   ├── cleanup.ts             # Retention / sweep logic
-│   ├── crons.ts               # Recurring scheduled jobs
-│   ├── http.ts                # HTTP actions (webhooks)
-│   ├── portfolio.ts           # Portfolio model (cash, holdings, drawdown)
-│   ├── runAgent.ts            # Autonomous agent harness (the trading loop)
-│   ├── scanner.ts             # Launch-discovery scanner (pump.fun → signals)
-│   ├── schema.ts              # Database schema
-│   ├── shieldScan.ts          # Manipulation shield (wash/bundle/honeypot checks)
-│   ├── signals.ts             # Signal model + ingestion
-│   ├── trades.ts              # Trade model + matched fills
-│   ├── users.ts               # User model
-│   ├── wallet.ts              # Paper/import wallet funding bridge
-│   └── tsconfig.json
-├── docs/
-│   └── BUILD_PLAN.md          # Build plan + honest current-state record
-├── public/
-│   └── alpha-scout.svg        # Logo
-├── src/                       # React frontend
-│   ├── components/
-│   │   ├── AppShell.tsx
-│   │   └── ui.tsx
-│   ├── lib/
-│   │   └── format.ts
-│   ├── pages/
-│   │   ├── AgentConsole.tsx
-│   │   ├── Dashboard.tsx
-│   │   ├── Landing.tsx
-│   │   ├── Signals.tsx
-│   │   └── Token.tsx
-│   ├── App.tsx
-│   ├── convexClient.ts
-│   ├── index.css
-│   ├── main.tsx
-│   └── vite-env.d.ts
-├── .github/
-│   └── workflows/
-│       └── ci.yml             # CI: typecheck, lint, build
-├── .eslintrc.cjs
-├── .gitignore
-├── convex.config.ts           # Convex component/options
-├── index.html
-├── package.json
-├── package-lock.json
-├── postcss.config.js
-├── tailwind.config.js
-├── tsconfig.json
-├── vite.config.ts
-└── README.md
-```
+See `.env.example`. Browser code receives only `VITE_CONVEX_URL`; deploy keys and provider credentials stay server/build-side.
 
-## Getting Started
-
-```
-npm install
-# backend env (Convex env vars, not committed):
-#   HELIUS_API_KEY, HELIUS_WEBHOOK_SECRET, JUPITER_API_KEY (optional)
-npm run dev:backend     # convex dev  (see note below)
-npm run dev             # vite frontend
-```
-
-> **Note for this machine:** `convex-local-backend.exe` is currently blocked by a
-> Windows Application Control policy, so local `convex dev` can't spawn the
-> binary. `convex/_generated/api.d.ts` is hand-synced (regenerated identically by
-> `convex dev` on any unblocked machine). Unblock the binary, or deploy to Convex
-> Cloud, to run the live app.
+If `VITE_CONVEX_URL` is absent, the frontend now renders an explicit review/deployment state instead of crashing or fabricating live data. Supplying a real Convex URL switches the same build to the authenticated application.
 
 ## Checks
 
+```bash
+npm ci
+npm run verify:integrity
+npm run test:logic
+npm run typecheck
+npm run lint
+npm run build
 ```
-npm run typecheck   # tsc --noEmit
-npm run lint        # eslint src convex
+
+## Product surfaces
+
+- `/dashboard` — paper portfolio + separated execution records
+- `/agent` — risk controls, watch-only wallet observation, ClawPump link + observed Agent Treasury
+- `/signals` — real launch/signal feed
+- `/proof` — judge-facing decision receipts, real-failure grounding and verified-volume boundary
+- `/token/:mint?` — live token shield scan
+
+## Judge assurance
+
+Canonical product cycle:
+
+`RUBRIC → PAIN → PROBLEM → DIFFERENTIATOR → EXECUTION → EVIDENCE → STORY → DEMO → Q&A → RUNTIME → ELIGIBILITY → PROMOTE`
+
+Start with:
+
+- `state/CURRENT.yaml`
+- `docs/JUDGE_ASSURANCE_P3.md`
+- `docs/REAL_FAILURE_EVIDENCE.md`
+- `docs/RUBRIC_EVIDENCE_MATRIX.md`
+- `docs/CLAIM_LEDGER.md`
+- `docs/TOKEN_UTILITY.md`
+- `docs/DEMO_QA_GATE_6_75.md`
+- `docs/COLLISION_AGENT_ADVANTAGE.md`
+- `docs/TRACE_GATE_6_5.md`
+- `docs/P4_RUNTIME_SUBMISSION.md`
+- `docs/DEPLOYMENT_CLOUDFLARE_CONVEX.md`
+- `docs/GATE_7_PROMOTE.md`
+
+## Runtime proof
+
+After a real deployment, capture reachability evidence with:
+
+```bash
+PUBLIC_URL=https://<project>.pages.dev \
+CONVEX_HTTP_URL=https://<deployment>.convex.site \
+DEPLOYED_COMMIT_SHA=$(git rev-parse HEAD) \
+npm run capture:runtime
 ```
 
-## Live app & demo
+`evidence/runtime/REVIEW_PREVIEW.json` records the public review-preview deployment separately from canonical runtime evidence.
 
-- **Live URL:** _will fill in after deploy_
-- **Demo video:** _will fill in after deploy_
+`evidence/canonical-run/STATUS.json` deliberately stays **PENDING_REAL_RUNTIME_CAPTURE** until a real runtime negative-path receipt exists. Test fixtures must never be presented as submission proof.
 
-## Production / roadmap
-
-- [ ] Deploy to Convex Cloud + Vercel and drop in the live URL above.
-- [ ] Capture a demo clip and link it above.
-- [ ] Real swap execution via ClawPump / Hermes (funded wallet + creds).
-- [ ] $SCOUT token flow (ClawPump) and revenue-share gating.
-
-See [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md) for the full plan and an honest
-record of current state.
-
----
-
-## License
-
-[MIT](LICENSE) — © 2026 Mobolaji Opeyemi Bolatito (opeblow2021@gmail.com). Hackathon project.
+`npm run gate:submission` is the final machine-readable Gate 7 check; it is expected to fail until eligibility receipts, public runtime evidence and the canonical live run are actually captured.

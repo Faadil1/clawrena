@@ -1,0 +1,18 @@
+{
+  "artifactClass": "DYNAMIC_COMPETITION_SNAPSHOT",
+  "asOf": "2026-09-14",
+  "sources": [
+    "https://clawpump.tech/analytics",
+    "https://clawpump.tech/tokens",
+    "https://clawpump.tech/tokens/CQK42yTEyKe2QdEcBW7NK3Wa1tv4goEPHUFZhAwSAte6"
+  ],
+  "observations": {
+    "tokenizedClawrenaEntries": 154,
+    "entriesGeneratingFees": 85,
+    "clawrenaAggregateVolumeUsdApprox": 32910000,
+    "adjacentProduct": "Anima",
+    "adjacentSurface": "risk flags, wallet reading, swap pricing with user signing"
+  },
+  "implication": "Generic AI trader/risk flag/swap positioning is crowded. Alpha Scout must defend the evidence-authority-refusal differentiation.",
+  "stalenessWarning": "These are dynamic platform values. Refresh before final submission or public claims."
+}
