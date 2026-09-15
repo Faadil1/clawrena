@@ -43,7 +43,7 @@ export const authorityPolicy = httpAction(async () => json({
  * and owner evidence, and returns a deterministic QUALIFIED or REFUSED result.
  * It never signs, submits, or moves value.
  */
-export const underwrite = httpAction(async (_ctx, request) => {
+export const underwrite = httpAction(async (ctx, request) => {
   let body: { tokenMint?: unknown; launchSignature?: unknown };
   try { body = await request.json() as { tokenMint?: unknown; launchSignature?: unknown }; }
   catch { return json({ ok: false, error: "invalid json" }, 400); }
@@ -62,14 +62,19 @@ export const underwrite = httpAction(async (_ctx, request) => {
           "verified Pump launch timestamp is unavailable",
     ];
     const unknowns = ["verified Pump launch provenance"];
+    const observations = { launchSignature, launchVerified: false, verifiedMint: provenance?.mint ?? null, blockTime: provenance?.blockTime ?? null };
     const passport = buildEvidencePassport({
       tokenMint,
       decision: "reject",
       executionMode: "paper",
-      observations: { launchSignature, verifiedMint: provenance?.mint ?? null, blockTime: provenance?.blockTime ?? null },
+      observations,
       unknowns,
       reasons,
       createdAt: now,
+    });
+    await ctx.runMutation(internal.signals.recordTelemetry, {
+      eventType: "authority.underwrite",
+      payload: { tokenMint, policyState: passport.policyState, score: null, replayKey: passport.replayKey, provenanceVerified: false },
     });
     return json({
       ok: true,
@@ -78,12 +83,12 @@ export const underwrite = httpAction(async (_ctx, request) => {
       policyState: "REFUSED",
       valueMovement: false,
       nextBoundary: "NONE",
-      observations: { launchSignature, launchVerified: false },
+      observations,
       unknowns,
       reasons,
       blockers: reasons,
       passport,
-    }, 200);
+    });
   }
 
   const [snapshots, holder] = await Promise.all([
@@ -100,22 +105,28 @@ export const underwrite = httpAction(async (_ctx, request) => {
     largestHolderPct: holder?.largestHolderPct ?? null,
   });
   const decision = verdict.eligible ? "execute" as const : "reject" as const;
+  const observations = {
+    ...verdict.observations,
+    launchSignature,
+    launchVerified: true,
+    launchBlockTime: provenance.blockTime,
+    sampledOwnerCount: holder?.sampledOwnerCount ?? null,
+    programControlledPct: holder?.programControlledPct ?? null,
+  };
   const passport = buildEvidencePassport({
     tokenMint,
     decision,
     executionMode: "paper",
     score: verdict.score,
-    observations: {
-      ...verdict.observations,
-      launchSignature,
-      launchVerified: true,
-      launchBlockTime: provenance.blockTime,
-      sampledOwnerCount: holder?.sampledOwnerCount ?? null,
-      programControlledPct: holder?.programControlledPct ?? null,
-    },
+    observations,
     unknowns: verdict.unknowns,
     reasons: verdict.reasons,
     createdAt: now,
+  });
+
+  await ctx.runMutation(internal.signals.recordTelemetry, {
+    eventType: "authority.underwrite",
+    payload: { tokenMint, policyState: passport.policyState, score: verdict.score, replayKey: passport.replayKey, provenanceVerified: true },
   });
 
   return json({
@@ -126,7 +137,7 @@ export const underwrite = httpAction(async (_ctx, request) => {
     valueMovement: false,
     nextBoundary: verdict.eligible ? "LAST_MILE_PROVIDER_AND_RISK_PREFLIGHT_REQUIRED" : "NONE",
     score: verdict.score,
-    observations: passport.policyState === "QUALIFIED" ? { ...verdict.observations, launchSignature, launchVerified: true } : { ...verdict.observations, launchSignature, launchVerified: true },
+    observations,
     unknowns: verdict.unknowns,
     reasons: verdict.reasons,
     blockers: verdict.blockers,
