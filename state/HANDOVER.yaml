@@ -6,31 +6,39 @@ start_here:
   - docs/REAL_FAILURE_EVIDENCE.md
   - docs/RUBRIC_EVIDENCE_MATRIX.md
   - docs/CLAIM_LEDGER.md
+  - docs/SECURITY_GATE.md
   - docs/DEMO_QA_GATE_6_75.md
 
 repo:
   fork: https://github.com/Faadil1/clawrena
   branch: winning-delta-p0-p2
   upstream_pr: https://github.com/opeblow/clawrena/pull/1
+  last_fully_green_head_before_security_gate: a951fec88dbb527016971b9905440f4add7478fd
+  green_ci_run: https://github.com/opeblow/clawrena/actions/runs/34925686416
 
 what_changed_p3:
   - added sourced LIBRA and Pump.fun failure evidence
   - added rubric-to-evidence and public-claim ledgers
   - added dynamic collision snapshot and Agent Advantage test
   - added execution-authority receipt TTL
-  - added live ClawPump provider/linked-agent preflight
+  - added exact linked-agent ClawPump provider preflight
   - provider/freshness denial now persists a REJECT receipt
+  - verified onchain volume now requires signature plus independent confirmation slot
+  - pending onchain activity is separated from both PAPER and VERIFIED
   - added canonical negative-path fixture explicitly marked non-runtime
   - added canonical-run status that refuses fake completion
   - added Gate 6.75 demo/Q&A and TRACE 6.5 packet
   - added baseline reduced-motion CSS
+  - upstream CI run #11 passed integrity, logic, typecheck, lint and build
+  - dependency warnings are now routed through an explicit security gate and evidence log
 
 next_actions_priority:
   - get Opeyemi review on upstream PR
+  - classify/remediate the full-tree npm audit findings without hiding them
   - confirm all three eligibility receipts before 2026-09-20T23:59:00Z
   - deploy public runtime and Convex backend
   - capture a real runtime negative-path receipt
-  - complete sign-submit-confirm path or keep all onchain execution claims at zero/prepared
+  - complete sign-submit-confirm path or keep all onchain execution claims at zero/prepared/pending
   - populate evidence/canonical-run/STATUS.json only from real runtime evidence
   - visually review TRACE Gate 6.5 on desktop and mobile
   - lock 15-minute stream story and public claim ledger
@@ -38,7 +46,8 @@ next_actions_priority:
 
 never_do:
   - do_not_convert_PREPARE_to_EXECUTE_without_signature_and_confirmation
+  - do_not_count_unconfirmed_onchain_as_verified
   - do_not_use_test_fixture_as_submission_evidence
-  - do_not_hide_rejects_or_unknowns
+  - do_not_hide_rejects_unknowns_or_dependency_warnings
   - do_not_claim_realised_alpha_without_real_performance_evidence
   - do_not_claim_wash_bundle_honeypot_classifiers_are_live
