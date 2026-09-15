@@ -1,0 +1,35 @@
+name: P11 Validation
+
+on:
+  push:
+    branches: [winning-intelligence-p11]
+  workflow_dispatch:
+
+jobs:
+  checks:
+    name: Security, integrity, logic, typecheck, lint, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Production dependency security gate
+        run: npm audit --omit=dev --audit-level=high
+      - name: Full dependency audit evidence
+        run: npm audit --audit-level=high || true
+      - name: Integrity gates
+        run: npm run verify:integrity
+      - name: Logic tests
+        run: npm run test:logic
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        env:
+          VITE_BUILD_COMMIT_SHA: ${{ github.sha }}
+        run: npm run build
