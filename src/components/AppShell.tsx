@@ -33,7 +33,7 @@ export function AppShell() {
     <div className="min-h-screen bg-surface">
       <aside className="ops-side hidden md:flex">
         <NavLink to="/dashboard" className="ops-brand">
-          <span className="ops-brand-mark">A</span>
+          <img src="/alpha-scout.svg" alt="" className="w-[34px] h-[34px] flex-none" />
           <span>
             <b>ALPHA SCOUT</b>
             <small>LAUNCH EVIDENCE OS</small>
@@ -65,7 +65,7 @@ export function AppShell() {
         <header className="ops-topbar">
           <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <div className="md:hidden flex items-center gap-2 font-extrabold text-sm">
-              <span className="ops-mini-mark">A</span>
+              <img src="/alpha-scout.svg" alt="" className="w-6 h-6" />
               ALPHA SCOUT
             </div>
             <div className="hidden md:flex items-center gap-4 text-[10px] font-mono tracking-[0.12em] uppercase text-ink-mid">
