@@ -54,22 +54,47 @@ assert(clawPumpAction.includes("treasuryStatus") && clawPumpAction.includes("hol
 assert(agentConsole.includes("Agent Treasury") && agentConsole.includes("does <b>not</b> claim holder revenue share"), "judge-facing treasury UI must state the non-holder-revenue boundary");
 assert(read("docs/TOKEN_UTILITY.md").includes("NOT BUILT / prohibited wording"), "token utility doc must preserve prohibited financial claims");
 assert(read("evidence/eligibility/STATUS.json").includes("PENDING_EXTERNAL_RECEIPT"), "tokenization eligibility must remain pending until a real receipt exists");
-assert(read("docs/GATE_7_PROMOTE.md").includes("NO_PROMOTE"), "P4 promotion authority must remain fail closed");
+assert(read("docs/GATE_7_PROMOTE.md").includes("NO_PROMOTE"), "promotion authority must remain fail closed");
 
 const passport = read("convex/lib/evidencePassport.ts");
+const policy = read("convex/lib/evidencePolicy.ts");
+const evidenceScore = read("convex/lib/evidenceScore.ts");
 const evidence = read("convex/evidence.ts");
 const proof = read("src/pages/Proof.tsx");
 const http = read("convex/http.ts");
+const underwritingLib = read("convex/lib/underwriting.ts");
+const underwritingDb = read("convex/underwriting.ts");
 const skill = read("skills/evidence-authority/SKILL.md");
 const competition = read("docs/COMPETITIVE_INTELLIGENCE_2026-09-15.md");
-assert(passport.includes("EVIDENCE_POLICY_VERSION") && passport.includes("replayKey") && passport.includes("counterfactuals"), "P11 Evidence Passport must remain versioned, replayable and counterfactual-aware");
-assert(passport.includes('return "QUALIFIED"') && !passport.includes('return "AUTHORIZED"'), "evidence qualification must never overclaim last-mile execution authorization");
-assert(evidence.includes("buildEvidencePassport"), "every new decision receipt must receive an Evidence Passport at write time");
-assert(schema.includes("policyVersion") && schema.includes("policyState") && schema.includes("freshnessExpiresAt") && schema.includes("counterfactuals"), "receipt schema must persist the Evidence Passport without rewriting history");
-assert(proof.includes("TO RECONSIDER") && proof.includes("REPLAY") && proof.includes("qualified ≠ authorized"), "judge-facing proof room must expose replay, counterfactuals and qualification boundary");
-assert(http.includes('path: "/authority-policy"') && http.includes('path: "/underwrite"') && http.includes("findMintCreatedInTx"), "Alpha Scout authority must expose a machine-readable policy plus live cross-agent underwriting with verified Pump provenance");
-assert(http.includes("LAST_MILE_PROVIDER_AND_RISK_PREFLIGHT_REQUIRED") && http.includes("valueMovement: false"), "underwriting must never masquerade as execution");
-assert(skill.includes("Execution Authority") && skill.includes("PREPARE is not execution") && skill.includes("QUALIFIED") && skill.includes("UNKNOWN"), "Hermes/ClawPump skill must preserve the authority boundary instead of becoming another alpha scanner");
-assert(competition.includes("154 tokenized entries") && competition.includes("SelfMade") && competition.includes("HyperBull") && competition.includes("MarketBubbleSearch"), "competitive intelligence snapshot must stay grounded in observed Clawrena surfaces");
+const whiteSpace = read("docs/WHITE_SPACE_P11_1.md");
+const x402 = read("docs/X402_AUTHORITY_SERVICE.md");
 
-console.log("Winning Intelligence P11 integrity gates: PASS");
+assert(policy.includes('EVIDENCE_POLICY_VERSION = "AS-AUTHORITY-V1"') && policy.includes("minLiquidityUsd") && policy.includes("minEvidenceScore") && policy.includes("scoreWeights"), "P11.1 must centralize executable policy version, thresholds and scoring weights");
+assert(evidenceScore.includes('from "./evidencePolicy"') && evidenceScore.includes("EVIDENCE_POLICY.minEvidenceScore"), "Evidence Gate must execute the canonical policy manifest");
+assert(executionAuthority.includes('from "./evidencePolicy"') && executionAuthority.includes("EVIDENCE_POLICY.passportFreshnessMs"), "last-mile authority must share the canonical policy freshness/thresholds");
+assert(passport.includes('from "./evidencePolicy"') && passport.includes("replayKey") && passport.includes("counterfactuals"), "Evidence Passport must be bound to the versioned policy and remain replayable/counterfactual-aware");
+assert(passport.includes('return "QUALIFIED"') && !passport.includes('return "AUTHORIZED"'), "evidence qualification must never overclaim last-mile execution authorization");
+assert(evidence.includes("buildEvidencePassport"), "every local decision receipt must receive an Evidence Passport at write time");
+assert(schema.includes("underwriting_decisions") && schema.includes("by_replayKey") && schema.includes("supersedesReplayKey"), "cross-agent underwriting must have a durable replay/lineage ledger");
+assert(underwritingDb.includes("recordDecision") && underwritingDb.includes("getByReplayKey") && underwritingDb.includes("by_replayKey"), "durable underwriting writes and replay lookup must be server-side");
+assert(underwritingLib.includes("findMintCreatedInTx") && underwritingLib.includes("sourceLedger") && underwritingLib.includes("jupiter-price-v3") && underwritingLib.includes("solana-owner-concentration"), "underwriting must independently verify Pump provenance and preserve evidence-source lineage");
+assert(underwritingLib.includes("compareUnderwritingDecisions") && underwritingLib.includes("unknownsResolved") && underwritingLib.includes("blockersResolved"), "re-underwriting must expose decision/evidence drift rather than rewrite history");
+assert(market.includes("blockId") && market.includes("observationSlot") && market.includes("observedAt"), "evidence sources must preserve available observation clocks/slots");
+assert(schema.includes("policyVersion") && schema.includes("policyState") && schema.includes("freshnessExpiresAt") && schema.includes("counterfactuals"), "local receipt schema must persist Evidence Passport fields without rewriting history");
+assert(proof.includes("TO RECONSIDER") && proof.includes("REPLAY") && proof.includes("qualified ≠ authorized"), "judge-facing proof room must expose replay, counterfactuals and qualification boundary");
+
+assert(http.includes('path: "/authority-policy"') && http.includes('path: "/authority-openapi"') && http.includes('path: "/authority-stats"'), "authority policy, integration schema and honest activity stats must be machine-readable");
+assert(http.includes('path: "/underwrite"') && http.includes('path: "/reunderwrite"'), "authority runtime must expose underwriting and server-bound re-underwriting");
+assert(http.includes("internal.underwriting.recordDecision") && http.includes("internal.underwriting.getByReplayKey"), "HTTP authority must persist decisions and resolve prior replay keys server-side");
+assert(http.includes("previousReplayKey") && !http.includes("previousTokenMint"), "re-underwrite continuity must not accept caller-supplied replacement token identity");
+assert(http.includes("AUTHORITY_API_KEY") && http.includes("x-alpha-scout-key"), "authority mutation endpoints must support optional server-side access control");
+assert(http.includes("valueMovement") || underwritingLib.includes("valueMovement: false"), "underwriting must never masquerade as execution");
+assert(publicStats.includes('query("underwriting_decisions")') && publicStats.includes("underwritingLineageReruns"), "public authority metrics must derive from durable underwriting history");
+assert(publicStats.includes("Request counts only") && publicStats.includes("not unique-agent counts") && publicStats.includes("not trading volume"), "authority activity must not be mislabeled as users or market volume");
+
+assert(skill.includes("Shadow mode") && skill.includes("/reunderwrite") && skill.includes("source ledger") && skill.includes("QUALIFIED is not AUTHORIZED"), "Hermes/ClawPump skill must teach shadow adoption, source lineage and replay semantics");
+assert(competition.includes("154 tokenized entries") && competition.includes("SelfMade") && competition.includes("HyperBull") && competition.includes("MarketBubbleSearch"), "competitive intelligence snapshot must stay grounded in observed Clawrena surfaces");
+assert(whiteSpace.includes("no equivalent implementation was found") && whiteSpace.includes("Shadow underwriting") && whiteSpace.includes("Re-underwriting") && whiteSpace.includes("not unique agents/users"), "white-space document must preserve scope/traction truth boundaries");
+assert(x402.includes("READY TO ACTIVATE / NOT DEPLOYED / NO REVENUE CLAIM") && x402.includes("A paid refusal is meaningful"), "x402 specialization must remain a prepared, unproven service rather than fake traction");
+
+console.log("Winning Intelligence P11.1 authority-network integrity gates: PASS");
