@@ -24,7 +24,7 @@ const assert = (value, message) => { if (!value) throw new Error(message); };
 const { evaluateLaunchEvidence } = loadTs("convex/lib/evidenceScore.ts");
 const { canAcquireClaim, CLAIM_LEASE_MS } = loadTs("convex/lib/claimLease.ts");
 const { nextEquityRisk } = loadTs("convex/lib/risk.ts");
-const { isPumpCreateInstructionData, PUMP_CREATE, PUMP_CREATE_V2 } = loadTs("convex/lib/pumpInstruction.ts");
+const { isPumpCreateInstructionData, findPumpCreateMintInInstructions, PUMP_CREATE, PUMP_CREATE_V2 } = loadTs("convex/lib/pumpInstruction.ts");
 const { evaluateExecutionAuthority, MAX_EXECUTION_RECEIPT_AGE_MS } = loadTs("convex/lib/executionAuthority.ts");
 const { normalizeClawPumpFeeEarnings, CLAWPUMP_CREATOR_FEE_SHARE_PCT } = loadTs("convex/lib/tokenEconomics.ts");
 const { buildEvidencePassport, evidenceReplayKey, recomputeEvidenceReplayKey, EVIDENCE_POLICY_VERSION, EVIDENCE_PASSPORT_FRESHNESS_MS } = loadTs("convex/lib/evidencePassport.ts");
@@ -55,9 +55,18 @@ function encodeBase58(bytes) {
   while (leading < bytes.length && bytes[leading] === 0) { out = "1" + out; leading += 1; }
   return out || "1";
 }
+const pumpProgram = "PumpProgram111111111111111111111111111111";
+const mintExample = "Mint111111111111111111111111111111111111";
 assert(isPumpCreateInstructionData(encodeBase58([...PUMP_CREATE, 1, 2, 3])), "legacy Pump create discriminator must verify");
 assert(isPumpCreateInstructionData(encodeBase58([...PUMP_CREATE_V2, 9, 8, 7])), "Pump create_v2 discriminator must verify");
 assert(!isPumpCreateInstructionData(encodeBase58([1, 2, 3, 4, 5, 6, 7, 8, 9])), "unrelated Pump instruction must not verify as a launch");
+assert(findPumpCreateMintInInstructions([
+  { programId: "OtherProgram", accounts: ["OtherMint"], data: encodeBase58([...PUMP_CREATE, 1]) },
+  { programId: pumpProgram, accounts: [mintExample], data: encodeBase58([...PUMP_CREATE_V2, 1]) },
+], pumpProgram) === mintExample, "flattened top-level/CPI instruction verification must return the Pump create mint");
+assert(findPumpCreateMintInInstructions([
+  { programId: pumpProgram, accounts: [mintExample], data: encodeBase58([1, 2, 3, 4, 5, 6, 7, 8]) },
+], pumpProgram) === null, "Pump program activity without an official create discriminator must not become launch provenance");
 const risk = nextEquityRisk(10, 8);
 assert(risk.peakSol === 10 && Math.abs(risk.drawdownPct - 20) < 1e-9, "drawdown must be measured from equity high-water mark");
 const newPeak = nextEquityRisk(10, 12);
