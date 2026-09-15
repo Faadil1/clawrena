@@ -8,6 +8,11 @@ import {
 } from "./pumpInstruction";
 
 const PUMP_FUN_PROGRAM = "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P";
+// PDA derived by the Pump program from [b"mint-authority"]. Referenced by
+// create/create_v2, so it is a much higher-signal signature source than the
+// entire high-volume Pump program address. It is only a candidate source;
+// strict instruction parsing below remains launch authority.
+const PUMP_MINT_AUTHORITY = "TSLvdd1pWpHVjahSpsvCXUbgwsL3JAcvokwaKt1eokM";
 const SPL_TOKEN_PROGRAM = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 const SOL_MINT = "So11111111111111111111111111111111111111112";
 const SYSTEM_PROGRAM = "11111111111111111111111111111111";
@@ -185,7 +190,16 @@ export async function fetchHolderConcentration(mint: string): Promise<HolderConc
 
 type SignatureRow = { signature?: string };
 
-async function fetchRecentLaunchPage(limit = 100, before?: string): Promise<string[]> {
+type SignatureSource = "pump-mint-authority" | "pump-program-fallback";
+export type LaunchDiscoverySourceResult = {
+  source: SignatureSource;
+  address: string;
+  signaturesExamined: number;
+  pagesSearched: number;
+  verified: number;
+};
+
+async function fetchSignaturePage(address: string, limit = 100, before?: string): Promise<string[]> {
   try {
     const boundedLimit = Math.max(1, Math.min(100, Math.floor(limit)));
     const options: { limit: number; commitment: "confirmed"; before?: string } = {
@@ -193,7 +207,7 @@ async function fetchRecentLaunchPage(limit = 100, before?: string): Promise<stri
       commitment: "confirmed",
     };
     if (before) options.before = before;
-    const res = await rpcCall("getSignaturesForAddress", [PUMP_FUN_PROGRAM, options]);
+    const res = await rpcCall("getSignaturesForAddress", [address, options]);
     const signatures: SignatureRow[] = res.result ?? [];
     return signatures.map((item) => item.signature ?? "").filter(Boolean);
   } catch {
@@ -202,7 +216,9 @@ async function fetchRecentLaunchPage(limit = 100, before?: string): Promise<stri
 }
 
 export async function fetchRecentLaunches(limit = 25): Promise<string[]> {
-  return fetchRecentLaunchPage(limit);
+  // High-signal candidate source only. Every returned signature still has to
+  // pass strict Pump create/create_v2 parsing before it becomes a launch event.
+  return fetchSignaturePage(PUMP_MINT_AUTHORITY, limit);
 }
 
 export type LaunchEvent = { mint: string; signature: string; ts: number };
@@ -213,36 +229,32 @@ export type LaunchDiscoveryResult = {
   signaturesExamined: number;
   pagesSearched: number;
   dedicatedRpcConfigured: boolean;
+  discoverySource: SignatureSource | "none";
+  sources: LaunchDiscoverySourceResult[];
 };
 
-/**
- * Search a bounded, paginated window of recent Pump-program transactions until
- * enough strict create/create_v2 launches are found. Verification is performed
- * in small parallel batches to keep a larger search window practical while
- * remaining bounded and fail-closed.
- */
-export async function fetchLaunchMintsWithDiagnostics(
-  signatureLimit = 50,
-  maxEvents = 3,
-): Promise<LaunchDiscoveryResult> {
-  const requested = Number.isFinite(signatureLimit) ? Math.floor(signatureLimit) : 50;
-  const cap = Math.max(1, Math.min(500, requested));
-  const eventCap = Math.max(1, Math.min(10, Math.floor(maxEvents)));
+async function verifySignatureWindow(
+  source: SignatureSource,
+  address: string,
+  cap: number,
+  eventCap: number,
+  seen: Set<string>,
+): Promise<{ events: LaunchEvent[]; diagnostics: LaunchDiscoverySourceResult }> {
   const events: LaunchEvent[] = [];
-  const seen = new Set<string>();
   let before: string | undefined;
   let signaturesExamined = 0;
   let pagesSearched = 0;
 
   while (signaturesExamined < cap && events.length < eventCap) {
     const remaining = cap - signaturesExamined;
-    const page = await fetchRecentLaunchPage(Math.min(100, remaining), before);
+    const page = await fetchSignaturePage(address, Math.min(100, remaining), before);
     if (page.length === 0) break;
     pagesSearched += 1;
 
     for (let index = 0; index < page.length && events.length < eventCap; index += 6) {
       const batch = page.slice(index, index + 6).filter((signature) => !seen.has(signature));
       for (const signature of batch) seen.add(signature);
+      if (batch.length === 0) continue;
       const verified = await Promise.all(batch.map(async (signature) => ({
         signature,
         result: await findMintCreatedInTx(signature),
@@ -266,11 +278,74 @@ export async function fetchLaunchMintsWithDiagnostics(
 
   return {
     events,
+    diagnostics: {
+      source,
+      address,
+      signaturesExamined,
+      pagesSearched,
+      verified: events.length,
+    },
+  };
+}
+
+/**
+ * Discover launches from a high-signal protocol account before falling back to
+ * broad Pump-program history. Candidate-source selection never authorizes a
+ * launch: every signature is re-fetched and must contain the exact official
+ * Pump create/create_v2 discriminator, top-level or CPI.
+ */
+export async function fetchLaunchMintsWithDiagnostics(
+  signatureLimit = 50,
+  maxEvents = 3,
+): Promise<LaunchDiscoveryResult> {
+  const requested = Number.isFinite(signatureLimit) ? Math.floor(signatureLimit) : 50;
+  const cap = Math.max(1, Math.min(500, requested));
+  const eventCap = Math.max(1, Math.min(10, Math.floor(maxEvents)));
+  const events: LaunchEvent[] = [];
+  const seen = new Set<string>();
+  const sources: LaunchDiscoverySourceResult[] = [];
+
+  // Allocate the first 100 candidates to the mint-authority PDA. In normal
+  // conditions these references are overwhelmingly higher signal than the full
+  // Pump program address. Preserve remaining budget for a strict fallback.
+  const targetedBudget = Math.min(100, cap);
+  const targeted = await verifySignatureWindow(
+    "pump-mint-authority",
+    PUMP_MINT_AUTHORITY,
+    targetedBudget,
+    eventCap,
+    seen,
+  );
+  events.push(...targeted.events);
+  sources.push(targeted.diagnostics);
+
+  let examined = targeted.diagnostics.signaturesExamined;
+  let pages = targeted.diagnostics.pagesSearched;
+
+  if (events.length < eventCap && examined < cap) {
+    const fallback = await verifySignatureWindow(
+      "pump-program-fallback",
+      PUMP_FUN_PROGRAM,
+      cap - examined,
+      eventCap - events.length,
+      seen,
+    );
+    events.push(...fallback.events);
+    sources.push(fallback.diagnostics);
+    examined += fallback.diagnostics.signaturesExamined;
+    pages += fallback.diagnostics.pagesSearched;
+  }
+
+  const sourceWithLaunch = sources.find((source) => source.verified > 0)?.source ?? "none";
+  return {
+    events,
     signatureLimitRequested: requested,
     signatureLimitApplied: cap,
-    signaturesExamined,
-    pagesSearched,
+    signaturesExamined: examined,
+    pagesSearched: pages,
     dedicatedRpcConfigured: isMarketConfigured(),
+    discoverySource: sourceWithLaunch,
+    sources,
   };
 }
 
@@ -303,4 +378,13 @@ export async function findMintCreatedInTx(signature: string): Promise<{ mint: st
   }
 }
 
-export { PUMP_FUN_PROGRAM, SPL_TOKEN_PROGRAM, SOL_MINT, SYSTEM_PROGRAM, PUMP_CREATE, PUMP_CREATE_V2, isPumpCreateInstructionData };
+export {
+  PUMP_FUN_PROGRAM,
+  PUMP_MINT_AUTHORITY,
+  SPL_TOKEN_PROGRAM,
+  SOL_MINT,
+  SYSTEM_PROGRAM,
+  PUMP_CREATE,
+  PUMP_CREATE_V2,
+  isPumpCreateInstructionData,
+};
