@@ -78,15 +78,16 @@ white_space_exploited:
   - prepared_specialized_x402_underwriting_service
 
 validation:
-  p11_1_ci_run: https://github.com/Faadil1/clawrena/actions/runs/35003153624
-  validated_code_head: a1d0d36f212e153b122c5ebdaaa27b3f8004e36a
+  p11_1_final_ci_run: https://github.com/Faadil1/clawrena/actions/runs/35003316923
+  validated_head: e1f8d959ec8d898e8f2827796c3b3bd15655a7fa
   production_dependency_security_gate: pass
   integrity: pass
   logic_tests: pass
   typecheck: pass
   lint: pass
   build: pass
-  temporary_validation_workflow_removal: pending_after_state_lock
+  temporary_validation_workflow: removed_after_green_run
+  post_validation_changes: state_metadata_and_workflow_removal_only
 
 completed_gates:
   - rubric_mapping
