@@ -85,19 +85,20 @@ truth_boundaries:
   p11_1_deployed_to_convex: false
 
 validation:
-  ci_run: https://github.com/Faadil1/clawrena/actions/runs/35003153624
-  validated_code_head: a1d0d36f212e153b122c5ebdaaa27b3f8004e36a
+  final_ci_run: https://github.com/Faadil1/clawrena/actions/runs/35003316923
+  validated_head: e1f8d959ec8d898e8f2827796c3b3bd15655a7fa
   security: pass
   integrity: pass
   logic: pass
   typecheck: pass
   lint: pass
   build: pass
-  note: state_files_updated_after_the_validated_code_head; temporary_validation_workflow_should_be_removed_after_state_lock
+  temporary_validation_workflow: removed_after_green_run
+  post_validation_changes: state_metadata_and_workflow_removal_only
 
 next_actions_priority:
-  - remove temporary p11-white-space-validation workflow after state lock
-  - fast-forward winning-intelligence-p11 to the final white-space head if final state-only changes remain safe
+  - fast-forward winning-intelligence-p11 to the final white-space head
+  - have the next upstream PR created manually because the GitHub integration still returns 403 on opeblow/clawrena writes
   - deploy P11.1 Convex functions to grandiose-poodle-700 only through the intended deployment flow
   - probe /healthz, /authority-policy, /authority-openapi, /authority-stats and a real /underwrite request
   - import Evidence Authority skill into a real ClawPump/Hermes agent
@@ -119,5 +120,5 @@ never_do:
   - do_not_claim_x402_paid_service_or_revenue_until_real_settlement_exists
   - do_not_claim_no_competitor_anywhere_has_this; scope white-space to reviewed official/public surfaces
   - do_not_hide_refusals_unknowns_provider_degradation_or_failed_attempts
-  - do_not_mark_eligibility_verified_without external_receipts
+  - do_not_mark_eligibility_verified_without_external_receipts
   - do_not_reopen_ui_before_authority_runtime_and_external_shadow_proof_are_stable
