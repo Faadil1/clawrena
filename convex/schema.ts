@@ -158,20 +158,34 @@ export default defineSchema({
     quote: v.optional(v.any()),
     txSignature: v.optional(v.string()),
     requestId: v.optional(v.string()),
-    // P11 Evidence Passport fields are optional for migration compatibility.
     policyVersion: v.optional(v.string()),
     replayKey: v.optional(v.string()),
-    policyState: v.optional(v.union(
-      v.literal("QUALIFIED"),
-      v.literal("REFUSED"),
-      v.literal("ABSTAINED"),
-      v.literal("PREPARED"),
-    )),
+    policyState: v.optional(v.union(v.literal("QUALIFIED"), v.literal("REFUSED"), v.literal("ABSTAINED"), v.literal("PREPARED"))),
     freshnessExpiresAt: v.optional(v.number()),
     counterfactuals: v.optional(v.array(v.string())),
     createdAt: v.number(),
   })
     .index("by_agentId_createdAt", ["agentId", "createdAt"])
+    .index("by_createdAt", ["createdAt"]),
+
+  underwriting_decisions: defineTable({
+    tokenMint: v.string(),
+    launchSignature: v.string(),
+    policyVersion: v.string(),
+    replayKey: v.string(),
+    policyState: v.union(v.literal("QUALIFIED"), v.literal("REFUSED")),
+    score: v.optional(v.number()),
+    observations: v.any(),
+    unknowns: v.array(v.string()),
+    reasons: v.array(v.string()),
+    blockers: v.array(v.string()),
+    sourceLedger: v.any(),
+    freshnessExpiresAt: v.number(),
+    supersedesReplayKey: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_replayKey", ["replayKey"])
+    .index("by_tokenMint_createdAt", ["tokenMint", "createdAt"])
     .index("by_createdAt", ["createdAt"]),
 
   products: defineTable({
