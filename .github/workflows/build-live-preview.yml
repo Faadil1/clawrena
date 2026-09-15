@@ -1,0 +1,80 @@
+name: Build Live Alpha Scout Preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch or commit to build
+        required: true
+        default: winning-delta-p0-p2
+      convex_url:
+        description: Public Convex client URL for this preview
+        required: true
+        default: https://grandiose-poodle-700.convex.cloud
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build frontend against live Convex preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout requested source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Pre-build gates
+        run: |
+          npm run verify:integrity
+          npm run test:logic
+          npm run typecheck
+          npm run lint
+
+      - name: Build against live Convex preview
+        env:
+          VITE_CONVEX_URL: ${{ inputs.convex_url }}
+        run: npm run build
+
+      - name: Record build provenance
+        shell: bash
+        run: |
+          cat > dist/live-preview-provenance.json <<EOF
+          {
+            "artifactClass": "LIVE_CONVEX_FRONTEND_BUILD",
+            "sourceRef": "${{ inputs.ref }}",
+            "sourceSha": "${GITHUB_SHA}",
+            "convexUrl": "${{ inputs.convex_url }}",
+            "builtAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "canonicalRuntimeEvidence": false,
+            "note": "Build provenance only. Runtime promotion still requires public reachability plus a real negative-path receipt."
+          }
+          EOF
+
+      - name: Upload deployable frontend bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: alpha-scout-live-preview-${{ github.sha }}
+          path: dist
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Truth summary
+        run: |
+          {
+            echo "## Live Convex preview bundle ready"
+            echo "- Source: ${{ inputs.ref }}"
+            echo "- Convex URL: ${{ inputs.convex_url }}"
+            echo "- This artifact is deployable, but it is not canonical runtime evidence until the deployed URL is probed."
+          } >> "$GITHUB_STEP_SUMMARY"
