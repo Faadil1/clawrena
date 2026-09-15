@@ -1,0 +1,25 @@
+name: P11 Targeted Launch Discovery
+
+on:
+  push:
+    branches: [p11-targeted-launch-discovery]
+  workflow_dispatch:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high
+      - run: npm run verify:integrity
+      - run: npm run test:logic
+      - run: node scripts/test-targeted-launch-discovery.mjs
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - run: node --check scripts/prove-authority-runtime.mjs
