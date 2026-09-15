@@ -36,10 +36,48 @@ type StoredReceipt = {
   createdAt: number;
 };
 
+type ConnectionStatusResult = {
+  configured: boolean;
+  linked: boolean;
+  clawPumpAgentId: string | null;
+  clawPumpWalletAddress: string | null;
+};
+
+type SyncAgentResult = {
+  linked: true;
+  id: string;
+  walletAddress: string | null;
+  requestId?: string | null;
+  existing: boolean;
+};
+
+type RemoteAgentWithMeta = {
+  id: string;
+  name?: string;
+  walletAddress?: string;
+  status?: string;
+  meta?: { requestId?: string };
+};
+
+type QuoteEntryResult = {
+  quote: Record<string, unknown>;
+  requestId: string | null;
+  tokenMint: string;
+  amountSol: number;
+};
+
+type BuildEntryResult = {
+  status: "signature_required";
+  requestId: string | null;
+  tokenMint: string;
+  amountSol: number;
+  transaction: Record<string, unknown>;
+};
+
 export const connectionStatus = action({
   args: {},
-  handler: async (ctx) => {
-    const agent = await ctx.runQuery(internal.queries.internal.getMyAgentForClawPump, {});
+  handler: async (ctx): Promise<ConnectionStatusResult> => {
+    const agent = await ctx.runQuery(internal.queries.internal.getMyAgentForClawPump, {}) as LocalAgent | null;
     if (!agent) throw new Error("Not authenticated or no local agent");
     return {
       configured: clawPumpConfigured(),
@@ -52,8 +90,8 @@ export const connectionStatus = action({
 
 export const syncAgent = action({
   args: {},
-  handler: async (ctx) => {
-    const local = await ctx.runQuery(internal.queries.internal.getMyAgentForClawPump, {});
+  handler: async (ctx): Promise<SyncAgentResult> => {
+    const local = await ctx.runQuery(internal.queries.internal.getMyAgentForClawPump, {}) as LocalAgent | null;
     if (!local) throw new Error("Not authenticated or no local agent");
     if (local.clawPumpAgentId) {
       return {
@@ -66,7 +104,7 @@ export const syncAgent = action({
 
     const catalogue = await listClawPumpAgents();
     const existingRemote = catalogue.agents?.find((a) => a.name === local.name);
-    const created = existingRemote
+    const created: RemoteAgentWithMeta = existingRemote
       ? { ...existingRemote, meta: catalogue.meta }
       : await createClawPumpAgent({
           name: local.name,
@@ -102,7 +140,7 @@ export const syncAgent = action({
 
 export const quoteEntry = action({
   args: { decisionReceiptId: v.id("decision_receipts") },
-  handler: async (ctx, { decisionReceiptId }) => {
+  handler: async (ctx, { decisionReceiptId }): Promise<QuoteEntryResult> => {
     const local = await ctx.runQuery(internal.queries.internal.getMyAgentForClawPump, {}) as LocalAgent | null;
     if (!local) throw new Error("Not authenticated or no local agent");
     const receipt = await ctx.runQuery(internal.queries.internal.getDecisionReceiptForAgent, {
@@ -128,7 +166,7 @@ export const quoteEntry = action({
 
 export const buildEntry = action({
   args: { decisionReceiptId: v.id("decision_receipts") },
-  handler: async (ctx, { decisionReceiptId }) => {
+  handler: async (ctx, { decisionReceiptId }): Promise<BuildEntryResult> => {
     const local = await ctx.runQuery(internal.queries.internal.getMyAgentForClawPump, {}) as LocalAgent | null;
     if (!local) throw new Error("Not authenticated or no local agent");
     const receipt = await ctx.runQuery(internal.queries.internal.getDecisionReceiptForAgent, {
@@ -172,7 +210,7 @@ export const buildEntry = action({
     });
 
     return {
-      status: "signature_required" as const,
+      status: "signature_required",
       requestId: requestId ?? null,
       tokenMint: receipt.tokenMint,
       amountSol,
@@ -187,7 +225,7 @@ async function requireLiveExecutionAuthority(
   receipt: StoredReceipt,
   amountSol: number,
   operation: "quote" | "build",
-) {
+): Promise<{ authorized: boolean; receiptAgeMs: number; blockers: string[] }> {
   let providerHealthy = false;
   let providerFailure: string | undefined;
 

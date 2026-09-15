@@ -3,6 +3,19 @@ import { api } from "../../convex/_generated/api";
 import { Card, CardBadge, EmptyState } from "../components/ui";
 import { formatSol, shorten, timeAgo } from "../lib/format";
 
+type ReceiptRow = {
+  _id: string;
+  executionMode: "paper" | "onchain";
+  decision: "execute" | "reject" | "skip" | "prepare";
+  createdAt: number;
+  tokenMint: string;
+  score?: number;
+  reasons: string[];
+  unknowns: string[];
+  riskBudgetSol?: number;
+  txSignature?: string;
+};
+
 const realFailures = [
   {
     title: "LIBRA · Feb 2025",
@@ -23,7 +36,7 @@ export default function Proof() {
   const stats = useQuery(api.queries.public.publicStats);
   if (data === undefined || data === null) return <div className="p-8 text-sm text-ink-mid">Loading proof plane…</div>;
 
-  const receipts = data.decisionReceipts ?? [];
+  const receipts = (data.decisionReceipts ?? []) as ReceiptRow[];
   const verifiedVolume = stats?.verifiedOnchainVolumeSol ?? 0;
   const pendingVolume = stats?.pendingOnchainVolumeSol ?? 0;
   return (
@@ -68,7 +81,7 @@ export default function Proof() {
           <EmptyState icon="✓" title="No receipts yet" hint="Run the scanner and an agent cycle. Rejects and paper entries will appear here without inventing activity." />
         ) : (
           <div className="divide-y divide-line">
-            {receipts.map((r) => (
+            {receipts.map((r: ReceiptRow) => (
               <div key={r._id} className="p-5 grid lg:grid-cols-[140px_1fr_120px] gap-4 items-start">
                 <div>
                   <div className="text-[11px] font-bold uppercase text-ink-faint">{r.executionMode}</div>

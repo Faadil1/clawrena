@@ -1,23 +1,27 @@
 "use node";
 
 import { action, internalAction } from "./_generated/server";
+import type { ActionCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { fetchLaunchMints, findMintCreatedInTx, isMarketConfigured } from "./lib/market";
 
-async function ingestVerified(ctx: any, events: Array<{ mint: string; signature: string; ts: number }>) {
+type LaunchEvent = { mint: string; signature: string; ts: number };
+type ScanResult = { configured: boolean; verified: number; inserted: number };
+
+async function ingestVerified(ctx: ActionCtx, events: LaunchEvent[]): Promise<number> {
   if (events.length === 0) return 0;
-  const result = await ctx.runMutation(internal.signals.ingestWebhookEvents, { events });
+  const result = await ctx.runMutation(internal.signals.ingestWebhookEvents, { events }) as { inserted: number };
   return result.inserted;
 }
 
 export const discover = internalAction({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<ScanResult> => {
     const startedAt = Date.now();
     const configured = isMarketConfigured();
     const events = await fetchLaunchMints(25);
-    const inserted = await ingestVerified(ctx, events);
+    const inserted: number = await ingestVerified(ctx, events);
     await ctx.runMutation(internal.signals.recordTelemetry, {
       eventType: "scanner.run",
       payload: { source: "pump.fun", verification: "create-discriminator", configured, verified: events.length, inserted, at: startedAt },
@@ -28,9 +32,9 @@ export const discover = internalAction({
 
 export const discoverNow = action({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<ScanResult & { events: LaunchEvent[] }> => {
     const events = await fetchLaunchMints(15);
-    const inserted = await ingestVerified(ctx, events);
+    const inserted: number = await ingestVerified(ctx, events);
     return { configured: isMarketConfigured(), verified: events.length, inserted, events };
   },
 });
@@ -38,13 +42,13 @@ export const discoverNow = action({
 /** Helius webhook signatures are candidates only; RPC instruction parsing is authority. */
 export const verifyLaunchSignatures = internalAction({
   args: { signatures: v.array(v.string()) },
-  handler: async (ctx, { signatures }) => {
-    const events: Array<{ mint: string; signature: string; ts: number }> = [];
+  handler: async (ctx, { signatures }): Promise<{ candidates: number; verified: number; inserted: number }> => {
+    const events: LaunchEvent[] = [];
     for (const signature of [...new Set(signatures as string[])].slice(0, 20)) {
       const verified = await findMintCreatedInTx(signature);
       if (verified) events.push({ mint: verified.mint, signature, ts: verified.blockTime ?? Date.now() });
     }
-    const inserted = await ingestVerified(ctx, events);
+    const inserted: number = await ingestVerified(ctx, events);
     await ctx.runMutation(internal.signals.recordTelemetry, {
       eventType: "scanner.webhookVerify",
       payload: { candidates: signatures.length, verified: events.length, inserted, at: Date.now() },

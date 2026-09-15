@@ -6,6 +6,8 @@ import { EmptyState, Confidence } from "../components/ui";
 import { timeAgo, shorten } from "../lib/format";
 
 type Filter = "all" | "buy" | "sell" | "warn" | "new-launch" | "alert";
+type SignalType = "buy" | "sell" | "warn" | "new-launch" | "alert";
+type SignalRow = { _id: string; processedAt: number; type: SignalType; title: string; tokenSymbol?: string; detail: string; tokenMint: string; confidence: number; payload?: { mcap?: number } };
 
 const filters: { id: Filter; label: string }[] = [
   { id: "all", label: "All" },
@@ -22,6 +24,7 @@ export default function Signals() {
     type: filter === "all" ? undefined : filter,
     limit: 30,
   });
+  const signalRows = (signals ?? []) as SignalRow[];
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-[1100px] mx-auto w-full">
@@ -51,7 +54,7 @@ export default function Signals() {
 
       {signals === undefined ? (
         <div className="text-sm text-ink-mid animate-pulse">Loading signals…</div>
-      ) : signals.length === 0 ? (
+      ) : signalRows.length === 0 ? (
         <CardShell>
           <EmptyState
             icon="●"
@@ -61,7 +64,7 @@ export default function Signals() {
         </CardShell>
       ) : (
         <div className="flex flex-col gap-3">
-          {signals.map((s) => (
+          {signalRows.map((s: SignalRow) => (
             <div
               key={s._id}
               className="bg-white border border-line rounded-2xl px-4 sm:px-6 py-5 flex items-start sm:items-center gap-3 sm:gap-4 hover:border-accent transition"
@@ -96,8 +99,6 @@ export default function Signals() {
     </div>
   );
 }
-
-type SignalType = "buy" | "sell" | "warn" | "new-launch" | "alert";
 
 function SignalIcon({ type }: { type: SignalType }) {
   if (type === "buy")
