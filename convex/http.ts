@@ -2,24 +2,30 @@ import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
 import { auth } from "./auth";
 import { internal } from "./_generated/api";
-import { EVIDENCE_POLICY_VERSION, EVIDENCE_PASSPORT_FRESHNESS_MS, buildEvidencePassport } from "./lib/evidencePassport";
-import { evaluateLaunchEvidence } from "./lib/evidenceScore";
-import { fetchHolderConcentration, fetchMarketSnapshot, findMintCreatedInTx } from "./lib/market";
+import { evidencePolicyDescriptor } from "./lib/evidencePolicy";
+import { compareUnderwritingDecisions, underwritePumpLaunch } from "./lib/underwriting";
 
 const http = httpRouter();
 auth.addHttpRoutes(http);
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 const MINT_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 const SIG_RE = /^[1-9A-HJ-NP-Za-km-z]{64,100}$/;
+const REPLAY_RE = /^AS1-[0-9a-f]{16}$/;
+
+function authorityAccess(request: Request): Response | null {
+  const required = process.env.AUTHORITY_API_KEY?.trim();
+  if (!required) return null;
+  return request.headers.get("x-alpha-scout-key") === required
+    ? null
+    : json({ ok: false, error: "authority API key required" }, 401);
+}
 
 export const healthz = httpAction(async () => json({ ok: true, service: "alpha-scout", now: Date.now() }));
 
-/** Public, read-only machine contract for agents integrating Alpha Scout policy. */
 export const authorityPolicy = httpAction(async () => json({
   service: "alpha-scout",
   role: "evidence-underwriter-and-execution-authority",
-  policyVersion: EVIDENCE_POLICY_VERSION,
-  receiptFreshnessMs: EVIDENCE_PASSPORT_FRESHNESS_MS,
+  policy: evidencePolicyDescriptor(),
   semantics: {
     qualified: "EVIDENCE_GATE_PASSED_BUT_VALUE_MOVEMENT_STILL_REQUIRES_LAST_MILE_PREFLIGHT",
     unknown: "VETO_WHEN_CRITICAL",
@@ -29,21 +35,39 @@ export const authorityPolicy = httpAction(async () => json({
     verifiedOnchain: "REQUIRES_TX_SIGNATURE_AND_CONFIRMATION_SLOT",
     replayKey: "DETERMINISTIC_AUDIT_IDENTIFIER_NOT_A_CRYPTOGRAPHIC_SIGNATURE",
   },
-  pipeline: ["DISCOVER", "CLAIM", "INVESTIGATE", "QUALIFY", "LAST_MILE_PREFLIGHT", "EXECUTE_OR_REFUSE", "PROVE"],
+  pipeline: ["DISCOVER", "VERIFY_PROVENANCE", "INVESTIGATE", "QUALIFY", "LAST_MILE_PREFLIGHT", "EXECUTE_OR_REFUSE", "PROVE"],
   policyStates: ["QUALIFIED", "REFUSED", "ABSTAINED", "PREPARED"],
-  criticalUnknowns: ["verifiable market price", "liquidity", "largest-holder concentration", "verified Pump launch provenance"],
-  receiptFields: ["policyVersion", "replayKey", "policyState", "freshnessExpiresAt", "counterfactuals"],
+  sourceLedger: ["solana-pump-transaction", "jupiter-price-v3", "solana-owner-concentration"],
   fakeSuccessForbidden: true,
 }));
 
-/**
- * Cross-agent underwriting endpoint. The caller supplies a mint + purported
- * launch signature; Alpha Scout independently re-fetches the transaction,
- * verifies an official Pump create/create_v2 instruction, fetches live market
- * and owner evidence, and returns a deterministic QUALIFIED or REFUSED result.
- * It never signs, submits, or moves value.
- */
+export const authorityOpenApi = httpAction(async (_ctx, request) => {
+  const origin = new URL(request.url).origin;
+  return json({
+    openapi: "3.1.0",
+    info: { title: "Alpha Scout Evidence Authority", version: evidencePolicyDescriptor().version },
+    servers: [{ url: origin }],
+    paths: {
+      "/authority-policy": { get: { summary: "Read the current versioned evidence policy" } },
+      "/underwrite": {
+        post: {
+          summary: "Independently underwrite a Pump launch without moving value",
+          requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["tokenMint", "launchSignature"], properties: { tokenMint: { type: "string" }, launchSignature: { type: "string" } } } } } },
+        },
+      },
+      "/reunderwrite": {
+        post: {
+          summary: "Re-run a stored underwriting decision against current evidence/policy and return lineage diff",
+          requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["previousReplayKey"], properties: { previousReplayKey: { type: "string", pattern: "^AS1-[0-9a-f]{16}$" } } } } } },
+        },
+      },
+    },
+  });
+});
+
 export const underwrite = httpAction(async (ctx, request) => {
+  const denied = authorityAccess(request);
+  if (denied) return denied;
   let body: { tokenMint?: unknown; launchSignature?: unknown };
   try { body = await request.json() as { tokenMint?: unknown; launchSignature?: unknown }; }
   catch { return json({ ok: false, error: "invalid json" }, 400); }
@@ -53,104 +77,69 @@ export const underwrite = httpAction(async (ctx, request) => {
   if (!MINT_RE.test(tokenMint)) return json({ ok: false, error: "invalid Solana mint" }, 400);
   if (!SIG_RE.test(launchSignature)) return json({ ok: false, error: "invalid Solana transaction signature" }, 400);
 
-  const now = Date.now();
-  const provenance = await findMintCreatedInTx(launchSignature);
-  if (!provenance || provenance.mint !== tokenMint || provenance.blockTime === undefined) {
-    const reasons = [
-      !provenance ? "launch signature does not verify as an official Pump create/create_v2 instruction" :
-        provenance.mint !== tokenMint ? "verified Pump launch mint does not match requested token" :
-          "verified Pump launch timestamp is unavailable",
-    ];
-    const unknowns = ["verified Pump launch provenance"];
-    const observations = { launchSignature, launchVerified: false, verifiedMint: provenance?.mint ?? null, blockTime: provenance?.blockTime ?? null };
-    const passport = buildEvidencePassport({
-      tokenMint,
-      decision: "reject",
-      executionMode: "paper",
-      observations,
-      unknowns,
-      reasons,
-      createdAt: now,
-    });
-    await ctx.runMutation(internal.signals.recordTelemetry, {
-      eventType: "authority.underwrite",
-      payload: { tokenMint, policyState: passport.policyState, score: null, replayKey: passport.replayKey, provenanceVerified: false },
-    });
-    return json({
-      ok: true,
-      artifactClass: "LIVE_EVIDENCE_UNDERWRITING_DECISION",
-      tokenMint,
-      policyState: "REFUSED",
-      valueMovement: false,
-      nextBoundary: "NONE",
-      observations,
-      unknowns,
-      reasons,
-      blockers: reasons,
-      passport,
-    });
-  }
-
-  const [snapshots, holder] = await Promise.all([
-    fetchMarketSnapshot([tokenMint]),
-    fetchHolderConcentration(tokenMint),
-  ]);
-  const market = snapshots[tokenMint];
-  const verdict = evaluateLaunchEvidence({
-    processedAt: provenance.blockTime,
-    now,
-    priceUsd: market?.priceUsd,
-    liquidityUsd: market?.liquidityUsd,
-    priceChange24h: market?.priceChange24h,
-    largestHolderPct: holder?.largestHolderPct ?? null,
+  const result = await underwritePumpLaunch({ tokenMint, launchSignature });
+  const ledgerId = await ctx.runMutation(internal.underwriting.recordDecision, {
+    tokenMint: result.tokenMint,
+    launchSignature: result.launchSignature,
+    policyVersion: result.passport.policyVersion,
+    replayKey: result.passport.replayKey,
+    policyState: result.policyState,
+    score: result.score,
+    observations: result.observations,
+    unknowns: result.unknowns,
+    reasons: result.reasons,
+    blockers: result.blockers,
+    sourceLedger: result.sourceLedger,
+    freshnessExpiresAt: result.passport.freshnessExpiresAt,
+    createdAt: result.createdAt,
   });
-  const decision = verdict.eligible ? "execute" as const : "reject" as const;
-  const observations = {
-    ...verdict.observations,
-    launchSignature,
-    launchVerified: true,
-    launchBlockTime: provenance.blockTime,
-    sampledOwnerCount: holder?.sampledOwnerCount ?? null,
-    programControlledPct: holder?.programControlledPct ?? null,
-  };
-  const passport = buildEvidencePassport({
-    tokenMint,
-    decision,
-    executionMode: "paper",
-    score: verdict.score,
-    observations,
-    unknowns: verdict.unknowns,
-    reasons: verdict.reasons,
-    createdAt: now,
-  });
+  return json({ ok: true, ledgerId, ...result });
+});
 
-  await ctx.runMutation(internal.signals.recordTelemetry, {
-    eventType: "authority.underwrite",
-    payload: { tokenMint, policyState: passport.policyState, score: verdict.score, replayKey: passport.replayKey, provenanceVerified: true },
+/**
+ * Decision-lineage endpoint: re-underwrite the exact mint/signature associated
+ * with a server-stored replay key. The caller cannot swap in different evidence
+ * while claiming continuity with an older decision.
+ */
+export const reunderwrite = httpAction(async (ctx, request) => {
+  const denied = authorityAccess(request);
+  if (denied) return denied;
+  let body: { previousReplayKey?: unknown };
+  try { body = await request.json() as { previousReplayKey?: unknown }; }
+  catch { return json({ ok: false, error: "invalid json" }, 400); }
+  const previousReplayKey = typeof body.previousReplayKey === "string" ? body.previousReplayKey.trim() : "";
+  if (!REPLAY_RE.test(previousReplayKey)) return json({ ok: false, error: "invalid replay key" }, 400);
+
+  const previous = await ctx.runQuery(internal.underwriting.getByReplayKey, { replayKey: previousReplayKey });
+  if (!previous) return json({ ok: false, error: "previous underwriting decision not found" }, 404);
+
+  const result = await underwritePumpLaunch({ tokenMint: previous.tokenMint, launchSignature: previous.launchSignature });
+  const ledgerId = await ctx.runMutation(internal.underwriting.recordDecision, {
+    tokenMint: result.tokenMint,
+    launchSignature: result.launchSignature,
+    policyVersion: result.passport.policyVersion,
+    replayKey: result.passport.replayKey,
+    policyState: result.policyState,
+    score: result.score,
+    observations: result.observations,
+    unknowns: result.unknowns,
+    reasons: result.reasons,
+    blockers: result.blockers,
+    sourceLedger: result.sourceLedger,
+    freshnessExpiresAt: result.passport.freshnessExpiresAt,
+    supersedesReplayKey: previous.replayKey,
+    createdAt: result.createdAt,
   });
 
   return json({
     ok: true,
-    artifactClass: "LIVE_EVIDENCE_UNDERWRITING_DECISION",
-    tokenMint,
-    policyState: passport.policyState,
-    valueMovement: false,
-    nextBoundary: verdict.eligible ? "LAST_MILE_PROVIDER_AND_RISK_PREFLIGHT_REQUIRED" : "NONE",
-    score: verdict.score,
-    observations,
-    unknowns: verdict.unknowns,
-    reasons: verdict.reasons,
-    blockers: verdict.blockers,
-    passport,
+    ledgerId,
+    lineage: compareUnderwritingDecisions(previous, result),
+    current: result,
   });
 });
 
-/**
- * Helius is a low-latency transport, not launch authority. We accept only
- * authenticated transaction signatures here; scanner.verifyLaunchSignatures
- * re-fetches each transaction and requires an official Pump create/create_v2
- * discriminator before a new-launch signal is written.
- */
+/** Helius is transport; scanner verification remains launch authority. */
 export const heliusWebhook = httpAction(async (ctx, request) => {
   const secret = process.env.HELIUS_WEBHOOK_SECRET;
   if (!secret) return json({ ok: false, error: "webhook secret is not configured" }, 503);
@@ -167,7 +156,9 @@ export const heliusWebhook = httpAction(async (ctx, request) => {
 
 http.route({ path: "/healthz", method: "GET", handler: healthz });
 http.route({ path: "/authority-policy", method: "GET", handler: authorityPolicy });
+http.route({ path: "/authority-openapi", method: "GET", handler: authorityOpenApi });
 http.route({ path: "/underwrite", method: "POST", handler: underwrite });
+http.route({ path: "/reunderwrite", method: "POST", handler: reunderwrite });
 http.route({ path: "/webhooks/helius", method: "POST", handler: heliusWebhook });
 
 function extractSignatures(payload: unknown): string[] {
