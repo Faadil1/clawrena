@@ -1,12 +1,8 @@
-export const MAX_EXECUTION_RECEIPT_AGE_MS = 2 * 60 * 1000;
-const MAX_FUTURE_CLOCK_SKEW_MS = 30 * 1000;
-const MIN_EXECUTION_SCORE = 55;
+import { EVIDENCE_POLICY } from "./evidencePolicy";
 
-const CRITICAL_UNKNOWNS = new Set([
-  "verifiable market price",
-  "liquidity",
-  "largest-holder concentration",
-]);
+export const MAX_EXECUTION_RECEIPT_AGE_MS = EVIDENCE_POLICY.passportFreshnessMs;
+const MAX_FUTURE_CLOCK_SKEW_MS = 30 * 1000;
+const CRITICAL_UNKNOWNS = new Set(EVIDENCE_POLICY.criticalUnknowns);
 
 export type ExecutionAuthorityInput = {
   now: number;
@@ -27,9 +23,9 @@ export type ExecutionAuthorityVerdict = {
 };
 
 /**
- * Last-mile execution authority gate. A strategy receipt can recommend a trade,
- * but it cannot authorize value movement forever. Execution is refused when the
- * evidence is stale, critical evidence is still unknown, or the execution
+ * Last-mile execution authority gate. A strategy receipt can qualify evidence,
+ * but it cannot authorize value movement forever. Execution is refused when
+ * evidence is stale, critical evidence remains unknown, or the execution
  * provider is not both configured and reachable.
  */
 export function evaluateExecutionAuthority(
@@ -39,11 +35,13 @@ export function evaluateExecutionAuthority(
   const receiptAgeMs = input.now - input.receiptCreatedAt;
 
   if (input.decision !== "execute") blockers.push("stored receipt is not an execute decision");
-  if ((input.score ?? 0) < MIN_EXECUTION_SCORE) blockers.push(`evidence score below ${MIN_EXECUTION_SCORE}`);
+  if ((input.score ?? 0) < EVIDENCE_POLICY.minEvidenceScore) {
+    blockers.push(`evidence score below ${EVIDENCE_POLICY.minEvidenceScore}`);
+  }
   if (!Number.isFinite(input.riskBudgetSol) || (input.riskBudgetSol ?? 0) <= 0) {
     blockers.push("receipt has no positive risk budget");
   }
-  if (receiptAgeMs > MAX_EXECUTION_RECEIPT_AGE_MS) {
+  if (receiptAgeMs > EVIDENCE_POLICY.passportFreshnessMs) {
     blockers.push("execution receipt is stale; refresh market evidence before value movement");
   }
   if (receiptAgeMs < -MAX_FUTURE_CLOCK_SKEW_MS) {
