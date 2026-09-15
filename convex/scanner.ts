@@ -7,6 +7,7 @@ import { internal } from "./_generated/api";
 import {
   fetchLaunchMintsWithDiagnostics,
   findMintCreatedInTx,
+  type LaunchDiscoverySourceResult,
 } from "./lib/market";
 
 type LaunchEvent = { mint: string; signature: string; ts: number };
@@ -16,6 +17,8 @@ type ScanResult = {
   inserted: number;
   signaturesExamined: number;
   pagesSearched: number;
+  discoverySource: "pump-mint-authority" | "pump-program-fallback" | "none";
+  sources: LaunchDiscoverySourceResult[];
 };
 
 async function ingestVerified(ctx: ActionCtx, events: LaunchEvent[]): Promise<number> {
@@ -34,6 +37,8 @@ export const discover = internalAction({
       eventType: "scanner.run",
       payload: {
         source: "pump.fun",
+        candidateSource: discovery.discoverySource,
+        sources: discovery.sources,
         verification: "official-create-or-create-v2-top-level-or-cpi",
         configured: discovery.dedicatedRpcConfigured,
         signatureLimitRequested: discovery.signatureLimitRequested,
@@ -51,14 +56,16 @@ export const discover = internalAction({
       inserted,
       signaturesExamined: discovery.signaturesExamined,
       pagesSearched: discovery.pagesSearched,
+      discoverySource: discovery.discoverySource,
+      sources: discovery.sources,
     };
   },
 });
 
 /**
  * Judge/runtime proof discovery. The requested window is bounded in market.ts
- * to 500 signatures so callers can improve recall without creating an
- * unbounded public RPC crawler.
+ * to 500 signatures. The first 100 candidates come from Pump's mint-authority
+ * PDA; broad program history is used only as a strict fallback.
  */
 export const discoverNow = action({
   args: { signatureLimit: v.optional(v.number()) },
@@ -75,6 +82,8 @@ export const discoverNow = action({
       inserted,
       signaturesExamined: discovery.signaturesExamined,
       pagesSearched: discovery.pagesSearched,
+      discoverySource: discovery.discoverySource,
+      sources: discovery.sources,
       signatureLimitRequested: discovery.signatureLimitRequested,
       signatureLimitApplied: discovery.signatureLimitApplied,
       events: discovery.events,
