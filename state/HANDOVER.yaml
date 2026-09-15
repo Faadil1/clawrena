@@ -1,11 +1,14 @@
 project: alpha-scout-clawrena
-handover_version: P11_2026-09-15
+handover_version: P11_1_2026-09-15
+
 start_here:
   - state/CURRENT.yaml
+  - docs/WHITE_SPACE_P11_1.md
   - docs/WINNING_INTELLIGENCE_P11.md
   - docs/COMPETITIVE_INTELLIGENCE_2026-09-15.md
-  - docs/ANSEM_AUTHORITY_DEMO.md
   - skills/evidence-authority/SKILL.md
+  - docs/ANSEM_AUTHORITY_DEMO.md
+  - docs/X402_AUTHORITY_SERVICE.md
   - docs/GATE_7_PROMOTE.md
   - evidence/canonical-run/STATUS.json
 
@@ -14,39 +17,57 @@ repo:
   merged_pr_1: https://github.com/opeblow/clawrena/pull/1
   upstream_merge_commit: 171576483ff589dcf41c07f25a671134628ef073
   fork: https://github.com/Faadil1/clawrena
-  branch: winning-intelligence-p11
+  base_p11_branch: winning-intelligence-p11
+  working_branch: winning-intelligence-p11-white-space
+  upstream_pr_creation_from_connector: blocked_403
 
-what_changed_p11:
-  - reran Winning Intelligence after PR #1 was merged instead of continuing from the old feature branch
-  - re-read official Clawrena judging and current competitive/leaderboard surfaces
-  - identified category collision with ClawPump community Alpha Scanner, Meme Token Analyzer and Risk Manager skills
-  - repositioned Alpha Scout from generic autonomous launch trader / alpha scanner to Evidence Underwriter / Execution Authority
-  - added versioned Evidence Passports to new decision receipts
-  - Evidence Passport includes deterministic replay key, policy state, freshness expiry and counterfactual reconsideration conditions
-  - corrected an initial hidden spot: passing evidence is QUALIFIED, never labelled AUTHORIZED before last-mile provider/risk checks
-  - added machine-readable GET /authority-policy
-  - added cross-agent POST /underwrite requiring mint plus verified Pump launch signature
-  - /underwrite independently re-fetches Pump create/create_v2 provenance and live market/holder evidence before QUALIFIED or REFUSED
-  - /underwrite never signs, submits or moves value
-  - packaged reusable ClawPump/Hermes Evidence Authority custom skill
-  - added current Clawrena competitive intelligence snapshot
-  - documented an ANSEM-funded underwriting demo path using official ClawPump billing support, explicitly NOT YET PROVED
-  - intentionally did not start another UI/UX pass before the new product category has runtime proof
+category:
+  old: autonomous_launch_trader_alpha_scanner
+  current: evidence_underwriter_execution_authority
+  memory_sentence: >-
+    Other agents find trades. Alpha Scout decides whether independently verified evidence
+    has earned permission to continue toward capital movement, and preserves a replayable
+    record when it has not.
 
-competitive_findings:
-  official_analytics_observed_tokenized_entries: 154
-  official_analytics_observed_fee_generating_entries: 85
-  alpha_scout_found_by_name_on_official_analytics_at_review: false
-  collisions:
-    - ClawPump Alpha Scanner community skill
-    - ClawPump Meme Token Analyzer community skill
-    - ClawPump Risk Manager community skill
-  strong_patterns:
-    - SelfMade: one-sentence mission plus closed Earn-Prove-Build-Reinvest loop
-    - HyperBull: on-chain receipts plus human-signature boundary
-    - MarketBubbleSearch: evidence and refusal-to-guess visible as product behavior
-    - Agent Heights: memorable spatial product metaphor
-    - Steve: autonomous trading plus risk controls already occupied language
+what_changed_p11_1:
+  - centralized AS-AUTHORITY-V1 thresholds, scoring, critical unknowns and freshness in convex/lib/evidencePolicy.ts
+  - Evidence Gate and last-mile authority now execute the same versioned policy manifest
+  - preserved Jupiter blockId, Solana observation slots and evidence observation timestamps
+  - added source ledger for Pump transaction provenance, Jupiter Price V3 and Solana owner concentration
+  - added durable underwriting_decisions table keyed by replay history
+  - added server-side underwriting persistence and replay-key lookup
+  - added POST /reunderwrite; caller supplies only previous replay key and server reuses original mint/signature
+  - lineage diff reports policy/state changes, score delta, unknowns resolved/added and blockers resolved/added
+  - added GET /authority-openapi for machine-readable integration
+  - added GET /authority-stats with explicit request-count truth boundaries
+  - added optional AUTHORITY_API_KEY/x-alpha-scout-key protection for mutating authority endpoints
+  - upgraded Evidence Authority skill for shadow mode, source lineage and re-underwriting
+  - documented P11.1 competitive white-space and specialized x402 authority service
+  - kept x402/ANSEM as unproved until real settlement/billing/run evidence exists
+
+white_space_exploited:
+  - cross_agent_execution_authority
+  - versioned_executable_evidence_policy
+  - source_level_evidence_lineage
+  - durable_underwriting_history_without_trade_requirement
+  - server_bound_decision_replay_and_reunderwriting
+  - shadow_mode_zero_custody_zero_value_movement
+  - honest_non_financial_adoption_metrics
+  - machine_readable_authority_contract
+  - planned_ansem_funded_underwriting
+  - prepared_specialized_x402_underwriting
+
+competitive_scope_warning:
+  claim: no_equivalent_found_on_official_public_surfaces_reviewed
+  exhaustive_claim_that_nobody_has_it: false
+  crowded_areas:
+    - alpha_scanning
+    - meme_token_analysis
+    - generic_risk_management
+    - autonomous_trading
+    - treasury_buybacks
+    - generic_x402
+    - generic_evidence_or_refusal_language
 
 truth_boundaries:
   qualified_is_authorized: false
@@ -55,34 +76,48 @@ truth_boundaries:
   paper_is_onchain: false
   replay_key_is_crypto_signature: false
   underwrite_moves_value: false
+  reunderwrite_rewrites_history: false
+  authority_request_counts_are_unique_users: false
+  authority_request_counts_are_trading_volume: false
   ansem_funded_demo_proved: false
-  x402_service_deployed: false
+  x402_authority_service_deployed: false
+  x402_revenue_proved: false
+  p11_1_deployed_to_convex: false
 
-validation_status:
-  p11_branch_created_from_upstream_merge: true
-  upstream_draft_pr_creation: blocked_by_github_app_403
-  full_ci: pending
-  p11_convex_deploy: pending
-  endpoint_runtime_probe: pending
-  custom_skill_real_import: pending
+validation:
+  ci_run: https://github.com/Faadil1/clawrena/actions/runs/35003153624
+  validated_code_head: a1d0d36f212e153b122c5ebdaaa27b3f8004e36a
+  security: pass
+  integrity: pass
+  logic: pass
+  typecheck: pass
+  lint: pass
+  build: pass
+  note: state_files_updated_after_the_validated_code_head; temporary_validation_workflow_should_be_removed_after_state_lock
 
 next_actions_priority:
-  - validate P11 with npm run verify:integrity, npm run test:logic, typecheck, lint and build
-  - deploy P11 Convex functions to grandiose-poodle-700 and probe /healthz, /authority-policy and /underwrite
-  - import Evidence Authority as a real custom skill on a ClawPump/Hermes agent
-  - run that external agent against a real Pump launch and capture a genuine REFUSED or QUALIFIED underwriting result
-  - capture canonical real negative-path receipt and update evidence/canonical-run/STATUS.json
-  - close registration/X/tokenization eligibility receipts before 2026-09-20T23:59:00Z
-  - if possible, fund a ClawPump billing wallet with ANSEM and prove one real underwriting run before making the ANSEM-use claim
-  - only after these proofs, run the next TRACE/UI pass around Proof-of-Authority rather than a trading-dashboard metaphor
+  - remove temporary p11-white-space-validation workflow after state lock
+  - fast-forward winning-intelligence-p11 to the final white-space head if final state-only changes remain safe
+  - deploy P11.1 Convex functions to grandiose-poodle-700 only through the intended deployment flow
+  - probe /healthz, /authority-policy, /authority-openapi, /authority-stats and a real /underwrite request
+  - import Evidence Authority skill into a real ClawPump/Hermes agent
+  - run shadow underwriting against a real Pump create/create_v2 launch and capture a genuine REFUSED or QUALIFIED result
+  - re-run that decision later through /reunderwrite and capture the lineage diff
+  - close registration, X/follow and tokenization eligibility receipts before 2026-09-20T23:59:00Z
+  - if feasible, fund a real ClawPump billing wallet with ANSEM and prove an underwriting run before making ANSEM-funded claims
+  - optionally activate the x402 underwriting service only after real settlement evidence can be captured
+  - only then reopen TRACE/UI as a Proof-of-Authority Workstation rather than a trading dashboard
 
 never_do:
-  - do_not_call_qualified_authorized_before_last_mile_preflight
-  - do_not_accept_caller_scores_as_verified_underwriting_evidence
+  - do_not_call_QUALIFIED_execution_authorization
+  - do_not_accept_caller_scores_as_underwriting_authority
+  - do_not_accept_replacement_token_identity_in_reunderwrite_continuity
+  - do_not_convert_UNKNOWN_to_zero_or_pass
   - do_not_convert_PREPARE_or_PENDING_to_VERIFIED_without_signature_and_confirmation
+  - do_not_call_request_counts_unique_agents_users_or_volume
   - do_not_claim_ansem_funded_until_real_billing_and_run_receipts_exist
-  - do_not_claim_x402_service_until_a_real_paid_endpoint_exists
-  - do_not_copy_competitor_staking_yield_buyback_mechanics_without_product_need
-  - do_not_hide_rejects_unknowns_provider_degradation_or_failed_attempts
-  - do_not_mark_eligibility_verified_without_external_receipts
-  - do_not_reopen_ui_before_p11_category_and_runtime_proof_are_stable
+  - do_not_claim_x402_paid_service_or_revenue_until_real_settlement_exists
+  - do_not_claim_no_competitor_anywhere_has_this; scope white-space to reviewed official/public surfaces
+  - do_not_hide_refusals_unknowns_provider_degradation_or_failed_attempts
+  - do_not_mark_eligibility_verified_without external_receipts
+  - do_not_reopen_ui_before_authority_runtime_and_external_shadow_proof_are_stable
