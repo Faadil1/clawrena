@@ -238,7 +238,7 @@ export default function AgentConsole() {
 
         <section className="fw-sheet mt-[18px]">
           <div className="fw-sheet-head">
-            <div className="fw-sheet-title"><span className="fw-sheet-no">D</span><div><h2>Agent treasury / observed economics</h2><p>Creator-fee ledger only. No holder revenue-share claim.</p></div></div>
+            <div className="fw-sheet-title"><span className="fw-sheet-no">D</span><div><h2>Agent Treasury</h2><p>Observed creator-fee ledger only.</p></div></div>
             <span className={`fw-badge ${treasury ? "fw-badge--green" : ""}`}>{treasury ? "OBSERVED" : agent?.clawPumpAgentId ? "AVAILABLE" : "NOT LINKED"}</span>
           </div>
           {treasury ? <>
@@ -249,7 +249,7 @@ export default function AgentConsole() {
               <TreasuryCell label="Held" value={formatSol(treasury.totalHeld)} />
             </div>
             <div className="fw-body flex items-start justify-between gap-5 flex-wrap">
-              <p className="max-w-3xl text-[11px] leading-relaxed text-ink-mid">ClawPump documents a {treasury.creatorFeeSharePct}% creator share for token trading fees. This surface observes the linked agent's public fee ledger; it does not imply holder distributions, governance, buybacks, yield or automated treasury spending.</p>
+              <p className="max-w-3xl text-[11px] leading-relaxed text-ink-mid">ClawPump documents a {treasury.creatorFeeSharePct}% creator share for token trading fees. This surface observes the linked agent's public fee ledger and does <b>not</b> claim holder revenue share, governance, buybacks, yield or automated treasury spending.</p>
               <button disabled={busy} onClick={() => void refreshTreasury()} className="fw-button fw-button--line">REFRESH LEDGER</button>
             </div>
           </> : <div className="fw-empty"><div className="fw-empty-inner"><div className="fw-empty-mark">T</div><h3>{agent?.clawPumpAgentId ? "Ledger not observed yet" : "No linked ClawPump identity"}</h3><p>{agent?.clawPumpAgentId ? "Read the public creator-fee ledger. A zero balance is still valid evidence." : "Link the agent first. The treasury surface stays empty rather than fabricating token economics."}</p>{agent?.clawPumpAgentId && <button disabled={busy} onClick={() => void refreshTreasury()} className="fw-button mt-4">OBSERVE CREATOR FEES</button>}</div></div>}
@@ -261,12 +261,6 @@ export default function AgentConsole() {
   );
 }
 
-function StatusStat({ label, value, note }: { label: string; value: string; note: string }) {
-  return <div className="fw-stat"><span className="fw-label">{label}</span><strong>{value}</strong><small>{note}</small></div>;
-}
-function ChainStep({ code, title, body }: { code: string; title: string; body: string }) {
-  return <div className="fw-chain-step"><div className="fw-meta">{code}</div><h4>{title}</h4><p>{body}</p></div>;
-}
-function TreasuryCell({ label, value }: { label: string; value: string }) {
-  return <div className="fw-treasury-cell"><span>{label}</span><b>{value}</b></div>;
-}
+function StatusStat({ label, value, note }: { label: string; value: string; note: string }) { return <div className="fw-stat"><span className="fw-label">{label}</span><strong>{value}</strong><small>{note}</small></div>; }
+function ChainStep({ code, title, body }: { code: string; title: string; body: string }) { return <div className="fw-chain-step"><div className="fw-meta">{code}</div><h4>{title}</h4><p>{body}</p></div>; }
+function TreasuryCell({ label, value }: { label: string; value: string }) { return <div className="fw-treasury-cell"><span>{label}</span><b>{value}</b></div>; }
