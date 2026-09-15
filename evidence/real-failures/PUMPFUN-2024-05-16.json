@@ -1,0 +1,24 @@
+{
+  "artifactClass": "EXTERNAL_REAL_FAILURE_EVIDENCE",
+  "projectResult": false,
+  "incident": "Pump.fun privileged-access exploit",
+  "date": "2024-05-16",
+  "facts": [
+    "Pump.fun said a former employee used privileged access and flash loans in an exploit.",
+    "The platform reported approximately 12,300 SOL, valued around USD 1.9 million at the time, was affected.",
+    "Trading was halted while the platform upgraded contracts."
+  ],
+  "impact": [
+    "venue/control-plane failure affected liquidity",
+    "trading availability was interrupted",
+    "asset-level signals alone could not establish execution safety"
+  ],
+  "designImplication": "Execution authority must include provider health and fresh evidence, not only token-level scoring.",
+  "mitigationInBuild": [
+    "live ClawPump provider/linked-agent preflight before quote/build",
+    "short execution-receipt TTL",
+    "provider/freshness denial stored as a REJECT receipt",
+    "PREPARE remains distinct from verified execution"
+  ],
+  "source": "https://www.theblock.co/news/regulation/2024-05-16-pump-fun-post-mortem-295029"
+}

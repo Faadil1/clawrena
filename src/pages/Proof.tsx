@@ -3,6 +3,21 @@ import { api } from "../../convex/_generated/api";
 import { Card, CardBadge, EmptyState } from "../components/ui";
 import { formatSol, shorten, timeAgo } from "../lib/format";
 
+const realFailures = [
+  {
+    title: "LIBRA · Feb 2025",
+    body: "Creator-linked liquidity withdrawals and broad trader losses show why launch momentum cannot be execution authority by itself.",
+    href: "https://www.reuters.com/world/americas/crypto-worth-99-million-withdrawn-milei-backed-libra-token-researchers-say-2025-02-20/",
+    lesson: "Ownership, liquidity and UNKNOWN evidence need veto power.",
+  },
+  {
+    title: "Pump.fun · May 2024",
+    body: "A privileged-access exploit led the venue to halt trading, proving that execution-provider health is a separate risk surface from token quality.",
+    href: "https://www.theblock.co/news/regulation/2024-05-16-pump-fun-post-mortem-295029",
+    lesson: "Fresh evidence + live provider preflight are required before value movement.",
+  },
+];
+
 export default function Proof() {
   const data = useQuery(api.queries.portfolio.dashboard);
   const stats = useQuery(api.queries.public.publicStats);
@@ -27,8 +42,22 @@ export default function Proof() {
       <Card title="Execution boundary" badge={<CardBadge>FAIL CLOSED</CardBadge>} bodyClassName="p-5">
         <div className="grid md:grid-cols-3 gap-3 text-sm">
           <Boundary title="OBSERVED" body="Live Jupiter price/liquidity, Solana holder concentration, launch timestamp and provider request ids." />
-          <Boundary title="UNKNOWN" body="Unknown holder or liquidity evidence blocks entry. An unsigned ClawPump swap remains unexecuted." />
-          <Boundary title="PROVED" body="On-chain volume requires executionMode=onchain plus an independently stored transaction signature." />
+          <Boundary title="UNKNOWN" body="Unknown holder or liquidity evidence blocks entry. Stale evidence or an unhealthy execution provider blocks the last mile." />
+          <Boundary title="PROVED" body="On-chain volume requires executionMode=onchain plus a stored transaction signature; final live flow must independently confirm it." />
+        </div>
+      </Card>
+
+      <Card title="Why refusal exists" badge={<CardBadge>REAL FAILURES</CardBadge>} bodyClassName="p-5">
+        <p className="text-sm text-ink-mid max-w-3xl">These are external incidents used to justify requirements, not Alpha Scout results. Real failure is kept separate from runtime proof.</p>
+        <div className="grid md:grid-cols-2 gap-3 mt-4">
+          {realFailures.map((failure) => (
+            <a key={failure.title} href={failure.href} target="_blank" rel="noreferrer" className="rounded-xl border border-line bg-surface p-4 hover:border-accent transition-colors">
+              <div className="text-[11px] font-bold uppercase tracking-wide text-accent">{failure.title}</div>
+              <p className="text-sm text-ink-mid mt-2 leading-relaxed">{failure.body}</p>
+              <div className="text-xs font-semibold text-ink mt-3">Design lesson: {failure.lesson}</div>
+              <div className="text-[11px] text-ink-faint mt-3">Open source ↗</div>
+            </a>
+          ))}
         </div>
       </Card>
 

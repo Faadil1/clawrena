@@ -1,0 +1,20 @@
+{
+  "artifactClass": "TEST_FIXTURE_NOT_RUNTIME_EVIDENCE",
+  "mayBeUsedAsSubmissionProof": false,
+  "purpose": "Deterministic negative-path fixture proving the desired refusal semantics without pretending a real run occurred.",
+  "input": {
+    "decision": "execute",
+    "score": 82,
+    "riskBudgetSol": 0.1,
+    "receiptAgeMs": 120001,
+    "providerConfigured": true,
+    "providerLinked": true,
+    "providerHealthy": true
+  },
+  "expected": {
+    "authorized": false,
+    "decisionReceipt": "reject",
+    "reasonContains": "stale",
+    "verifiedOnchainVolumeDeltaSol": 0
+  }
+}

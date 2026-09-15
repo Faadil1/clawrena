@@ -13,6 +13,7 @@ const { evaluateLaunchEvidence } = loadTs("convex/lib/evidenceScore.ts");
 const { canAcquireClaim, CLAIM_LEASE_MS } = loadTs("convex/lib/claimLease.ts");
 const { nextEquityRisk } = loadTs("convex/lib/risk.ts");
 const { isPumpCreateInstructionData, PUMP_CREATE, PUMP_CREATE_V2 } = loadTs("convex/lib/pumpInstruction.ts");
+const { evaluateExecutionAuthority, MAX_EXECUTION_RECEIPT_AGE_MS } = loadTs("convex/lib/executionAuthority.ts");
 const now = Date.now();
 assert(evaluateLaunchEvidence({ processedAt: now - 60_000, now, priceUsd: 0.01, liquidityUsd: 50_000, priceChange24h: 20, largestHolderPct: 12 }).eligible, "qualified launch should pass");
 assert(!evaluateLaunchEvidence({ processedAt: now, now, priceUsd: 0.01, liquidityUsd: 50_000, largestHolderPct: null }).eligible, "unknown holder concentration must fail closed");
@@ -41,4 +42,20 @@ const risk = nextEquityRisk(10, 8);
 assert(risk.peakSol === 10 && Math.abs(risk.drawdownPct - 20) < 1e-9, "drawdown must be measured from equity high-water mark");
 const newPeak = nextEquityRisk(10, 12);
 assert(newPeak.peakSol === 12 && newPeak.drawdownPct === 0, "new equity peak must reset drawdown to zero");
-console.log("Evidence, claim lease, Pump parser + high-water risk tests: PASS");
+
+const authorityBase = {
+  now,
+  receiptCreatedAt: now - 15_000,
+  decision: "execute",
+  score: 80,
+  riskBudgetSol: 0.1,
+  unknowns: ["24h price change"],
+  providerConfigured: true,
+  providerLinked: true,
+  providerHealthy: true,
+};
+assert(evaluateExecutionAuthority(authorityBase).authorized, "fresh passing receipt + healthy provider should authorize preparation");
+assert(!evaluateExecutionAuthority({ ...authorityBase, receiptCreatedAt: now - MAX_EXECUTION_RECEIPT_AGE_MS - 1 }).authorized, "stale execution evidence must fail closed");
+assert(!evaluateExecutionAuthority({ ...authorityBase, providerHealthy: false }).authorized, "unhealthy provider must fail closed");
+assert(!evaluateExecutionAuthority({ ...authorityBase, unknowns: ["liquidity"] }).authorized, "critical unknown must fail closed at execution boundary");
+console.log("Evidence, claim lease, Pump parser, high-water risk + execution authority tests: PASS");

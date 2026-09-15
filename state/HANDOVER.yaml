@@ -1,0 +1,44 @@
+project: alpha-scout-clawrena
+handover_version: P3_2026-09-14
+start_here:
+  - state/CURRENT.yaml
+  - docs/JUDGE_ASSURANCE_P3.md
+  - docs/REAL_FAILURE_EVIDENCE.md
+  - docs/RUBRIC_EVIDENCE_MATRIX.md
+  - docs/CLAIM_LEDGER.md
+  - docs/DEMO_QA_GATE_6_75.md
+
+repo:
+  fork: https://github.com/Faadil1/clawrena
+  branch: winning-delta-p0-p2
+  upstream_pr: https://github.com/opeblow/clawrena/pull/1
+
+what_changed_p3:
+  - added sourced LIBRA and Pump.fun failure evidence
+  - added rubric-to-evidence and public-claim ledgers
+  - added dynamic collision snapshot and Agent Advantage test
+  - added execution-authority receipt TTL
+  - added live ClawPump provider/linked-agent preflight
+  - provider/freshness denial now persists a REJECT receipt
+  - added canonical negative-path fixture explicitly marked non-runtime
+  - added canonical-run status that refuses fake completion
+  - added Gate 6.75 demo/Q&A and TRACE 6.5 packet
+  - added baseline reduced-motion CSS
+
+next_actions_priority:
+  - get Opeyemi review on upstream PR
+  - confirm all three eligibility receipts before 2026-09-20T23:59:00Z
+  - deploy public runtime and Convex backend
+  - capture a real runtime negative-path receipt
+  - complete sign-submit-confirm path or keep all onchain execution claims at zero/prepared
+  - populate evidence/canonical-run/STATUS.json only from real runtime evidence
+  - visually review TRACE Gate 6.5 on desktop and mobile
+  - lock 15-minute stream story and public claim ledger
+  - Gate 7 PROMOTE only when runtime and external gates are satisfied
+
+never_do:
+  - do_not_convert_PREPARE_to_EXECUTE_without_signature_and_confirmation
+  - do_not_use_test_fixture_as_submission_evidence
+  - do_not_hide_rejects_or_unknowns
+  - do_not_claim_realised_alpha_without_real_performance_evidence
+  - do_not_claim_wash_bundle_honeypot_classifiers_are_live

@@ -1,0 +1,28 @@
+{
+  "artifactClass": "EXTERNAL_REAL_FAILURE_EVIDENCE",
+  "projectResult": false,
+  "incident": "LIBRA launch collapse",
+  "window": "2025-02",
+  "facts": [
+    "Reuters reported eight wallets linked to the creator withdrew about USD 99 million from the liquidity pool.",
+    "Reuters reported the token fell by more than 95 percent after its surge.",
+    "CoinDesk, citing Nansen on-chain analysis, reported 86 percent of traders lost money, totalling USD 251 million."
+  ],
+  "impact": [
+    "creator-linked concentration was economically material",
+    "broad trader losses were observable",
+    "fast attention-driven launches can degrade before ordinary momentum signals are useful"
+  ],
+  "designImplication": "New-mint discovery and price momentum are not sufficient execution authority. Ownership concentration, liquidity, provenance and critical unknowns need veto power.",
+  "mitigationInBuild": [
+    "economic-owner aggregation of sampled largest accounts",
+    "critical unknowns fail closed",
+    "deterministic evidence receipts",
+    "freshness-bound last-mile execution authority"
+  ],
+  "sources": [
+    "https://www.reuters.com/world/americas/crypto-worth-99-million-withdrawn-milei-backed-libra-token-researchers-say-2025-02-20/",
+    "https://www.reuters.com/technology/politician-linked-meme-coins-backfire-after-libra-scandal-2025-02-21/",
+    "https://www.coindesk.com/markets/2025/02/20/libra-memecoin-fiasco-destroyed-usd251m-in-investor-wealth-research-shows"
+  ]
+}

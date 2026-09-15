@@ -4,6 +4,7 @@ const BASE_URL = "https://clawpump.tech/api/v1";
 
 export type ClawPumpMeta = { timestamp?: string; requestId?: string };
 export type ClawPumpResponse<T> = T & { meta?: ClawPumpMeta };
+export type ClawPumpAgent = { id: string; name: string; walletAddress?: string; status?: string };
 
 function apiKey(): string {
   const key = process.env.CLAWPUMP_API_KEY?.trim();
@@ -47,9 +48,15 @@ async function request<T>(
   }
 }
 
-export async function listClawPumpAgents(): Promise<ClawPumpResponse<{ agents: Array<{ id: string; name: string; walletAddress?: string; status?: string }> }>> {
+export async function listClawPumpAgents(): Promise<ClawPumpResponse<{ agents: ClawPumpAgent[] }>> {
   return request("/agents", { method: "GET" }, 30_000);
 }
+
+/** Exact linked-agent preflight used at the last-mile execution boundary. */
+export async function getClawPumpAgent(agentId: string): Promise<ClawPumpResponse<ClawPumpAgent>> {
+  return request(`/agents/${encodeURIComponent(agentId)}`, { method: "GET" }, 30_000);
+}
+
 export async function createClawPumpAgent(input: {
   name: string;
   systemPrompt: string;

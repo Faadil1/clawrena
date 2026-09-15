@@ -18,6 +18,9 @@ Alpha Scout discovers real pump.fun launches, qualifies them with live Jupiter/S
 - Paper volume and verified on-chain volume are separate metrics.
 - ClawPump high-risk/unverified safety gates are not auto-bypassed.
 - Every decision creates a receipt with observations, unknowns, reasons and risk budget.
+- A passing strategy receipt expires before last-mile execution; stale evidence cannot authorize value movement.
+- ClawPump quote/build requires a live provider + linked-agent preflight. Failure is recorded as a REJECT receipt.
+- External incidents and test fixtures are explicitly separated from Alpha Scout runtime evidence.
 
 ## Stack
 
@@ -37,6 +40,7 @@ CLAWPUMP_API_KEY=cpk_...     # server-side only
 ```bash
 npm ci
 npm run verify:integrity
+npm run test:logic
 npm run typecheck
 npm run lint
 npm run build
@@ -47,7 +51,24 @@ npm run build
 - `/dashboard` — paper portfolio + separated execution records
 - `/agent` — risk controls, watch-only wallet observation, ClawPump link
 - `/signals` — real launch/signal feed
-- `/proof` — judge-facing decision receipts and verified-volume boundary
+- `/proof` — judge-facing decision receipts, real-failure grounding and verified-volume boundary
 - `/token/:mint?` — live token shield scan
 
-See `docs/BUILD_PLAN.md` and `docs/WINNING_DELTA.md` for the current canonical state.
+## Judge assurance
+
+Canonical product cycle:
+
+`RUBRIC → PAIN → PROBLEM → DIFFERENTIATOR → EXECUTION → EVIDENCE → STORY → DEMO → Q&A`
+
+Start with:
+
+- `state/CURRENT.yaml`
+- `docs/JUDGE_ASSURANCE_P3.md`
+- `docs/REAL_FAILURE_EVIDENCE.md`
+- `docs/RUBRIC_EVIDENCE_MATRIX.md`
+- `docs/CLAIM_LEDGER.md`
+- `docs/DEMO_QA_GATE_6_75.md`
+- `docs/COLLISION_AGENT_ADVANTAGE.md`
+- `docs/TRACE_GATE_6_5.md`
+
+`evidence/canonical-run/STATUS.json` deliberately stays **PENDING_REAL_RUNTIME_CAPTURE** until real deployment evidence exists. Test fixtures must never be presented as submission proof.
