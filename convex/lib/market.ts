@@ -179,19 +179,29 @@ export async function fetchHolderConcentration(mint: string): Promise<HolderConc
 
 export async function fetchRecentLaunches(limit = 25): Promise<string[]> {
   try {
-    const res = await rpcCall("getSignaturesForAddress", [PUMP_FUN_PROGRAM, { limit, commitment: "confirmed" }]);
+    const boundedLimit = Math.max(1, Math.min(100, Math.floor(limit)));
+    const res = await rpcCall("getSignaturesForAddress", [PUMP_FUN_PROGRAM, { limit: boundedLimit, commitment: "confirmed" }]);
     const signatures: Array<{ signature?: string }> = res.result ?? [];
     return signatures.map((item) => item.signature ?? "").filter(Boolean);
   } catch { return []; }
 }
 
 export type LaunchEvent = { mint: string; signature: string; ts: number };
-export async function fetchLaunchMints(limit = 25): Promise<LaunchEvent[]> {
-  const signatures = await fetchRecentLaunches(limit);
+
+/**
+ * Search a bounded window of recent Pump-program transactions until enough
+ * strict create/create_v2 launches are found. This removes the old hidden
+ * 15-transaction cap without weakening launch provenance or synthesizing data.
+ */
+export async function fetchLaunchMints(signatureLimit = 50, maxEvents = 3): Promise<LaunchEvent[]> {
+  const signatures = await fetchRecentLaunches(signatureLimit);
   const events: LaunchEvent[] = [];
-  for (const signature of signatures.slice(0, 15)) {
+  const eventCap = Math.max(1, Math.min(10, Math.floor(maxEvents)));
+  for (const signature of signatures) {
     const result = await findMintCreatedInTx(signature);
-    if (result) events.push({ mint: result.mint, signature, ts: result.blockTime ?? Date.now() });
+    if (!result) continue;
+    events.push({ mint: result.mint, signature, ts: result.blockTime ?? Date.now() });
+    if (events.length >= eventCap) break;
   }
   return events;
 }
