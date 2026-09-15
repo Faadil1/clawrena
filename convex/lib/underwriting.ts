@@ -16,6 +16,7 @@ export type PumpUnderwritingResult = {
   artifactClass: "LIVE_EVIDENCE_UNDERWRITING_DECISION";
   tokenMint: string;
   launchSignature: string;
+  createdAt: number;
   policyState: "QUALIFIED" | "REFUSED";
   valueMovement: false;
   nextBoundary: "LAST_MILE_PROVIDER_AND_RISK_PREFLIGHT_REQUIRED" | "NONE";
@@ -73,6 +74,7 @@ export async function underwritePumpLaunch(input: {
       artifactClass: "LIVE_EVIDENCE_UNDERWRITING_DECISION",
       tokenMint: input.tokenMint,
       launchSignature: input.launchSignature,
+      createdAt: now,
       policyState: "REFUSED",
       valueMovement: false,
       nextBoundary: "NONE",
@@ -91,26 +93,9 @@ export async function underwritePumpLaunch(input: {
   ]);
   const market = snapshots[input.tokenMint];
   const sourceLedger: EvidenceSource[] = [
-    {
-      source: "solana-pump-transaction",
-      status: "OBSERVED",
-      observedAt: now,
-      reference: input.launchSignature,
-      blockTime: provenance.blockTime,
-      slot: provenance.slot ?? null,
-    },
-    {
-      source: "jupiter-price-v3",
-      status: market ? "OBSERVED" : "UNKNOWN",
-      observedAt: market?.observedAt ?? now,
-      blockId: market?.blockId ?? null,
-    },
-    {
-      source: "solana-owner-concentration",
-      status: holder ? "OBSERVED" : "UNKNOWN",
-      observedAt: holder?.observedAt ?? now,
-      slot: holder?.observationSlot ?? null,
-    },
+    { source: "solana-pump-transaction", status: "OBSERVED", observedAt: now, reference: input.launchSignature, blockTime: provenance.blockTime, slot: provenance.slot ?? null },
+    { source: "jupiter-price-v3", status: market ? "OBSERVED" : "UNKNOWN", observedAt: market?.observedAt ?? now, blockId: market?.blockId ?? null },
+    { source: "solana-owner-concentration", status: holder ? "OBSERVED" : "UNKNOWN", observedAt: holder?.observedAt ?? now, slot: holder?.observationSlot ?? null },
   ];
 
   const verdict = evaluateLaunchEvidence({
@@ -149,6 +134,7 @@ export async function underwritePumpLaunch(input: {
     artifactClass: "LIVE_EVIDENCE_UNDERWRITING_DECISION",
     tokenMint: input.tokenMint,
     launchSignature: input.launchSignature,
+    createdAt: now,
     policyState: passport.policyState === "QUALIFIED" ? "QUALIFIED" : "REFUSED",
     valueMovement: false,
     nextBoundary: verdict.eligible ? "LAST_MILE_PROVIDER_AND_RISK_PREFLIGHT_REQUIRED" : "NONE",
