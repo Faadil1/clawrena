@@ -5,49 +5,100 @@ import { api } from "../../convex/_generated/api";
 import { useEffect } from "react";
 
 const navItems = [
-  { to: "/dashboard", label: "Dashboard", icon: "▦" },
-  { to: "/agent", label: "Agent", icon: "▲" },
-  { to: "/signals", label: "Signals", icon: "●" },
-  { to: "/proof", label: "Proof", icon: "✓" },
-  { to: "/token", label: "Token", icon: "★" },
+  { to: "/dashboard", label: "Desk", meta: "SURVEILLANCE", code: "01" },
+  { to: "/agent", label: "Authority", meta: "AGENT + RISK", code: "02" },
+  { to: "/signals", label: "Launch tape", meta: "OBSERVATIONS", code: "03" },
+  { to: "/proof", label: "Receipts", meta: "EVIDENCE", code: "04" },
+  { to: "/token", label: "Token", meta: "ECONOMICS", code: "05" },
 ];
 
 export function AppShell() {
   const { isAuthenticated } = useConvexAuth();
   const { signOut } = useAuthActions();
   const ensureUser = useMutation(api.users.ensureUser);
-  const currentUser = useQuery(api.queries.portfolio.dashboard)?.user;
+  const dashboard = useQuery(api.queries.portfolio.dashboard);
+  const currentUser = dashboard?.user;
+  const agent = dashboard?.agent;
 
   useEffect(() => {
     if (isAuthenticated) void ensureUser();
   }, [isAuthenticated, ensureUser]);
 
+  const runtimeState = agent?.status === "running" ? "ARMED / PAPER" : agent?.status === "halted" ? "HALTED" : agent ? "PAUSED" : "NOT DEPLOYED";
+
   return (
-    <div className="flex min-h-screen bg-surface">
-      <aside className="hidden md:flex w-[72px] bg-white border-r border-line flex-col items-center py-5 gap-2 fixed h-screen z-10">
-        <NavLink to="/dashboard" className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center font-extrabold text-white mb-5">A</NavLink>
-        {navItems.map((item) => (
-          <NavLink key={item.to} to={item.to} title={item.label} className={({ isActive }) => `w-11 h-11 rounded-xl flex items-center justify-center transition-colors ${isActive ? "bg-accent-light text-accent" : "text-ink-faint hover:bg-surface hover:text-ink"}`}>
-            <span className="text-lg">{item.icon}</span>
-          </NavLink>
-        ))}
+    <div className="min-h-screen bg-surface">
+      <aside className="ops-side hidden md:flex">
+        <NavLink to="/dashboard" className="ops-brand">
+          <span className="ops-brand-mark">A</span>
+          <span>
+            <b>ALPHA SCOUT</b>
+            <small>EVIDENCE DESK</small>
+          </span>
+        </NavLink>
+
+        <div className="ops-side-label">CONTROL SURFACES</div>
+        <nav className="flex flex-col gap-1">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) => `ops-nav-link ${isActive ? "ops-nav-link--active" : ""}`}
+            >
+              <span className="ops-nav-code">{item.code}</span>
+              <span className="min-w-0">
+                <b>{item.label}</b>
+                <small>{item.meta}</small>
+              </span>
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="mt-auto ops-side-status">
+          <div className="ops-side-status-row">
+            <span>EXECUTION</span>
+            <b>PAPER</b>
+          </div>
+          <div className="ops-side-status-row">
+            <span>AUTHORITY</span>
+            <b>{runtimeState}</b>
+          </div>
+          <div className="ops-side-status-row">
+            <span>NETWORK</span>
+            <b className="text-up">SOLANA</b>
+          </div>
+        </div>
       </aside>
-      <div className="flex-1 md:ml-[72px] flex flex-col min-h-screen pb-16 md:pb-0">
-        <header className="min-h-16 bg-white border-b border-line flex items-center justify-between gap-4 px-4 sm:px-6 md:px-8 py-3 sticky top-0 z-5">
-          <div>
-            <div className="text-lg font-bold">Alpha Scout</div>
-            <div className="text-[11px] text-ink-faint">evidence-first launch trader</div>
+
+      <div className="md:ml-[220px] min-h-screen flex flex-col pb-16 md:pb-0">
+        <header className="ops-topbar">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+            <div className="md:hidden flex items-center gap-2 font-extrabold text-sm">
+              <span className="ops-mini-mark">A</span>
+              ALPHA SCOUT
+            </div>
+            <div className="hidden md:flex items-center gap-4 text-[10px] font-mono tracking-[0.12em] uppercase text-ink-mid">
+              <span className="inline-flex items-center gap-2"><span className="ops-live-dot" /> Convex live</span>
+              <span>Solana</span>
+              <span>Execution / paper</span>
+              <span>Proof / fail-closed</span>
+            </div>
           </div>
           <div className="flex items-center gap-3">
-            {currentUser?.walletAddress && <span className="hidden sm:block text-[12px] font-mono text-ink-mid">watch {short(currentUser.walletAddress)}</span>}
-            {isAuthenticated && <button onClick={() => void signOut()} className="px-3 py-2 rounded-lg text-[13px] font-semibold text-ink-mid hover:bg-surface">Sign out</button>}
+            {currentUser?.walletAddress && <span className="hidden lg:block text-[10px] font-mono tracking-wide text-ink-mid">WATCH {short(currentUser.walletAddress)}</span>}
+            {isAuthenticated && (
+              <button onClick={() => void signOut()} className="ops-text-button">Sign out</button>
+            )}
           </div>
         </header>
+
         <main className="flex-1 min-w-0"><Outlet /></main>
-        <nav className="md:hidden fixed bottom-0 inset-x-0 z-20 bg-white border-t border-line grid grid-cols-5 px-1 py-2">
+
+        <nav className="md:hidden fixed bottom-0 inset-x-0 z-20 bg-[#F7F6F1] border-t border-[#C9CCC2] grid grid-cols-5 px-1 py-2">
           {navItems.map((item) => (
-            <NavLink key={item.to} to={item.to} className={({ isActive }) => `flex flex-col items-center gap-1 py-1 text-[10px] font-semibold ${isActive ? "text-accent" : "text-ink-faint"}`}>
-              <span className="text-base leading-none">{item.icon}</span>{item.label}
+            <NavLink key={item.to} to={item.to} className={({ isActive }) => `flex flex-col items-center gap-1 py-1 text-[9px] font-mono uppercase tracking-wide ${isActive ? "text-accent" : "text-ink-faint"}`}>
+              <span className="text-[10px]">{item.code}</span>
+              <span>{item.label}</span>
             </NavLink>
           ))}
         </nav>
