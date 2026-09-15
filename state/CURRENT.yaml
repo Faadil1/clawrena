@@ -1,7 +1,7 @@
 project: alpha-scout-clawrena
 canonical_branch: winning-delta-p0-p2
 upstream_pr: https://github.com/opeblow/clawrena/pull/1
-phase: P6_PUBLIC_REVIEW_PREVIEW
+phase: P7_LIVE_FRONTEND_BOUND
 updated_at: 2026-09-15
 
 product_truth:
@@ -14,8 +14,14 @@ product_truth:
   alpha_scout_token_live: pending_external_tokenization_receipt
   holder_revenue_share: not_built
   automated_treasury_spending: not_built
-  public_review_preview: reachable
-  public_review_preview_backend: not_connected
+  public_review_preview: superseded_by_live_frontend
+  convex_cloud_project: created
+  convex_cloud_deployment: grandiose-poodle-700
+  convex_functions_ready: true
+  public_live_frontend: reachable
+  public_live_frontend_convex_bound: true
+  convex_http_health_verified: false
+  auth_round_trip_verified: false
   canonical_public_runtime: pending
 
 canonical_thesis: >-
@@ -44,6 +50,11 @@ completed_gates:
   - honest_no_backend_review_mode
   - upstream_ci_dist_artifact
   - public_review_preview_reachability
+  - convex_cloud_project_created
+  - convex_dev_schema_and_functions_deployed
+  - live_frontend_built_against_real_convex_url
+  - public_live_frontend_root_reachability
+  - public_live_frontend_proof_route_reachability
   - canonical_state_handover
 
 conditional_gates:
@@ -53,10 +64,12 @@ conditional_gates:
   - verified_onchain_execution_if_attempted
 
 blocking_gates:
+  - convex_http_health_probe
+  - convex_auth_round_trip
+  - runtime_provider_secret_configuration
   - eligibility_external_receipts
   - alpha_scout_tokenization_receipt
   - public_cloudflare_runtime_deploy
-  - convex_target_deploy
   - canonical_real_negative_path_capture
   - real_agent_treasury_capture_after_tokenization
   - gate_7_promote
@@ -76,16 +89,17 @@ eligibility:
 runtime:
   preferred_frontend: cloudflare_pages
   deployment_runbook: docs/DEPLOYMENT_CLOUDFLARE_CONVEX.md
-  review_preview_url: https://clawrena-alpha-scout-review.vercel.app
-  review_preview_source_sha: c757bc7a4b169a605c5ceee4f9dfbdc9ec9ed36b
-  review_preview_vercel_deployment_id: dpl_8KzYivyvtke748j7YiuURbfsM3cw
-  review_preview_http_status: 200
-  review_preview_is_canonical_runtime: false
-  upstream_ci_run: 18
-  upstream_ci_conclusion: success
-  dist_artifact_id: 10392932518
+  live_frontend_url: https://clawrena-alpha-scout-review.vercel.app
+  live_frontend_vercel_deployment_id: dpl_5DWoXE5AkFBXMPKuqBFyCD5L3e6B
+  live_frontend_source_sha: 47225cf29f1af76bd203657c8d3369cd2f58d9d4
+  live_asset_branch: live-preview-dist
+  live_frontend_root_http_status: 200
+  live_frontend_proof_http_status: 200
+  convex_client_url: https://grandiose-poodle-700.convex.cloud
+  convex_http_url: pending_verified_value_from_env_local
+  live_frontend_is_canonical_runtime: false
+  live_frontend_evidence: evidence/runtime/LIVE_FRONTEND.json
   reachability_evidence: evidence/runtime/LATEST.json
-  review_preview_evidence: evidence/runtime/REVIEW_PREVIEW.json
   canonical_run_status: evidence/canonical-run/STATUS.json
   promotion_command: npm run gate:submission
 
@@ -116,5 +130,5 @@ canonical_artifacts:
   trace_6_5: docs/TRACE_GATE_6_5.md
   eligibility_status: evidence/eligibility/STATUS.json
   runtime_status: evidence/runtime/LATEST.json
-  review_preview_status: evidence/runtime/REVIEW_PREVIEW.json
+  live_frontend_status: evidence/runtime/LIVE_FRONTEND.json
   canonical_run_status: evidence/canonical-run/STATUS.json
