@@ -1,11 +1,12 @@
 project: alpha-scout-clawrena
-handover_version: P11_4_2026-09-16_CLOUDFLARE_PREVIEW_LIVE
+handover_version: P11_4_2026-09-16_CLAWPUMP_AGENT_SELECTED
 
 start_here:
   - state/CURRENT.yaml
   - evidence/canonical-run/P11-AUTHORITY-REFUSAL-2026-09-16.json
   - evidence/canonical-run/STATUS.json
   - evidence/runtime/P11-CLOUDFLARE-PREVIEW-2026-09-16.json
+  - evidence/external/P11-CLAWPUMP-AGENT-DISCOVERY-2026-09-16.json
   - docs/AGENT_TO_AGENT_PROOF_P11_4.md
   - skills/evidence-authority/SKILL.md
   - scripts/capture-agent-to-agent-proof.mjs
@@ -58,17 +59,24 @@ p11_4_agent_to_agent:
   metric_is_unique_agents: false
   capture_script: scripts/capture-agent-to-agent-proof.mjs
   proof_contract: docs/AGENT_TO_AGENT_PROOF_P11_4.md
+  selected_external_agent:
+    discovery_artifact: evidence/external/P11-CLAWPUMP-AGENT-DISCOVERY-2026-09-16.json
+    id: c1a5477c-c79e-4388-a9eb-8303fa441087
+    name: T
+    status_at_discovery: stopped
+    token_mint: none
+    wallet_omitted_from_public_evidence: true
+    discovery_read_only: true
   external_run_status: pending
 
 next_actions_priority:
-  - in the Claude Code session where clawpump-remote is connected, call list_agents read-only
-  - choose an existing ClawPump agent, or create a dedicated one only if no suitable agent exists
-  - create/import the Evidence Authority custom skill from skills/evidence-authority/SKILL.md
-  - run a real ClawPump/Hermes chat or autonomous run in shadow mode
-  - preserve real agent id and run id
-  - call Alpha Scout /underwrite with caller metadata and preserve replay key
+  - in the connected clawpump-remote session, create a custom Evidence Authority skill on agent T using skills/evidence-authority/SKILL.md
+  - do not trade, transfer, launch a token, create an automation, or start capital-moving activity during the first proof
+  - use a real ClawPump chat or tightly bounded autonomous run in shadow mode
+  - have that external interaction request Alpha Scout underwriting against a real Pump launch and preserve returned replay key/state
+  - preserve real ClawPump agent id plus chat/run id
   - run scripts/capture-agent-to-agent-proof.mjs for Alpha Scout-side consistency proof
-  - cross-reference the ClawPump run receipt with Alpha Scout replay key before marking agent-to-agent proof complete
+  - cross-reference the ClawPump receipt with the Alpha Scout replay key before marking agent-to-agent proof complete
   - if feasible, fund the external agent billing wallet with ANSEM and repeat one real underwriting request before making ANSEM-funded claims
   - only after agent-to-agent proof reopen TRACE/UI as a Proof-of-Authority Workstation
   - keep the current Cloudflare deployment preview-only until final visual/runtime approval
@@ -84,9 +92,11 @@ truth_boundaries:
   ansem_funded_demo_proved: false
   cloudflare_preview_is_production: false
   cloudflare_http_200_proves_visual_correctness: false
+  listed_external_agent_alone_proves_agent_to_agent: false
 
 never_do:
   - never paste CLAWPUMP_API_KEY or AUTHORITY_API_KEY into chat, repo, evidence or logs
+  - do not publish the selected agent wallet in public evidence unless it becomes necessary for a specific proof
   - do not call declared caller metadata verified identity
   - do not call externallyAttributedUnderwritingRequests unique agents/users
   - do not call REFUSED a product failure
