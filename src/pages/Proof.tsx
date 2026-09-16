@@ -6,7 +6,6 @@ import { api } from "../../convex/_generated/api";
 import "./proof.css";
 
 const CANONICAL_REPLAY_KEY = "AS1-51fff2964ef6c06d";
-const CANONICAL_SESSION_ID = "94b94917-ff0d-4697-b0fd-5ca7d687f3a0";
 
 export default function Proof() {
   const [replayInput, setReplayInput] = useState(CANONICAL_REPLAY_KEY);
@@ -20,14 +19,21 @@ export default function Proof() {
     if (next) setReplayKey(next);
   };
 
+  const isLoading = receipt === undefined;
   const storedReceipt = receipt && "replayKey" in receipt ? receipt : null;
   const receiptError = receipt && "error" in receipt ? receipt.error : null;
   const hasReceipt = storedReceipt !== null;
+  const isUnavailable = !isLoading && !hasReceipt;
   const caller = storedReceipt?.caller ?? null;
   const sources = storedReceipt && Array.isArray(storedReceipt.sourceLedger) ? storedReceipt.sourceLedger : [];
   const blockers = storedReceipt?.blockers ?? [];
   const unknowns = storedReceipt?.unknowns ?? [];
   const match = storedReceipt?.replayConsistency === "MATCH";
+  const confirmedReplay = hasReceipt && match;
+
+  const topStatusText = isLoading ? "CHECKING CONVEX" : hasReceipt ? "LIVE RECEIPT / CONVEX" : "RECEIPT UNAVAILABLE";
+  const footerStatusText = hasReceipt ? "PROOF ROOM LIVE" : isLoading ? "PROOF ROOM CHECKING" : "PROOF ROOM UNAVAILABLE";
+  const callerField = (value: string | undefined) => value ?? (isLoading ? "Pending…" : "Unavailable");
 
   return (
     <div className="pa-page">
@@ -37,7 +43,7 @@ export default function Proof() {
           <span><b>ALPHA SCOUT</b><small>PROOF OF AUTHORITY</small></span>
         </Link>
         <div className="pa-topbar-center" aria-label="Proof mode">
-          <span className="pa-live-dot" /> LIVE RECEIPT / CONVEX
+          <span className="pa-live-dot" /> {topStatusText}
           <i />
           <span>FAIL-CLOSED</span>
         </div>
@@ -63,9 +69,9 @@ export default function Proof() {
             </div>
           </div>
 
-          <aside className={`pa-verdict ${hasReceipt ? "is-loaded" : "is-loading"}`}>
+          <aside className={`pa-verdict ${hasReceipt ? "is-loaded" : isUnavailable ? "is-unavailable" : "is-loading"}`}>
             <div className="pa-verdict-label">AUTHORITY DECISION</div>
-            <div className="pa-verdict-word">{receipt === undefined ? "CHECKING" : storedReceipt ? storedReceipt.policyState : "NO RECEIPT"}</div>
+            <div className="pa-verdict-word">{isLoading ? "CHECKING" : storedReceipt ? storedReceipt.policyState : "NO RECEIPT"}</div>
             <div className="pa-verdict-score">
               <span>Evidence score</span>
               <b>{storedReceipt ? `${storedReceipt.score ?? "—"}/100` : "—"}</b>
@@ -79,16 +85,16 @@ export default function Proof() {
         </section>
 
         <section className="pa-proofline" aria-label="Cross-system proof chain">
-          <ProofStep no="01" label="REQUESTER" value="Claude Code / headless" detail={caller?.runId ? short(caller.runId, 8, 6) : short(CANONICAL_SESSION_ID, 8, 6)} state="OBSERVED" />
+          <ProofStep no="01" label="REQUESTER" value="Claude Code / headless" detail={caller?.runId ? short(caller.runId, 8, 6) : isLoading ? "awaiting session" : "session unavailable"} state={caller ? "OBSERVED" : isLoading ? "CHECKING" : "UNAVAILABLE"} />
           <ProofStep no="02" label="UNDERWRITE" value={storedReceipt ? `HTTP receipt · ${storedReceipt.policyState}` : "Awaiting receipt"} detail="real Pump mint + create signature" state={hasReceipt ? "RECORDED" : "PENDING"} />
           <ProofStep no="03" label="PASSPORT" value={storedReceipt ? storedReceipt.replayKey : CANONICAL_REPLAY_KEY} detail={storedReceipt ? `policy ${storedReceipt.policyVersion}` : "deterministic audit identifier"} state={hasReceipt ? "STORED" : "PENDING"} mono />
-          <ProofStep no="04" label="CONSISTENCY" value={receipt === undefined ? "CHECKING" : match ? "MATCH" : "UNVERIFIED"} detail="recomputed from stored envelope" state={match ? "PROVED" : "PENDING"} emphasis />
+          <ProofStep no="04" label="CONSISTENCY" value={isLoading ? "CHECKING" : match ? "MATCH" : "UNVERIFIED"} detail="recomputed from stored envelope" state={match ? "PROVED" : "PENDING"} emphasis />
         </section>
 
         <section className="pa-grid pa-grid--primary">
           <article className="pa-sheet pa-receipt">
             <SheetHead index="A" eyebrow="LIVE EVIDENCE PASSPORT" title="Refusal docket" status={match ? "MATCH" : "CHECKING"} tone={match ? "good" : "neutral"} />
-            {receipt === undefined ? (
+            {isLoading ? (
               <LoadingBlock text="Reading the stored Evidence Passport…" />
             ) : storedReceipt === null ? (
               <div className="pa-empty">
@@ -129,11 +135,11 @@ export default function Proof() {
             <div className="pa-requester-body">
               <div className="pa-agent-mark"><span>EXT</span><b>CLAUDE<br />CODE</b></div>
               <dl className="pa-kv">
-                <KeyValue label="Platform" value={caller?.platform ?? "claude-code"} />
-                <KeyValue label="Agent ID" value={caller?.agentId ?? "claude-code-headless"} />
-                <KeyValue label="Run / session" value={caller?.runId ?? CANONICAL_SESSION_ID} mono />
-                <KeyValue label="Skill" value={caller?.skillSlug ?? "evidence-authority"} />
-                <KeyValue label="Identity semantics" value={caller?.identitySemantics ?? "DECLARED_EXTERNAL_CONTEXT"} mono />
+                <KeyValue label="Platform" value={callerField(caller?.platform)} />
+                <KeyValue label="Agent ID" value={callerField(caller?.agentId)} />
+                <KeyValue label="Run / session" value={callerField(caller?.runId)} mono />
+                <KeyValue label="Skill" value={callerField(caller?.skillSlug)} />
+                <KeyValue label="Identity semantics" value={callerField(caller?.identitySemantics)} mono />
               </dl>
               <div className="pa-boundary-note">
                 <b>DECLARED ≠ VERIFIED IDENTITY</b>
@@ -163,14 +169,14 @@ export default function Proof() {
 
         <section className="pa-grid pa-grid--secondary">
           <article className="pa-sheet pa-verifier">
-            <SheetHead index="D" eyebrow="REPLAY VERIFIER" title="Check any Evidence Passport" status={match ? "LIVE" : "READY"} tone={match ? "good" : "neutral"} />
+            <SheetHead index="D" eyebrow="REPLAY VERIFIER" title="Check any Evidence Passport" status={confirmedReplay ? "LIVE" : "READY"} tone={confirmedReplay ? "good" : "neutral"} />
             <form className="pa-verify-form" onSubmit={submitReplay}>
               <label htmlFor="replay-key">Replay key</label>
               <div><input id="replay-key" value={replayInput} onChange={(event) => setReplayInput(event.target.value)} spellCheck={false} aria-label="Replay key" /><button type="submit">VERIFY RECEIPT</button></div>
             </form>
-            <div className={`pa-verify-result ${match ? "is-match" : ""}`}>
-              <span>{receipt === undefined ? "…" : match ? "✓" : "?"}</span>
-              <div><b>{receipt === undefined ? "Recomputing stored envelope" : match ? "REPLAY CONSISTENCY: MATCH" : "NO MATCH CONFIRMED"}</b><p>{match && storedReceipt ? `${storedReceipt.recomputedReplayKey} reproduces the stored identifier under ${storedReceipt.policyVersion}.` : "Verification is deterministic consistency only; it is not live market revalidation or cryptographic attestation."}</p></div>
+            <div className={`pa-verify-result ${confirmedReplay ? "is-match" : ""}`}>
+              <span>{isLoading ? "…" : confirmedReplay ? "✓" : "?"}</span>
+              <div><b>{isLoading ? "Recomputing stored envelope" : confirmedReplay ? "REPLAY CONSISTENCY: MATCH" : "NO MATCH CONFIRMED"}</b><p>{confirmedReplay && storedReceipt ? `${storedReceipt.recomputedReplayKey} reproduces the stored identifier under ${storedReceipt.policyVersion}.` : "Verification is deterministic consistency only; it is not live market revalidation or cryptographic attestation."}</p></div>
             </div>
             <p className="pa-verifier-foot">Verification reads the stored decision envelope. It does not refresh market evidence and does not authorize execution.</p>
           </article>
@@ -196,7 +202,7 @@ export default function Proof() {
         <footer className="pa-footer">
           <div><img src="/alpha-scout.svg" alt="" /><span><b>ALPHA SCOUT</b><small>Evidence Underwriter / Execution Authority</small></span></div>
           <p>Observed ≠ inferred · qualified ≠ authorized · pending ≠ verified · real failure &gt; fake success</p>
-          <span className="pa-footer-status"><i /> PROOF ROOM LIVE</span>
+          <span className="pa-footer-status"><i /> {footerStatusText}</span>
         </footer>
       </main>
     </div>
