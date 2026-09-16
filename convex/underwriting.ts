@@ -4,6 +4,13 @@ import { recomputeEvidenceReplayKey } from "./lib/evidencePassport";
 import { evidencePolicyDescriptor } from "./lib/evidencePolicy";
 
 const policyState = v.union(v.literal("QUALIFIED"), v.literal("REFUSED"));
+const callerValidator = v.object({
+  platform: v.string(),
+  agentId: v.string(),
+  runId: v.optional(v.string()),
+  skillSlug: v.optional(v.string()),
+  identitySemantics: v.literal("DECLARED_EXTERNAL_CONTEXT"),
+});
 const REPLAY_RE = /^AS1-[0-9a-f]{16}$/;
 
 export const recordDecision = internalMutation({
@@ -21,6 +28,7 @@ export const recordDecision = internalMutation({
     sourceLedger: v.any(),
     freshnessExpiresAt: v.number(),
     supersedesReplayKey: v.optional(v.string()),
+    caller: v.optional(callerValidator),
     createdAt: v.number(),
   },
   handler: async (ctx, args) => {
@@ -105,6 +113,8 @@ export const verifyReceipt = query({
       blockers: stored.blockers,
       sourceLedger: stored.sourceLedger,
       supersedesReplayKey: stored.supersedesReplayKey ?? null,
+      caller: stored.caller ?? null,
+      callerIdentityVerifiedByAlphaScout: false,
       createdAt: stored.createdAt,
       valueMovement: false,
     };
