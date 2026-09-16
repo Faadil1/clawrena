@@ -18,12 +18,29 @@
     "blocker": "holder concentration unknown",
     "canonicalEvidence": "evidence/canonical-run/P11-AUTHORITY-REFUSAL-2026-09-16.json"
   },
+  "externalAgentAuthorityProof": {
+    "status": "COMPLETE",
+    "platform": "claude-code",
+    "agentId": "claude-code-headless",
+    "sessionId": "94b94917-ff0d-4697-b0fd-5ca7d687f3a0",
+    "ledgerId": "md72gnkxnf2arb7ewnrc2szb498ehrxr",
+    "policyState": "REFUSED",
+    "score": 30,
+    "replayKey": "AS1-51fff2964ef6c06d",
+    "recomputedReplayKey": "AS1-51fff2964ef6c06d",
+    "replayConsistency": "MATCH",
+    "valueMovement": false,
+    "callerIdentityVerifiedByAlphaScout": false,
+    "canonicalEvidence": "evidence/canonical-run/P11-EXTERNAL-AGENT-AUTHORITY-2026-09-16.json",
+    "clawPumpNativeAutonomousRunProved": false
+  },
   "stillRequiredBeforePromotion": [
-    "screen recording link or immutable hash showing the live authority flow",
-    "Evidence Authority skill import into a real external ClawPump/Hermes agent",
-    "agent-to-agent shadow-underwriting receipt",
-    "eligibility receipts for registration, X/follow and tokenization",
-    "canonical public frontend deployment / final runtime routing",
+    "hackathon eligibility registration receipt",
+    "hackathon X entry/follow receipt",
+    "Alpha Scout tokenization receipt",
+    "final Cloudflare production routing plus visual/runtime verification",
+    "screen recording link or immutable video hash showing the live authority flow",
+    "attention/stream receipts required by final submission packaging",
     "transaction signature and confirmation slot only if actual on-chain execution is attempted"
   ],
   "promotionReady": false
