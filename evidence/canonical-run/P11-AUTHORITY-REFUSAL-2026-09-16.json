@@ -1,0 +1,123 @@
+{
+  "artifactClass": "CANONICAL_REAL_NEGATIVE_PATH_RUNTIME_EVIDENCE",
+  "status": "CAPTURED",
+  "fakeSuccessForbidden": true,
+  "capturedAt": "2026-09-16T01:00:02.099Z",
+  "sourceSha": "3d9257d578d3d4bb3e72a47ba60305c730236d9c",
+  "runtime": {
+    "convexCloudUrl": "https://grandiose-poodle-700.convex.cloud",
+    "convexHttpUrl": "https://grandiose-poodle-700.convex.site",
+    "healthVerified": true,
+    "policyVersion": "AS-AUTHORITY-V1"
+  },
+  "discovery": {
+    "source": "pump-mint-authority",
+    "requestedSignatureLimit": 120,
+    "signaturesExamined": 6,
+    "pagesSearched": 1,
+    "verifiedLaunches": 3,
+    "inserted": 3,
+    "dedicatedRpcConfigured": false,
+    "selectedLaunch": {
+      "mint": "BPVRf68R4zxrXVXBQMo8KpvJcq9vLM1tpe7p1hckuvd1",
+      "signature": "47emwzJgBXieLUc1zq555jv4ajQbXevwhJFoxaATNyJnqLoFDvpp6ZFE4QLVVe5CoXahFkMyfF6Fy9mpNR4Zoy83",
+      "blockTime": 1789520388000,
+      "slot": 447392149
+    }
+  },
+  "underwriting": {
+    "ledgerId": "md7eam4vgh1nfsb3dzvd363v558ehm8z",
+    "policyState": "REFUSED",
+    "valueMovement": false,
+    "score": 50,
+    "priceUsd": 0.0000031295214380814036,
+    "liquidityUsd": 2985.0997015306016,
+    "priceChange24h": -3.3755269975356536e-8,
+    "unknowns": ["largest-holder concentration"],
+    "blockers": ["holder concentration unknown"],
+    "reasons": [
+      "live price verified",
+      "liquidity above minimum floor",
+      "fresh launch <= 5m",
+      "24h move inside bounded momentum window"
+    ],
+    "sourceLedger": [
+      {
+        "source": "solana-pump-transaction",
+        "status": "OBSERVED",
+        "reference": "47emwzJgBXieLUc1zq555jv4ajQbXevwhJFoxaATNyJnqLoFDvpp6ZFE4QLVVe5CoXahFkMyfF6Fy9mpNR4Zoy83",
+        "slot": 447392149,
+        "blockTime": 1789520388000
+      },
+      {
+        "source": "jupiter-price-v3",
+        "status": "OBSERVED",
+        "blockId": 447392175
+      },
+      {
+        "source": "solana-owner-concentration",
+        "status": "UNKNOWN",
+        "slot": null
+      }
+    ],
+    "passport": {
+      "policyVersion": "AS-AUTHORITY-V1",
+      "replayKey": "AS1-ae5d5316d70899bd",
+      "policyState": "REFUSED",
+      "freshnessExpiresAt": 1789520520441,
+      "counterfactuals": [
+        "Resolve critical unknown: largest-holder concentration",
+        "Re-evaluate gate: live price verified",
+        "Re-evaluate gate: liquidity above minimum floor",
+        "Re-evaluate gate: fresh launch <= 5m",
+        "Re-evaluate gate: 24h move inside bounded momentum window"
+      ]
+    }
+  },
+  "receiptConsistency": {
+    "ok": true,
+    "replayConsistency": "MATCH",
+    "recomputedReplayKey": "AS1-ae5d5316d70899bd",
+    "policyIsCurrent": true,
+    "semantics": "DETERMINISTIC_CONSISTENCY_NOT_CRYPTOGRAPHIC_ATTESTATION_NOT_LIVE_REVALIDATION"
+  },
+  "lineage": {
+    "ledgerId": "md75fdf5xfcn9geqqsgv5bq8858egwgs",
+    "previousReplayKey": "AS1-ae5d5316d70899bd",
+    "currentReplayKey": "AS1-c24346db6fb3c24e",
+    "policyChanged": false,
+    "stateChanged": false,
+    "scoreDelta": 0,
+    "unknownsResolved": [],
+    "unknownsAdded": [],
+    "blockersResolved": [],
+    "blockersAdded": [],
+    "currentPolicyState": "REFUSED"
+  },
+  "activity": {
+    "before": {
+      "underwritingDecisions": 0,
+      "underwritingRefused": 0,
+      "underwritingLineageReruns": 0
+    },
+    "after": {
+      "underwritingDecisions": 2,
+      "underwritingQualified": 0,
+      "underwritingRefused": 2,
+      "underwritingLineageReruns": 1
+    },
+    "requestCountsAreNotUniqueAgents": true,
+    "notTradingVolume": true,
+    "notRealisedPerformance": true
+  },
+  "truthBoundaries": {
+    "qualifiedIsExecutionAuthorization": false,
+    "underwritingMovesValue": false,
+    "requestCountIsUniqueAgents": false,
+    "requestCountIsTradingVolume": false,
+    "replayKeyIsCryptographicSignature": false,
+    "syntheticCandidateSubstituted": false
+  },
+  "localFullArtifact": "evidence/runtime/P11-AUTHORITY-RUNTIME.json",
+  "notes": "Canonical negative path: a real verified Pump launch was refused because holder concentration evidence remained UNKNOWN. This is a successful authority outcome, not a trading-performance claim."
+}
