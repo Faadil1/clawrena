@@ -1,0 +1,34 @@
+{
+  "artifactClass": "P11_CLOUDFLARE_PREVIEW_DEPLOYMENT_EVIDENCE",
+  "capturedAt": "2026-09-16T02:08:00Z",
+  "source": "operator-terminal-report",
+  "project": "alpha-scout-clawrena",
+  "platform": "cloudflare-pages",
+  "environment": "preview",
+  "productionBranch": "master",
+  "deployedBranch": "winning-intelligence-p11",
+  "deployedSourceSha": "b6f4ef1513bfb7a6ec8476bb0df849ebb974d71e",
+  "deploymentIdReported": "817bb36b",
+  "deploymentUrl": "https://817bb36b.alpha-scout-clawrena.pages.dev",
+  "branchAliasUrl": "https://winning-intelligence-p11.alpha-scout-clawrena.pages.dev",
+  "httpChecks": {
+    "deploymentUrl": 200,
+    "branchAliasUrl": 200
+  },
+  "productionDeploymentMade": false,
+  "productionBranchModified": false,
+  "customDomainAttached": false,
+  "vercelDeploymentMade": false,
+  "sourceChangesMadeDuringDeploy": false,
+  "truthBoundaries": {
+    "http200ProvesVisualCorrectness": false,
+    "previewIsCanonicalProduction": false,
+    "previewDeploymentProvesAgentToAgentFlow": false
+  },
+  "notes": [
+    "Cloudflare Pages project did not previously exist in the connected account and was created with production branch master.",
+    "The deployed winning-intelligence-p11 branch is a preview deployment only.",
+    "Both reported preview URLs returned HTTP 200 in the operator verification.",
+    "No production deployment, custom domain attachment, Vercel deployment, or source-code change was performed as part of this deployment step."
+  ]
+}
