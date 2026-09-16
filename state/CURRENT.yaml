@@ -1,8 +1,6 @@
 project: alpha-scout-clawrena
 canonical_branch: winning-intelligence-p11
-upstream_merge_commit: 171576483ff589dcf41c07f25a671134628ef073
-upstream_merged_pr: https://github.com/opeblow/clawrena/pull/1
-phase: P11_4_EXTERNAL_CLAUDE_CODE_HTTP_PROVED_UNDERWRITE_BLOCKED_BY_SAFETY_GATE
+phase: P11_4_EXTERNAL_UNDERWRITE_CAPTURED_AWAITING_RECEIPT_MATCH
 updated_at: 2026-09-16
 
 product_truth:
@@ -10,115 +8,75 @@ product_truth:
   evidence_policy_version: AS-AUTHORITY-V1
   evidence_gate_pass_state: QUALIFIED
   qualified_means_execution_authorized: false
-  replay_key_is_crypto_signature: false
   underwriting_moves_value: false
-  local_execution: paper
-  clawpump_partner_api: unsigned_prepare_only
-  verified_onchain_execution: pending
-  verified_volume_rule: onchain_mode_plus_signature_plus_confirmation_slot
-  convex_cloud_project: alpha-scout-clawrena
-  convex_cloud_deployment: grandiose-poodle-700
-  convex_http_url: https://grandiose-poodle-700.convex.site
-  p11_runtime_deployed: true
-  canonical_negative_path_runtime: captured
-  evidence_authority_skill: imported_into_real_clawpump_agent
-  agent_to_agent_caller_attribution: deployed_dev_runtime_not_yet_exercised_by_external_underwrite
-  external_agent_http_reachability: proved_with_auditable_claude_code_bash_trace
-  external_agent_underwrite_safety_gate: blocked_before_execution
-  agent_to_agent_shadow_underwriting: pending
+  replay_key_is_crypto_signature: false
   caller_metadata_is_identity_proof: false
-  ansem_funded_underwriting_demo: planned_not_proved
-  x402_authority_service: prepared_not_deployed_no_revenue_claim
+  claude_code_session_id_is_crypto_identity: false
+  convex_http_url: https://grandiose-poodle-700.convex.site
+  convex_cloud_url: https://grandiose-poodle-700.convex.cloud
+  convex_deployment: grandiose-poodle-700
   cloudflare_preview: live_http_200_not_production
   canonical_public_frontend: preview_live_not_final_production
 
-canonical_thesis: >-
-  Other agents can discover, analyze, recommend or trade. Alpha Scout independently verifies
-  Pump launch provenance and current evidence, applies a versioned deterministic policy, and
-  returns QUALIFIED or REFUSED with a durable Evidence Passport and source ledger. QUALIFIED
-  is not execution authorization: last-mile provider and risk checks still control value movement.
-
 canonical_runtime_proof:
-  status: CAPTURED
+  status: REAL_NEGATIVE_PATH_CAPTURED
   artifact: evidence/canonical-run/P11-AUTHORITY-REFUSAL-2026-09-16.json
-  status_file: evidence/canonical-run/STATUS.json
-  source_sha: 3d9257d578d3d4bb3e72a47ba60305c730236d9c
-  discovery_source: pump-mint-authority
-  signatures_examined: 6
-  verified_launches: 3
-  selected_mint: BPVRf68R4zxrXVXBQMo8KpvJcq9vLM1tpe7p1hckuvd1
-  selected_launch_signature: 47emwzJgBXieLUc1zq555jv4ajQbXevwhJFoxaATNyJnqLoFDvpp6ZFE4QLVVe5CoXahFkMyfF6Fy9mpNR4Zoy83
-  underwriting_ledger_id: md7eam4vgh1nfsb3dzvd363v558ehm8z
+  real_pump_mint: BPVRf68R4zxrXVXBQMo8KpvJcq9vLM1tpe7p1hckuvd1
+  real_pump_launch_signature: 47emwzJgBXieLUc1zq555jv4ajQbXevwhJFoxaATNyJnqLoFDvpp6ZFE4QLVVe5CoXahFkMyfF6Fy9mpNR4Zoy83
   policy_state: REFUSED
-  score: 50
-  blocker: holder concentration unknown
-  value_movement: false
   replay_key: AS1-ae5d5316d70899bd
   replay_consistency: MATCH
-  lineage_replay_key: AS1-c24346db6fb3c24e
+  value_movement: false
 
-clawpump_external_path:
-  selected_agent_id: c1a5477c-c79e-4388-a9eb-8303fa441087
-  selected_agent_name: T
-  selected_agent_status_at_discovery: stopped
+clawpump_path:
+  real_agent_id: c1a5477c-c79e-4388-a9eb-8303fa441087
+  real_agent_name: T
+  status_at_discovery: stopped
   evidence_authority_skill_id: aa303f0b-9f60-4e06-8278-e0dee6ef5a33
   evidence_authority_skill_slug: evidence-authority
   evidence_authority_skill_enabled: true
-  agent_discovery_artifact: evidence/external/P11-CLAWPUMP-AGENT-DISCOVERY-2026-09-16.json
-  chat_probe_artifact: evidence/runtime/P11-CLAWPUMP-SKILL-CHAT-PROBE-2026-09-16.json
-  chat_probe_external_http_proved: false
-  chat_probe_status: FAILED_CLOSED_NO_EXTERNAL_HTTP_PROOF
-  zero_budget_run_gate_artifact: evidence/runtime/P11-CLAWPUMP-RUN-BUDGET-GATE-2026-09-16.json
+  chat_http_proof_status: FAILED_CLOSED_NO_EXTERNAL_HTTP_PROOF
   zero_budget_run_status: NONZERO_BUDGET_REQUIRED
-  zero_budget_run_created: false
   positive_budget_authorized: false
   financial_state_change_during_clawpump_probes: false
 
-external_claude_code_probe:
-  artifact: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-HTTP-PROBE-2026-09-16.json
-  capture_class: USER_TERMINAL_OUTPUT_SUMMARY
+external_claude_code:
+  capability_probe_artifact: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-HTTP-PROBE-2026-09-16.json
+  underwrite_artifact: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE-2026-09-16.json
+  capture_class: USER_TERMINAL_JSONL_OUTPUT
   assistant_independently_replayed: false
   platform: claude-code
   mode: headless-safe-mode
+  model: claude-sonnet-5
   session_id: 94b94917-ff0d-4697-b0fd-5ca7d687f3a0
-  system_init_session_id_matched: true
-  system_init_tools: [Bash, Read]
-  real_bash_tool_use_present: true
-  endpoint: https://grandiose-poodle-700.convex.site/authority-policy
-  command: curl.exe -sS -i https://grandiose-poodle-700.convex.site/authority-policy
-  tool_result_present: true
-  http_status: 200
-  observed_policy_version: AS-AUTHORITY-V1
-  observed_principle: QUALIFIED_IS_NOT_EXECUTION_AUTHORIZATION
-  external_http_reachability_proved: true
-  underwrite_called: false
+  tools: [Bash, Read]
+  mcp_servers: []
+  authority_policy_http_proved: true
+  underwrite_http_request_sent: true
+  underwrite_request_count_observed: 1
+  automatic_retry_observed: false
+  underwrite_http_status: 200
+  underwrite_ok: true
+  ledger_id: md72gnkxnf2arb7ewnrc2szb498ehrxr
+  token_mint: BPVRf68R4zxrXVXBQMo8KpvJcq9vLM1tpe7p1hckuvd1
+  launch_signature: 47emwzJgBXieLUc1zq555jv4ajQbXevwhJFoxaATNyJnqLoFDvpp6ZFE4QLVVe5CoXahFkMyfF6Fy9mpNR4Zoy83
+  policy_state: REFUSED
+  score: 30
+  blockers:
+    - holder concentration unknown
+    - launch signal older than six hours
+  replay_key: AS1-51fff2964ef6c06d
   value_movement: false
-  financial_tools_used: false
-  local_prompt_path: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-PROBE-PROMPT.txt
-  local_transcript_path: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-PROBE.jsonl
-  underwrite_body_path: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE-BODY.json
-  underwrite_prompt_path: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE-PROMPT.txt
-  underwrite_safety_gate_artifact: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE-SAFETY-GATE-2026-09-16.json
-  underwrite_safety_gate_status: BLOCKED_BEFORE_EXECUTION
-  underwrite_classifier_outcome: REAL_WORLD_TRANSACTIONS_BLOCK
-  underwrite_http_request_sent: false
-  underwrite_ledger_id: null
-  underwrite_replay_key: null
-  receipt_verification_attempted: false
-
-cloudflare_preview_runtime:
-  artifact: evidence/runtime/P11-CLOUDFLARE-PREVIEW-2026-09-16.json
-  project: alpha-scout-clawrena
-  production_branch: master
-  deployed_branch: winning-intelligence-p11
-  deployment_id_reported: 817bb36b
-  deployment_url: https://817bb36b.alpha-scout-clawrena.pages.dev
-  branch_alias_url: https://winning-intelligence-p11.alpha-scout-clawrena.pages.dev
-  environment: preview
-  deployment_url_http_status: 200
-  branch_alias_http_status: 200
-  production_deployment_made: false
-  visual_correctness_verified: false
+  caller:
+    platform: claude-code
+    agent_id: claude-code-headless
+    run_id: 94b94917-ff0d-4697-b0fd-5ca7d687f3a0
+    skill_slug: evidence-authority
+    identity_semantics: DECLARED_EXTERNAL_CONTEXT
+  caller_identity_verified_by_alpha_scout: false
+  external_session_equals_stored_caller_run_id: true
+  receipt_verification_status: pending
+  replay_consistency: pending
 
 completed_gates:
   - real_pump_launch_discovery
@@ -128,19 +86,17 @@ completed_gates:
   - cross_agent_underwriting_api
   - durable_underwriting_ledger
   - source_ledger
-  - agent_to_agent_declared_caller_attribution_code
-  - agent_to_agent_attribution_full_ci_green
-  - p11_4_convex_dev_redeploy
+  - p11_4_caller_attribution_deployed
   - cloudflare_preview_deployed_http_200
   - real_clawpump_agent_discovered_read_only
   - evidence_authority_skill_imported_into_real_clawpump_agent
   - failed_clawpump_chat_probe_preserved_without_fake_success
   - clawpump_zero_budget_run_gate_preserved_without_spend
   - auditable_external_claude_code_http_reachability
-  - external_underwrite_safety_gate_preserved_without_false_runtime_claim
+  - external_claude_code_underwrite_single_post_captured
+  - external_session_id_persisted_as_declared_caller_run_id
 
 blocking_gates:
-  - external_agent_underwrite_receipt
   - stored_receipt_consistency_match_for_external_underwrite
   - cross_system_external_session_to_alpha_scout_replay_key_match
   - eligibility_registration_receipt
@@ -152,35 +108,24 @@ blocking_gates:
   - gate_7_promote
 
 next_actions:
-  - preserve exact Claude Code external session 94b94917-ff0d-4697-b0fd-5ca7d687f3a0 and both prepared underwrite files
-  - because Claude Code blocked the command before execution, do not relabel this as an Alpha Scout refusal or attempted underwriting
-  - if the user explicitly chooses to execute the prepared resume command themselves, capture the resulting JSONL and do not retry /underwrite automatically
-  - after a successful single /underwrite, extract the exact replay key from that same external transcript
-  - verify the replay key through underwriting/verifyReceipt without another /underwrite request and require replayConsistency=MATCH plus stored caller.runId match
-  - cross-reference external session transcript, mint, launch signature, replay key and stored receipt before marking agent_to_agent complete
-  - alternatively, use another already-authorized non-financial external invoker that can produce an auditable HTTP trace; do not weaken proof requirements
-  - only after agent-to-agent proof consider ANSEM-funded proof and reopen TRACE/UI
-  - keep Cloudflare preview-only until final runtime/visual approval
-
-eligibility:
-  official_source: https://clawpump.tech/ansemhack
-  deadline_utc: 2026-09-20T23:59:00Z
-  registration_receipt: pending_external_confirmation
-  x_entry_and_follow_receipt: pending_external_confirmation
-  tokenization_receipt: pending_external_confirmation
+  - perform exactly one read-only underwriting/verifyReceipt query for AS1-51fff2964ef6c06d
+  - do not call /underwrite again merely to verify the receipt
+  - require Convex status success and value.replayConsistency MATCH
+  - require stored caller platform claude-code, agentId claude-code-headless and runId 94b94917-ff0d-4697-b0fd-5ca7d687f3a0
+  - require stored replay key AS1-51fff2964ef6c06d
+  - preserve raw verifyReceipt response in evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-RECEIPT-VERIFY.json
+  - only after all identifiers match mark P11.4 agent-to-agent authority proof complete
+  - after P11.4 completion reopen TRACE/UI and remaining hackathon eligibility gates
 
 truth_boundaries:
+  refused_is_valid_service_outcome: true
+  underwriting_moves_value: false
+  qualified_is_execution_authorization: false
   caller_metadata_is_identity_proof: false
   claude_code_session_id_is_crypto_identity: false
   request_count_is_unique_agents: false
   request_count_is_trading_volume: false
-  refused_is_valid_service_outcome: true
-  underwriting_moves_value: false
-  qualified_is_execution_authorization: false
-  external_http_probe_equals_underwriting_proof: false
-  classifier_block_is_underwriting_refusal: false
-  prepared_request_is_runtime_proof: false
-  no_http_request_means_no_alpha_scout_decision: true
+  external_underwrite_captured_equals_receipt_consistency_proved: false
   agent_to_agent_proof_complete: false
   ansem_funded_demo_proved: false
   cloudflare_preview_is_production: false
