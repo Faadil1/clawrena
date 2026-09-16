@@ -1,8 +1,9 @@
 project: alpha-scout-clawrena
-handover_version: P11_4_2026-09-16_EXTERNAL_UNDERWRITE_CAPTURED
+handover_version: P11_4_2026-09-16_EXTERNAL_AGENT_AUTHORITY_PROOF_COMPLETE
 
 start_here:
   - state/CURRENT.yaml
+  - evidence/canonical-run/P11-EXTERNAL-AGENT-AUTHORITY-2026-09-16.json
   - evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE-2026-09-16.json
   - evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-HTTP-PROBE-2026-09-16.json
   - evidence/canonical-run/P11-AUTHORITY-REFUSAL-2026-09-16.json
@@ -17,14 +18,17 @@ canonical_runtime:
   canonical_negative_path_replay_key: AS1-ae5d5316d70899bd
   canonical_negative_path_replay_consistency: MATCH
 
-external_agent_underwrite:
+external_agent_authority_proof:
+  status: COMPLETE
   platform: claude-code
   mode: headless-safe-mode
   session_id: 94b94917-ff0d-4697-b0fd-5ca7d687f3a0
+  agent_id: claude-code-headless
   model: claude-sonnet-5
   tools: [Bash, Read]
+  mcp_servers: []
+  canonical_artifact: evidence/canonical-run/P11-EXTERNAL-AGENT-AUTHORITY-2026-09-16.json
   transcript: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE.jsonl
-  canonical_summary: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE-2026-09-16.json
   request_count_observed: 1
   http_status: 200
   ok: true
@@ -37,6 +41,8 @@ external_agent_underwrite:
     - holder concentration unknown
     - launch signal older than six hours
   replay_key: AS1-51fff2964ef6c06d
+  recomputed_replay_key: AS1-51fff2964ef6c06d
+  replay_consistency: MATCH
   value_movement: false
   caller:
     platform: claude-code
@@ -46,7 +52,7 @@ external_agent_underwrite:
     identity_semantics: DECLARED_EXTERNAL_CONTEXT
   caller_identity_verified_by_alpha_scout: false
   external_session_matches_caller_run_id: true
-  receipt_consistency: pending
+  cross_system_status: MATCH
 
 clawpump_path_preserved:
   agent_id: c1a5477c-c79e-4388-a9eb-8303fa441087
@@ -56,20 +62,20 @@ clawpump_path_preserved:
   chat_probe_status: FAILED_CLOSED_NO_EXTERNAL_HTTP_PROOF
   autonomous_run_zero_budget_status: NONZERO_BUDGET_REQUIRED
   autonomous_run_created: false
+  native_autonomous_underwrite_proved: false
   financial_state_change: false
+  rule: do_not_call_the_completed_claude_code_proof_a_clawpump_native_run
 
 next_actions_priority:
-  - do not call /underwrite again
-  - run one read-only underwriting/verifyReceipt query for replay key AS1-51fff2964ef6c06d
-  - save raw response to evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-RECEIPT-VERIFY.json
-  - require Convex status success
-  - require value.replayConsistency MATCH
-  - require stored replayKey AS1-51fff2964ef6c06d
-  - require stored caller platform claude-code
-  - require stored caller agentId claude-code-headless
-  - require stored caller runId 94b94917-ff0d-4697-b0fd-5ca7d687f3a0
-  - if all match, create canonical cross-system evidence and mark P11.4 agent-to-agent authority proof complete
-  - then reopen TRACE/UI, final Cloudflare production routing, video and eligibility receipts
+  - P11.4 external-agent authority proof is complete; do not repeat /underwrite merely to reconfirm it
+  - reopen TRACE/UI and design the Proof-of-Authority Workstation around the captured cross-system receipt
+  - show requester/session, real Pump provenance, source ledger, UNKNOWN evidence, blockers, replay key, receipt MATCH and valueMovement=false prominently
+  - preserve the semantic boundary QUALIFIED != execution authorization
+  - run TRACE Gate 6.5 against the Cloudflare preview before production promotion
+  - finish eligibility receipts: registration, X/follow and Alpha Scout tokenization
+  - finalize Cloudflare production routing only after visual/runtime approval
+  - capture final screen recording or immutable video hash
+  - Gate 7 promote only when all remaining hard receipts exist
 
 truth_boundaries:
   refused_is_valid_service_outcome: true
@@ -77,15 +83,18 @@ truth_boundaries:
   qualified_is_execution_authorization: false
   caller_metadata_is_identity_proof: false
   claude_code_session_id_is_crypto_identity: false
-  external_underwrite_is_already_receipt_consistency_proof: false
-  agent_to_agent_proof_complete: false
+  replay_match_is_crypto_attestation: false
+  receipt_verification_is_live_revalidation: false
+  external_agent_authority_proof_complete: true
+  clawpump_native_autonomous_underwrite_proved: false
   ansem_funded_demo_proved: false
   cloudflare_preview_is_production: false
 
 never_do:
-  - never repeat /underwrite merely to verify a receipt
+  - never repeat /underwrite merely to verify this proof
   - never call declared caller metadata verified identity
+  - never call the Claude Code proof a ClawPump-native autonomous-run proof
   - never call REFUSED a product failure
   - never call QUALIFIED final execution authorization
-  - never claim replay MATCH before verifyReceipt returns it
+  - never call deterministic replay MATCH cryptographic attestation
   - never promote the current Cloudflare preview before final runtime/visual approval
