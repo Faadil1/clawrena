@@ -1,0 +1,121 @@
+{
+  "artifactClass": "EXTERNAL_AGENT_UNDERWRITE_CAPTURE",
+  "status": "CAPTURED_RECEIPT_VERIFICATION_PENDING",
+  "capturedAt": "2026-09-16T18:37:54.276Z",
+  "captureClass": "USER_TERMINAL_JSONL_OUTPUT",
+  "assistantIndependentlyReplayed": false,
+  "externalInvoker": {
+    "platform": "claude-code",
+    "mode": "headless-safe-mode",
+    "model": "claude-sonnet-5",
+    "sessionId": "94b94917-ff0d-4697-b0fd-5ca7d687f3a0",
+    "systemInitSessionMatched": true,
+    "tools": ["Bash", "Read"],
+    "mcpServers": [],
+    "permissionMode": "auto"
+  },
+  "request": {
+    "method": "POST",
+    "endpoint": "https://grandiose-poodle-700.convex.site/underwrite",
+    "requestCountObserved": 1,
+    "automaticRetryObserved": false,
+    "tokenMint": "BPVRf68R4zxrXVXBQMo8KpvJcq9vLM1tpe7p1hckuvd1",
+    "launchSignature": "47emwzJgBXieLUc1zq555jv4ajQbXevwhJFoxaATNyJnqLoFDvpp6ZFE4QLVVe5CoXahFkMyfF6Fy9mpNR4Zoy83",
+    "caller": {
+      "platform": "claude-code",
+      "agentId": "claude-code-headless",
+      "runId": "94b94917-ff0d-4697-b0fd-5ca7d687f3a0",
+      "skillSlug": "evidence-authority"
+    }
+  },
+  "response": {
+    "httpStatus": 200,
+    "ok": true,
+    "ledgerId": "md72gnkxnf2arb7ewnrc2szb498ehrxr",
+    "artifactClass": "LIVE_EVIDENCE_UNDERWRITING_DECISION",
+    "policyState": "REFUSED",
+    "score": 30,
+    "valueMovement": false,
+    "nextBoundary": "NONE",
+    "unknowns": ["largest-holder concentration"],
+    "blockers": [
+      "holder concentration unknown",
+      "launch signal older than six hours"
+    ],
+    "reasons": [
+      "live price verified",
+      "liquidity above minimum floor",
+      "24h move inside bounded momentum window"
+    ],
+    "observations": {
+      "priceUsd": 0.000002712886171077728,
+      "liquidityUsd": 2910.1495620651417,
+      "priceChange24h": -13.313066427652972,
+      "largestHolderPct": null,
+      "signalAgeMs": 63479186,
+      "launchVerified": true,
+      "launchBlockTime": 1789520388000,
+      "launchSlot": 447392149,
+      "jupiterBlockId": 447393274,
+      "sampledOwnerCount": null,
+      "ownerObservationSlot": null,
+      "programControlledPct": null
+    },
+    "sourceLedger": [
+      {
+        "source": "solana-pump-transaction",
+        "status": "OBSERVED",
+        "reference": "47emwzJgBXieLUc1zq555jv4ajQbXevwhJFoxaATNyJnqLoFDvpp6ZFE4QLVVe5CoXahFkMyfF6Fy9mpNR4Zoy83",
+        "blockTime": 1789520388000,
+        "slot": 447392149
+      },
+      {
+        "source": "jupiter-price-v3",
+        "status": "OBSERVED",
+        "blockId": 447393274
+      },
+      {
+        "source": "solana-owner-concentration",
+        "status": "UNKNOWN",
+        "slot": null
+      }
+    ],
+    "passport": {
+      "policyVersion": "AS-AUTHORITY-V1",
+      "replayKey": "AS1-51fff2964ef6c06d",
+      "policyState": "REFUSED",
+      "freshnessExpiresAt": 1789583987186
+    },
+    "caller": {
+      "platform": "claude-code",
+      "agentId": "claude-code-headless",
+      "runId": "94b94917-ff0d-4697-b0fd-5ca7d687f3a0",
+      "skillSlug": "evidence-authority",
+      "identitySemantics": "DECLARED_EXTERNAL_CONTEXT"
+    },
+    "callerIdentityVerifiedByAlphaScout": false
+  },
+  "crossSystemChecks": {
+    "externalSessionEqualsStoredCallerRunId": true,
+    "requestMintEqualsResponseMint": true,
+    "requestLaunchSignatureEqualsResponseLaunchSignature": true,
+    "realBashToolUseObserved": true,
+    "realToolResultObserved": true,
+    "receiptConsistencyVerified": false,
+    "replayConsistency": null
+  },
+  "localEvidence": {
+    "requestBody": "evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE-BODY.json",
+    "prompt": "evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE-PROMPT.txt",
+    "transcript": "evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE.jsonl"
+  },
+  "truthBoundaries": {
+    "refusedIsValidAuthorityOutcome": true,
+    "underwritingMovesValue": false,
+    "qualifiedWouldNotEqualExecutionAuthorization": true,
+    "callerMetadataIsCryptographicIdentity": false,
+    "claudeCodeSessionIdIsCryptographicIdentity": false,
+    "receiptVerificationPending": true,
+    "agentToAgentProofComplete": false
+  }
+}
