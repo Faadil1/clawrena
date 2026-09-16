@@ -1,15 +1,30 @@
 {
   "artifactClass": "CANONICAL_RUNTIME_EVIDENCE_STATUS",
-  "status": "PENDING_REAL_RUNTIME_CAPTURE",
+  "status": "REAL_NEGATIVE_PATH_CAPTURED",
   "fakeSuccessForbidden": true,
-  "requiredBeforePromotion": [
-    "public runtime URL",
-    "deployed commit SHA",
-    "real Pump launch signature",
-    "real negative-path decision receipt id",
-    "real provider request id for PREPARE if exercised",
-    "screen recording link or immutable hash",
-    "transaction signature and confirmation slot only if actual on-chain execution occurs"
+  "captured": {
+    "publicRuntimeUrl": "https://grandiose-poodle-700.convex.site",
+    "deployedCommitSha": "3d9257d578d3d4bb3e72a47ba60305c730236d9c",
+    "realPumpLaunchMint": "BPVRf68R4zxrXVXBQMo8KpvJcq9vLM1tpe7p1hckuvd1",
+    "realPumpLaunchSignature": "47emwzJgBXieLUc1zq555jv4ajQbXevwhJFoxaATNyJnqLoFDvpp6ZFE4QLVVe5CoXahFkMyfF6Fy9mpNR4Zoy83",
+    "realNegativePathLedgerId": "md7eam4vgh1nfsb3dzvd363v558ehm8z",
+    "policyState": "REFUSED",
+    "policyVersion": "AS-AUTHORITY-V1",
+    "replayKey": "AS1-ae5d5316d70899bd",
+    "replayConsistency": "MATCH",
+    "reunderwriteReplayKey": "AS1-c24346db6fb3c24e",
+    "lineageLedgerId": "md75fdf5xfcn9geqqsgv5bq8858egwgs",
+    "valueMovement": false,
+    "blocker": "holder concentration unknown",
+    "canonicalEvidence": "evidence/canonical-run/P11-AUTHORITY-REFUSAL-2026-09-16.json"
+  },
+  "stillRequiredBeforePromotion": [
+    "screen recording link or immutable hash showing the live authority flow",
+    "Evidence Authority skill import into a real external ClawPump/Hermes agent",
+    "agent-to-agent shadow-underwriting receipt",
+    "eligibility receipts for registration, X/follow and tokenization",
+    "canonical public frontend deployment / final runtime routing",
+    "transaction signature and confirmation slot only if actual on-chain execution is attempted"
   ],
-  "captured": {}
+  "promotionReady": false
 }
