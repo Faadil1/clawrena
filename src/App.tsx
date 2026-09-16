@@ -18,11 +18,11 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
+        <Route path="/proof" element={<Proof />} />
         <Route element={<AppShell />}>
           <Route path="/dashboard" element={protectedPage(<Dashboard />)} />
           <Route path="/agent" element={protectedPage(<AgentConsole />)} />
           <Route path="/signals" element={protectedPage(<Signals />)} />
-          <Route path="/proof" element={protectedPage(<Proof />)} />
           <Route path="/token/:mint?" element={protectedPage(<Token />)} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
