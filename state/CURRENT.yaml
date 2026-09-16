@@ -2,12 +2,11 @@ project: alpha-scout-clawrena
 canonical_branch: winning-intelligence-p11
 upstream_merge_commit: 171576483ff589dcf41c07f25a671134628ef073
 upstream_merged_pr: https://github.com/opeblow/clawrena/pull/1
-phase: P11_3_REAL_NEGATIVE_PATH_CAPTURED_AGENT_TO_AGENT_NEXT
+phase: P11_4_AGENT_TO_AGENT_ATTRIBUTION_VALIDATED_AWAITING_EXTERNAL_RUN
 updated_at: 2026-09-16
 
 product_truth:
   current_category: evidence_underwriter_and_execution_authority
-  old_category_alpha_scanner: rejected_due_to_platform_collision
   evidence_policy_version: AS-AUTHORITY-V1
   evidence_gate_pass_state: QUALIFIED
   qualified_means_execution_authorized: false
@@ -17,14 +16,14 @@ product_truth:
   clawpump_partner_api: unsigned_prepare_only
   verified_onchain_execution: pending
   verified_volume_rule: onchain_mode_plus_signature_plus_confirmation_slot
-  holder_revenue_share: not_built
-  automated_treasury_spending: not_built
   convex_cloud_project: alpha-scout-clawrena
   convex_cloud_deployment: grandiose-poodle-700
   p11_runtime_deployed: true
   canonical_negative_path_runtime: captured
   evidence_authority_skill: packaged_not_imported
-  agent_to_agent_shadow_underwriting: pending
+  agent_to_agent_caller_attribution: code_validated_not_yet_redeployed
+  agent_to_agent_shadow_underwriting: pending_real_external_run
+  caller_metadata_is_identity_proof: false
   ansem_funded_underwriting_demo: planned_not_proved
   x402_authority_service: prepared_not_deployed_no_revenue_claim
   canonical_public_frontend: pending
@@ -35,80 +34,50 @@ canonical_thesis: >-
   returns QUALIFIED or REFUSED with a durable Evidence Passport and source ledger. QUALIFIED
   is not execution authorization: last-mile provider and risk checks still control value movement.
 
-winning_intelligence_p11:
-  official_rubric_source: https://clawpump.tech/ansemhack
-  competitive_snapshot: docs/COMPETITIVE_INTELLIGENCE_2026-09-15.md
-  white_space_map: docs/WHITE_SPACE_P11_1.md
-  requalification: docs/WINNING_INTELLIGENCE_P11.md
-  evidence_policy_manifest: convex/lib/evidencePolicy.ts
-  evidence_source_engine: convex/lib/underwriting.ts
-  durable_decision_ledger: underwriting_decisions
-  public_policy_route: GET /authority-policy
-  public_openapi_route: GET /authority-openapi
-  public_stats_route: GET /authority-stats
-  cross_agent_underwrite_route: POST /underwrite
-  decision_lineage_route: POST /reunderwrite
-  skill_package: skills/evidence-authority/SKILL.md
-  ansem_demo_plan: docs/ANSEM_AUTHORITY_DEMO.md
-  x402_service_plan: docs/X402_AUTHORITY_SERVICE.md
-
 canonical_runtime_proof:
   status: CAPTURED
   artifact: evidence/canonical-run/P11-AUTHORITY-REFUSAL-2026-09-16.json
   status_file: evidence/canonical-run/STATUS.json
   source_sha: 3d9257d578d3d4bb3e72a47ba60305c730236d9c
-  convex_cloud_url: https://grandiose-poodle-700.convex.cloud
   convex_http_url: https://grandiose-poodle-700.convex.site
   discovery_source: pump-mint-authority
   signatures_examined: 6
   verified_launches: 3
   selected_mint: BPVRf68R4zxrXVXBQMo8KpvJcq9vLM1tpe7p1hckuvd1
   selected_launch_signature: 47emwzJgBXieLUc1zq555jv4ajQbXevwhJFoxaATNyJnqLoFDvpp6ZFE4QLVVe5CoXahFkMyfF6Fy9mpNR4Zoy83
-  launch_slot: 447392149
   underwriting_ledger_id: md7eam4vgh1nfsb3dzvd363v558ehm8z
   policy_state: REFUSED
   score: 50
   blocker: holder concentration unknown
-  unknowns:
-    - largest-holder concentration
   value_movement: false
   replay_key: AS1-ae5d5316d70899bd
   replay_consistency: MATCH
   lineage_ledger_id: md75fdf5xfcn9geqqsgv5bq8858egwgs
   lineage_current_replay_key: AS1-c24346db6fb3c24e
-  lineage_policy_changed: false
-  lineage_state_changed: false
-  lineage_score_delta: 0
   synthetic_candidate_substituted: false
-  dedicated_helius_rpc_configured: false
 
-runtime_truth:
-  healthz: verified
-  authority_policy: verified
-  authority_openapi: verified
-  authority_stats: verified
-  durable_underwriting_decisions_after_capture: 2
-  durable_underwriting_refused_after_capture: 2
-  underwriting_lineage_reruns_after_capture: 1
-  request_counts_are_unique_agents: false
-  request_counts_are_trading_volume: false
-  request_counts_are_realised_performance: false
+p11_4_agent_to_agent:
+  proof_contract: docs/AGENT_TO_AGENT_PROOF_P11_4.md
+  capture_script: scripts/capture-agent-to-agent-proof.mjs
+  underwrite_caller_fields:
+    - platform
+    - agentId
+    - runId
+    - skillSlug
+  persisted_identity_semantics: DECLARED_EXTERNAL_CONTEXT
+  caller_identity_verified_by_alpha_scout: false
+  public_metric: externallyAttributedUnderwritingRequests
+  public_metric_is_unique_agents: false
+  real_clawpump_or_hermes_run: pending
+  validation_run: https://github.com/Faadil1/clawrena/actions/runs/35042999450
+  validation_result: pass
+  validated_head: 69b288bd5eea497758efae343e5b035ce127d314
 
 completed_gates:
   - rubric_mapping
   - competitive_scan_and_category_collision
   - real_failure_evidence
-  - negative_path_structure
-  - claim_ledger
-  - idempotency
-  - high_water_drawdown
-  - execution_receipt_freshness
-  - clawpump_provider_preflight
   - authority_boundary
-  - dependency_security_gate
-  - creator_fee_ledger_normalization
-  - agent_treasury_observability
-  - token_utility_claim_boundary
   - evidence_passport
   - centralized_versioned_policy
   - counterfactual_refusal
@@ -125,10 +94,15 @@ completed_gates:
   - evidence_passport_runtime_consistency_match
   - reunderwriting_runtime_lineage_capture
   - convex_http_health_and_authority_endpoint_reachability
+  - agent_to_agent_declared_caller_attribution_code
+  - agent_to_agent_capture_script
+  - agent_to_agent_attribution_full_ci_green
 
 blocking_gates:
+  - redeploy_p11_4_to_grandiose_poodle_700
   - evidence_authority_skill_import_into_real_clawpump_or_hermes_agent
   - agent_to_agent_shadow_underwriting_receipt
+  - cross_system_clawpump_run_receipt_match
   - eligibility_registration_receipt
   - eligibility_x_follow_receipt
   - alpha_scout_tokenization_receipt
@@ -144,12 +118,16 @@ conditional_gates:
   - dedicated_helius_rpc_for_higher_runtime_reliability
   - trace_gate_6_5_visual_runtime_review
 
-strategic_next:
-  - import Evidence Authority into a real ClawPump/Hermes agent
-  - have that external agent call the live Alpha Scout authority runtime against a real Pump launch
-  - preserve caller identity/run metadata and returned replay key as agent-to-agent proof
-  - if feasible fund that agent billing wallet with ANSEM and prove one real underwriting run
-  - only after agent-to-agent proof reopen TRACE as a Proof-of-Authority Workstation
+next_actions:
+  - redeploy current winning-intelligence-p11 to Convex dev
+  - connect ClawPump/Hermes MCP locally without exposing the cpk_ key
+  - choose or create a real external agent
+  - create/import Evidence Authority custom skill
+  - run a real shadow-underwriting objective against Alpha Scout
+  - preserve ClawPump agent id and run id plus Alpha Scout replay key
+  - run scripts/capture-agent-to-agent-proof.mjs to capture Alpha Scout side
+  - cross-reference both systems before marking agent_to_agent complete
+  - only then attempt ANSEM-funded run and reopen TRACE/UI
 
 eligibility:
   official_source: https://clawpump.tech/ansemhack
@@ -159,8 +137,6 @@ eligibility:
   tokenization_receipt: pending_external_confirmation
 
 visual_system:
-  current_p10_direction: forensic_editorial_judge_entry
   next_visual_pass_status: blocked_until_agent_to_agent_authority_proof
   next_visual_category: proof_of_authority_workstation
   next_visual_rule: do_not_start_from_generic_trading_dashboard_references
-  identity_asset: public/alpha-scout.svg
