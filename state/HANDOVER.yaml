@@ -1,5 +1,5 @@
 project: alpha-scout-clawrena
-handover_version: P11_4_2026-09-16_CLAWPUMP_SKILL_IMPORTED_CHAT_PROBE_FAILED_CLOSED
+handover_version: P11_4_2026-09-16_CLAWPUMP_ZERO_BUDGET_RUN_BLOCKED_SWITCH_TO_HERMES
 
 start_here:
   - state/CURRENT.yaml
@@ -8,6 +8,7 @@ start_here:
   - evidence/runtime/P11-CLOUDFLARE-PREVIEW-2026-09-16.json
   - evidence/external/P11-CLAWPUMP-AGENT-DISCOVERY-2026-09-16.json
   - evidence/runtime/P11-CLAWPUMP-SKILL-CHAT-PROBE-2026-09-16.json
+  - evidence/runtime/P11-CLAWPUMP-RUN-BUDGET-GATE-2026-09-16.json
   - docs/AGENT_TO_AGENT_PROOF_P11_4.md
   - skills/evidence-authority/SKILL.md
   - scripts/capture-agent-to-agent-proof.mjs
@@ -69,24 +70,34 @@ p11_4_agent_to_agent:
     source: skills/evidence-authority/SKILL.md
   chat_probe:
     artifact: evidence/runtime/P11-CLAWPUMP-SKILL-CHAT-PROBE-2026-09-16.json
-    requested_endpoint: https://grandiose-poodle-700.convex.site/authority-policy
     model_response: AS-AUTHORITY-V1 — QUALIFIED_IS_NOT_EXECUTION_AUTHORIZATION
     tools_used_count: 0
     real_external_http_proved: false
     status: FAILED_CLOSED_NO_EXTERNAL_HTTP_PROOF
     financial_state_change: false
+  autonomous_run_budget_gate:
+    artifact: evidence/runtime/P11-CLAWPUMP-RUN-BUDGET-GATE-2026-09-16.json
+    inspected_schema_minimum_usd: 0
+    runtime_requires_positive_budget: true
+    requested_budget_usd: 0
+    run_created: false
+    run_id: null
+    status: NONZERO_BUDGET_REQUIRED
+    financial_state_change: false
+  external_invoker_route: hermes
   external_underwriting_receipt_status: pending
   agent_to_agent_proof_complete: false
 
 next_actions_priority:
-  - authorize exactly one tightly bounded create_agent_run on agent T as a capability probe, not as a trading run
-  - constrain the run objective to read-only Alpha Scout reachability and explicitly prohibit trading, transfers, token launches, automations, x402 payments and wallet mutations
-  - use a very small step cap/budget appropriate to a non-financial probe
-  - inspect get_agent_run_steps and accept external reachability only if a real tool/action step shows the HTTP request; model text alone is insufficient
-  - if no auditable external HTTP/tool path exists in the autonomous runner either, preserve that failure and switch the external invoker to Hermes rather than fabricating a ClawPump integration
-  - after a real external invoker exists, call /underwrite with caller metadata and preserve the external run/session id plus Alpha Scout replay key
-  - run scripts/capture-agent-to-agent-proof.mjs and cross-match external receipt ↔ Alpha Scout replay key
-  - only then mark agent-to-agent complete, consider ANSEM-funded proof, and reopen TRACE/UI
+  - do not pay a positive ClawPump autonomous-run budget solely to manufacture evidence
+  - use Hermes as the external invoker for the next shadow-only proof
+  - first make Hermes perform a real read-only HTTP request to /authority-policy and preserve actual command/tool output plus the Hermes session/run identifier
+  - only if that is auditable, make Hermes invoke /underwrite against a real Pump mint/signature with caller.platform=hermes and a real Hermes session/run id
+  - preserve the returned Alpha Scout replay key/state and valueMovement=false
+  - run scripts/capture-agent-to-agent-proof.mjs for Alpha Scout-side consistency, adapting caller platform/identifier only as needed without fabricating a ClawPump identity
+  - cross-match Hermes trace ↔ Alpha Scout replay key before marking agent-to-agent proof complete
+  - only after that consider ANSEM-funded proof and reopen TRACE/UI
+  - keep Cloudflare preview-only until final runtime/visual approval
 
 truth_boundaries:
   caller_metadata_is_identity_proof: false
@@ -101,11 +112,14 @@ truth_boundaries:
   cloudflare_http_200_proves_visual_correctness: false
   skill_installed_proves_external_http: false
   plausible_policy_text_proves_live_fetch: false
+  clawpump_schema_minimum_zero_proves_runtime_accepts_zero: false
+  nonzero_budget_required_means_run_was_created: false
 
 never_do:
   - never paste CLAWPUMP_API_KEY or AUTHORITY_API_KEY into chat, repo, evidence or logs
   - do not publish the selected agent wallet in public evidence unless necessary for a specific proof
   - do not count model text as an external HTTP receipt when tools_used is empty
+  - do not spend money merely to manufacture an agent-to-agent evidence artifact
   - do not call declared caller metadata verified identity
   - do not call externallyAttributedUnderwritingRequests unique agents/users
   - do not call REFUSED a product failure
