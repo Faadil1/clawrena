@@ -16,17 +16,17 @@ const flow = [
 ] as const;
 
 const observed = [
-  ["Pump create", "REQUIRED"],
-  ["Jupiter price", "REQUIRED"],
-  ["Liquidity", "REQUIRED"],
-  ["Owner concentration", "REQUIRED"],
-  ["Launch freshness", "REQUIRED"],
+  ["Pump provenance", "OBSERVED"],
+  ["Jupiter price", "OBSERVED"],
+  ["Liquidity", "$2.91K"],
+  ["Replay receipt", "MATCH"],
+  ["Value movement", "NONE"],
 ] as const;
 
 const unknown = [
-  ["Critical missing evidence", "VETO"],
-  ["Venue health", "VETO"],
-  ["Unconfirmed submission", "NOT VERIFIED"],
+  ["Owner concentration", "UNKNOWN"],
+  ["Launch signal", "OLDER THAN 6H"],
+  ["Authority outcome", "REFUSED"],
 ] as const;
 
 export default function Landing() {
@@ -65,7 +65,7 @@ export default function Landing() {
 
         <nav className="judge-links" aria-label="Homepage sections">
           <a href="#method">How it works</a>
-          <a href="#proof">Live proof</a>
+          <Link to="/proof">Live proof</Link>
           <a href="#method">Method</a>
         </nav>
 
@@ -125,8 +125,8 @@ export default function Landing() {
         <section id="proof" className="judge-dossier">
           <div className="judge-case">
             <div className="judge-case-head">
-              <span>EXAMPLE DOSSIER</span>
-              <b>NOT RUNTIME EVIDENCE</b>
+              <span>CANONICAL RUNTIME RECEIPT</span>
+              <b>REPLAY MATCH</b>
             </div>
 
             <div className="judge-case-grid">
@@ -135,23 +135,23 @@ export default function Landing() {
                   <img src="/alpha-scout.svg" alt="" />
                 </div>
                 <div>
-                  <span>SUBJECT</span>
-                  <b>UNASSIGNED</b>
-                  <small>waiting for a real launch claim</small>
+                  <span>REQUESTER</span>
+                  <b>EXTERNAL AGENT</b>
+                  <small>Claude Code headless · shadow-only</small>
                 </div>
                 <svg viewBox="0 0 240 54" className="judge-spark" aria-hidden="true">
                   <path d="M3 42 C22 38, 27 44, 42 33 S69 36, 81 28 S110 34, 121 23 S151 27, 161 20 S188 25, 199 15 S220 18, 237 9" />
                 </svg>
-                <div className="judge-tape-note">OBSERVED ON LAUNCH TAPE.</div>
+                <div className="judge-tape-note">REPLAY AS1-51FFF2964EF6C06D</div>
               </div>
 
               <div className="judge-evidence-col">
-                <h3>OBSERVED / REQUIRED</h3>
+                <h3>OBSERVED / PROVED</h3>
                 {observed.map(([k, v]) => <EvidenceRow key={k} label={k} value={v} ok />)}
               </div>
 
               <div className="judge-risk-col">
-                <h3>UNKNOWN / RISK</h3>
+                <h3>UNKNOWN / BLOCKERS</h3>
                 {unknown.map(([k, v]) => <EvidenceRow key={k} label={k} value={v} />)}
                 <div className="judge-public-count">
                   <span>PUBLIC VERIFIED VOLUME</span>
@@ -163,14 +163,14 @@ export default function Landing() {
 
           <aside className="judge-decision">
             <div className="judge-decision-head"><span>DECISION</span><b>● REFUSE</b></div>
-            <h2>NO CLAIM</h2>
-            <p>Evidence is incomplete.<br />Capital stays in the wallet.</p>
+            <h2>NO AUTHORITY</h2>
+            <p>Critical evidence stayed UNKNOWN.<br />The launch was also stale.</p>
             <div className="judge-stamp">REFUSED</div>
             <dl>
-              <div><dt>Execution mode</dt><dd>PAPER</dd></div>
-              <div><dt>Authority</dt><dd>LOCKED</dd></div>
-              <div><dt>On-chain tx</dt><dd>NONE</dd></div>
-              <div><dt>Reason</dt><dd>Insufficient evidence</dd></div>
+              <div><dt>Evidence score</dt><dd>30 / 100</dd></div>
+              <div><dt>Replay</dt><dd>MATCH</dd></div>
+              <div><dt>Value moved</dt><dd>NONE</dd></div>
+              <div><dt>Caller</dt><dd>DECLARED</dd></div>
             </dl>
           </aside>
         </section>
@@ -188,17 +188,13 @@ export default function Landing() {
         <section className="judge-cta">
           <small>— ALPHA SCOUT —</small>
           <h2>Trade new launches with evidence, not emotion.</h2>
-          <p>Open the workstation and see the authority chain in action.</p>
+          <p>Open the live proof room or enter the operator workstation.</p>
           <div>
             <button onClick={() => void openScout()} className="judge-open judge-open--cta">
               <img src="/alpha-scout.svg" alt="" />
               {isAuthenticated ? "Open the desk" : "Open Alpha Scout"} →
             </button>
-            {isAuthenticated ? (
-              <Link to="/proof" className="judge-proof-link">View Live Proof</Link>
-            ) : (
-              <button onClick={() => openAuth("signIn")} className="judge-proof-link">Sign in</button>
-            )}
+            <Link to="/proof" className="judge-proof-link">View Live Proof</Link>
           </div>
         </section>
       </main>
