@@ -2,7 +2,7 @@ project: alpha-scout-clawrena
 canonical_branch: winning-intelligence-p11
 upstream_merge_commit: 171576483ff589dcf41c07f25a671134628ef073
 upstream_merged_pr: https://github.com/opeblow/clawrena/pull/1
-phase: P11_4_AGENT_TO_AGENT_ATTRIBUTION_DEPLOYED_CLOUDFLARE_PREVIEW_LIVE_AWAITING_EXTERNAL_RUN
+phase: P11_4_REAL_CLAWPUMP_AGENT_SELECTED_AWAITING_SKILL_IMPORT_AND_EXTERNAL_RUN
 updated_at: 2026-09-16
 
 product_truth:
@@ -21,6 +21,7 @@ product_truth:
   p11_runtime_deployed: true
   canonical_negative_path_runtime: captured
   evidence_authority_skill: packaged_not_imported
+  real_clawpump_agent_discovered: true
   agent_to_agent_caller_attribution: deployed_dev_runtime_not_yet_exercised
   agent_to_agent_shadow_underwriting: pending_real_external_run
   caller_metadata_is_identity_proof: false
@@ -88,6 +89,13 @@ p11_4_agent_to_agent:
   caller_identity_verified_by_alpha_scout: false
   public_metric: externallyAttributedUnderwritingRequests
   public_metric_is_unique_agents: false
+  external_agent_discovery_artifact: evidence/external/P11-CLAWPUMP-AGENT-DISCOVERY-2026-09-16.json
+  selected_agent_id: c1a5477c-c79e-4388-a9eb-8303fa441087
+  selected_agent_name: T
+  selected_agent_status_at_discovery: stopped
+  selected_agent_token_mint: none
+  selected_agent_wallet_persisted_in_public_evidence: false
+  selected_agent_discovery_was_read_only: true
   real_clawpump_or_hermes_run: pending
   validation_run: https://github.com/Faadil1/clawrena/actions/runs/35042999450
   validation_result: pass
@@ -121,6 +129,7 @@ completed_gates:
   - p11_4_convex_dev_redeploy
   - cloudflare_pages_project_created
   - cloudflare_preview_deployed_http_200
+  - real_clawpump_agent_discovered_read_only
 
 blocking_gates:
   - evidence_authority_skill_import_into_real_clawpump_or_hermes_agent
@@ -142,11 +151,10 @@ conditional_gates:
   - trace_gate_6_5_visual_runtime_review
 
 next_actions:
-  - use the connected clawpump-remote MCP in Claude Code
-  - list existing ClawPump agents read-only and choose one, or create one if none exists
-  - create/import Evidence Authority custom skill
-  - run a real shadow-underwriting objective against Alpha Scout
-  - preserve ClawPump agent id and run id plus Alpha Scout replay key
+  - in the connected clawpump-remote MCP session, attach Evidence Authority as a custom skill to selected agent T
+  - keep the first external interaction shadow-only with no trade, transfer, token launch, automation or autonomous capital action
+  - use a real ClawPump chat or bounded autonomous run to request Alpha Scout underwriting of a real Pump launch
+  - preserve ClawPump agent id and chat/run id plus Alpha Scout replay key
   - run scripts/capture-agent-to-agent-proof.mjs to capture Alpha Scout side
   - cross-reference both systems before marking agent_to_agent complete
   - only then attempt ANSEM-funded run and reopen TRACE/UI
