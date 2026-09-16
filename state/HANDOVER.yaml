@@ -1,16 +1,15 @@
 project: alpha-scout-clawrena
-handover_version: P11_2_2026-09-15
+handover_version: P11_3_2026-09-16
 
 start_here:
   - state/CURRENT.yaml
-  - evidence/runtime/P11-DISCOVERY-FAIL-CLOSED-2026-09-15.json
-  - docs/P11_RUNTIME_DISCOVERY_DIAGNOSIS.md
+  - evidence/canonical-run/P11-AUTHORITY-REFUSAL-2026-09-16.json
+  - evidence/canonical-run/STATUS.json
   - docs/WHITE_SPACE_P11_1.md
   - docs/WINNING_INTELLIGENCE_P11.md
   - skills/evidence-authority/SKILL.md
   - docs/ANSEM_AUTHORITY_DEMO.md
   - docs/GATE_7_PROMOTE.md
-  - evidence/canonical-run/STATUS.json
 
 repo:
   upstream: https://github.com/opeblow/clawrena
@@ -28,60 +27,48 @@ category:
     has earned permission to continue toward capital movement, and preserves a replayable
     record when it has not.
 
-live_runtime_status:
+canonical_runtime_capture:
+  status: CAPTURED
+  source_sha: 3d9257d578d3d4bb3e72a47ba60305c730236d9c
   convex_project: alpha-scout-clawrena
   convex_deployment: grandiose-poodle-700
   convex_cloud_url: https://grandiose-poodle-700.convex.cloud
   convex_http_url: https://grandiose-poodle-700.convex.site
-  deployed_source_sha_at_first_capture: 78a0c7de0b3b9e2ea0dcabc384037379747f5ea3
-  healthz: passed_user_terminal_capture
-  authority_policy: passed_user_terminal_capture
-  authority_openapi: passed_user_terminal_capture
-  authority_stats: passed_user_terminal_capture
-  first_runtime_capture_status: FAILED_CLOSED
-  first_capture_verified_launches: 0
-  first_capture_underwriting_receipt: none
-  first_capture_canonical_negative_path: false
-  first_capture_dedicated_rpc_configured: false
-  first_capture_reason: no_verified_Pump_create_or_create_v2_found_in_60_signature_window
+  healthz: passed
+  authority_policy: passed
+  authority_openapi: passed
+  authority_stats: passed
+  discovery_source: pump-mint-authority
+  signatures_examined: 6
+  verified_launches: 3
+  selected_mint: BPVRf68R4zxrXVXBQMo8KpvJcq9vLM1tpe7p1hckuvd1
+  selected_launch_signature: 47emwzJgBXieLUc1zq555jv4ajQbXevwhJFoxaATNyJnqLoFDvpp6ZFE4QLVVe5CoXahFkMyfF6Fy9mpNR4Zoy83
+  launch_slot: 447392149
+  underwriting_ledger_id: md7eam4vgh1nfsb3dzvd363v558ehm8z
+  underwriting_state: REFUSED
+  underwriting_score: 50
+  underwriting_blocker: holder_concentration_unknown
+  value_movement: false
+  replay_key: AS1-ae5d5316d70899bd
+  replay_consistency: MATCH
+  lineage_ledger_id: md75fdf5xfcn9geqqsgv5bq8858egwgs
+  lineage_replay_key: AS1-c24346db6fb3c24e
+  lineage_state_changed: false
+  lineage_policy_changed: false
+  lineage_score_delta: 0
   synthetic_candidate_substituted: false
+  canonical_evidence: evidence/canonical-run/P11-AUTHORITY-REFUSAL-2026-09-16.json
 
-what_changed_p11_1:
-  - centralized AS-AUTHORITY-V1 thresholds, scoring, critical unknowns and freshness in convex/lib/evidencePolicy.ts
-  - Evidence Gate and last-mile authority execute the same versioned policy manifest
-  - source ledger preserves Pump provenance, Jupiter Price V3 evidence and Solana owner concentration clocks
-  - durable underwriting_decisions ledger persists decisions and replay lineage
-  - POST /underwrite and POST /reunderwrite are live in the dev Convex deployment
-  - GET /authority-policy, /authority-openapi and /authority-stats are live and were reached in the first runtime capture
-  - Evidence Passport replay identifiers can be recomputed under the stored policy version
-  - underwriting:verifyReceipt verifies stored replay-key consistency without claiming cryptographic signing
-  - optional AUTHORITY_API_KEY/x-alpha-scout-key protection remains available for mutating authority endpoints
-
-what_changed_p11_2:
-  - preserved the first real runtime discovery failure as evidence instead of overwriting it
-  - diagnosed the blocker as discovery recall, not authority HTTP reachability
-  - Pump launch verification now checks top-level and CPI inner instructions
-  - official create/create_v2 discriminators remain mandatory; no token-balance heuristic was reintroduced
-  - discovery now paginates through a bounded window of recent Pump signatures
-  - runtime discovery cap is 500 signatures and runtime proof defaults to 300
-  - transaction verification uses bounded parallel batches rather than an unbounded crawl
-  - discovery now returns signaturesExamined, pagesSearched and configured-RPC diagnostics
-  - runtime proof errors now state exactly how many signatures/pages were examined and whether a dedicated RPC was configured
-  - P11.2 code passed security, integrity, logic, typecheck, lint, build and runtime-script syntax validation
-
-validation:
-  p11_1_ci_run: https://github.com/Faadil1/clawrena/actions/runs/35003316923
-  p11_2_runtime_discovery_ci_run: https://github.com/Faadil1/clawrena/actions/runs/35009694932
-  p11_2_validated_code_head: de7cfadd450d1c505f7552d064f8680bdc6e5dbb
-  p11_2_integrated_head_before_state_updates: 952b77f485e8d46502c21035997696e847c72e4d
-  security: pass
-  integrity: pass
-  logic: pass
-  typecheck: pass
-  lint: pass
-  build: pass
-  runtime_script_syntax: pass
-  temporary_validation_workflows: removed_after_green_runs
+what_the_capture_proves:
+  - targeted Pump mint-authority discovery can find real create/create_v2 launches
+  - selected launch provenance was independently verified on Solana
+  - Jupiter price and liquidity were observed live
+  - holder concentration remained UNKNOWN
+  - critical UNKNOWN vetoed authority and produced a real REFUSED receipt
+  - no value moved
+  - stored Evidence Passport recomputed to the exact same replay key
+  - reunderwrite used the server-stored prior replay key and produced lineage without rewriting history
+  - request counts remain explicitly non-user, non-volume and non-performance metrics
 
 truth_boundaries:
   qualified_is_authorized: false
@@ -93,49 +80,32 @@ truth_boundaries:
   reunderwrite_rewrites_history: false
   authority_request_counts_are_unique_users: false
   authority_request_counts_are_trading_volume: false
-  first_runtime_failure_is_underwriting_refusal: false
-  first_runtime_failure_is_canonical_negative_path: false
-  first_runtime_failure_is_real_runtime_evidence: true
+  current_refusal_is_trading_performance: false
+  canonical_negative_path_complete: true
+  agent_to_agent_proof_complete: false
   ansem_funded_demo_proved: false
-  x402_authority_service_deployed: false
-  x402_revenue_proved: false
+  x402_service_deployed: false
 
 next_actions_priority:
-  - sync local winning-intelligence-p11 to origin/winning-intelligence-p11
-  - run npx convex dev --once to redeploy the validated P11.2 discovery code to grandiose-poodle-700
-  - rerun scripts/prove-authority-runtime.mjs with the default 300-signature scan window
-  - if zero launches are still found, configure a dedicated Helius RPC locally/through Convex env without exposing the key in chat and rerun with PUMP_SIGNATURE_SCAN_LIMIT=500
-  - capture the first real Pump launch underwriting result; REFUSED is a valid success state
-  - require underwriting:verifyReceipt replayConsistency=MATCH
-  - run /reunderwrite and capture lineage bound to the prior server-stored replay key
-  - only after those receipts exist mark the real external/shadow underwriting gate complete
-  - import Evidence Authority skill into a real ClawPump/Hermes agent and produce agent-to-agent shadow-underwriting proof
+  - import skills/evidence-authority/SKILL.md into a real ClawPump/Hermes agent
+  - configure that external agent to call the live Alpha Scout /underwrite endpoint in shadow mode
+  - run it against a real Pump launch and preserve external agent identity/run metadata plus returned replay key
+  - capture agent-to-agent evidence separately from Alpha Scout's own runtime evidence
+  - if feasible fund the ClawPump billing wallet with ANSEM and prove one real Evidence Authority request before making ANSEM-funded claims
   - close registration, X/follow and tokenization eligibility receipts before 2026-09-20T23:59:00Z
-  - deploy the final canonical frontend to Cloudflare Pages only after runtime evidence is stable
-  - reopen TRACE/UI as a Proof-of-Authority Workstation after the authority proof is real
-
-rerun_commands:
-  sync: >-
-    git fetch origin && git switch winning-intelligence-p11 && git reset --hard origin/winning-intelligence-p11
-  deploy_dev: npx convex dev --once
-  source_sha_powershell: $env:DEPLOYED_COMMIT_SHA=(git rev-parse HEAD)
-  proof: node .\scripts\prove-authority-runtime.mjs
-  proof_max_window_powershell: $env:PUMP_SIGNATURE_SCAN_LIMIT="500"; node .\scripts\prove-authority-runtime.mjs
-  inspect: Get-Content .\evidence\runtime\P11-AUTHORITY-RUNTIME.json -Raw
+  - establish final canonical frontend routing and capture the final screen recording / immutable video hash
+  - then reopen TRACE/UI as a Proof-of-Authority Workstation and run Gate 6.5
+  - run npm run gate:submission only after every hard receipt exists
 
 never_do:
+  - do_not_call_REFUSED_a_failure_of_the_product
   - do_not_call_QUALIFIED_execution_authorization
-  - do_not_accept_caller_scores_as_underwriting_authority
-  - do_not_accept_replacement_token_identity_in_reunderwrite_continuity
   - do_not_convert_UNKNOWN_to_zero_or_pass
   - do_not_convert_PREPARE_or_PENDING_to_VERIFIED_without_signature_and_confirmation
-  - do_not_call_request_counts_unique_agents_users_or_volume
-  - do_not_treat_discovery_failure_as_an_underwriting_refusal
-  - do_not_substitute_a_synthetic_launch_when_discovery_returns_zero
-  - do_not_mark_canonical_negative_path_complete_without_a_real_underwriting_decision_receipt
+  - do_not_call_request_counts_unique_agents_users_or_trading_volume
+  - do_not_claim_the_current_refusal_as_trading_performance
+  - do_not_claim_agent_to_agent_integration_before_a_real_external_agent_run_exists
   - do_not_claim_ansem_funded_until_real_billing_and_run_receipts_exist
-  - do_not_claim_x402_paid_service_or_revenue_until_real_settlement_exists
-  - do_not_claim_no_competitor_anywhere_has_this; scope white-space to reviewed official/public surfaces
-  - do_not_hide_refusals_unknowns_provider_degradation_or_failed_attempts
-  - do_not_mark_eligibility_verified_without_external_receipts
-  - do_not_reopen_ui_before_authority_runtime_and external_shadow_proof_are_stable
+  - do_not_claim_x402_paid_service_or_revenue_until_real settlement exists
+  - do_not_mark_eligibility_verified_without external receipts
+  - do_not_reopen_final UI before agent-to-agent authority proof is stable
