@@ -1,0 +1,68 @@
+{
+  "artifactClass": "EXTERNAL_AGENT_HTTP_CAPABILITY_PROOF",
+  "status": "CAPTURED",
+  "capturedAt": "2026-09-16T18:00:00Z",
+  "captureClass": "USER_TERMINAL_OUTPUT_SUMMARY",
+  "assistantIndependentlyReplayed": false,
+  "externalInvoker": {
+    "platform": "claude-code",
+    "mode": "headless-safe-mode",
+    "sessionId": "94b94917-ff0d-4697-b0fd-5ca7d687f3a0",
+    "systemInitSessionIdMatched": true,
+    "systemInitTools": ["Bash", "Read"]
+  },
+  "localArtifacts": {
+    "prompt": "evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-PROBE-PROMPT.txt",
+    "transcript": "evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-PROBE.jsonl",
+    "note": "Full prompt/transcript were reported as created locally; this canonical file is a structured summary of the user-supplied terminal inspection, not an assistant-independent replay of those local files."
+  },
+  "toolEvidence": {
+    "realBashToolUsePresent": true,
+    "commands": [
+      "cat \"skills/evidence-authority/SKILL.md\" 2>/dev/null || echo \"FILE_NOT_FOUND\"",
+      "curl.exe -sS -i https://grandiose-poodle-700.convex.site/authority-policy"
+    ],
+    "curlToolResultPresent": true,
+    "endpoint": "https://grandiose-poodle-700.convex.site/authority-policy",
+    "httpStatus": 200
+  },
+  "observedPolicy": {
+    "version": "AS-AUTHORITY-V1",
+    "thresholds": {
+      "minLiquidityUsd": 1000,
+      "maxLargestHolderPct": 50,
+      "minEvidenceScore": 55,
+      "maxSignalAgeMs": 21600000,
+      "passportFreshnessMs": 120000
+    },
+    "criticalUnknowns": [
+      "verifiable market price",
+      "liquidity",
+      "largest-holder concentration",
+      "verified Pump launch provenance"
+    ],
+    "principle": "QUALIFIED_IS_NOT_EXECUTION_AUTHORIZATION",
+    "pipeline": [
+      "DISCOVER",
+      "VERIFY_PROVENANCE",
+      "INVESTIGATE",
+      "QUALIFY",
+      "LAST_MILE_PREFLIGHT",
+      "EXECUTE_OR_REFUSE",
+      "PROVE"
+    ],
+    "policyStates": ["QUALIFIED", "REFUSED", "ABSTAINED", "PREPARED"],
+    "sourceLedger": ["solana-pump-transaction", "jupiter-price-v3", "solana-owner-concentration"],
+    "fakeSuccessForbidden": true
+  },
+  "truthBoundaries": {
+    "externalHttpReachabilityProved": true,
+    "underwriteCalled": false,
+    "agentToAgentUnderwritingProved": false,
+    "valueMovement": false,
+    "financialToolsUsed": false,
+    "sessionIdIsCryptographicIdentity": false,
+    "modelSummaryAloneWouldHaveBeenSufficient": false
+  },
+  "nextGate": "Resume the same external Claude Code session, call /underwrite exactly once with declared caller context carrying the same sessionId, then verify the returned stored Evidence Passport without re-underwriting."
+}
