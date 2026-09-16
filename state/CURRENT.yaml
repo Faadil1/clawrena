@@ -2,7 +2,7 @@ project: alpha-scout-clawrena
 canonical_branch: winning-intelligence-p11
 upstream_merge_commit: 171576483ff589dcf41c07f25a671134628ef073
 upstream_merged_pr: https://github.com/opeblow/clawrena/pull/1
-phase: P11_4_AGENT_TO_AGENT_ATTRIBUTION_VALIDATED_AWAITING_EXTERNAL_RUN
+phase: P11_4_AGENT_TO_AGENT_ATTRIBUTION_DEPLOYED_CLOUDFLARE_PREVIEW_LIVE_AWAITING_EXTERNAL_RUN
 updated_at: 2026-09-16
 
 product_truth:
@@ -21,12 +21,14 @@ product_truth:
   p11_runtime_deployed: true
   canonical_negative_path_runtime: captured
   evidence_authority_skill: packaged_not_imported
-  agent_to_agent_caller_attribution: code_validated_not_yet_redeployed
+  agent_to_agent_caller_attribution: deployed_dev_runtime_not_yet_exercised
   agent_to_agent_shadow_underwriting: pending_real_external_run
   caller_metadata_is_identity_proof: false
   ansem_funded_underwriting_demo: planned_not_proved
   x402_authority_service: prepared_not_deployed_no_revenue_claim
-  canonical_public_frontend: pending
+  cloudflare_pages_project: alpha-scout-clawrena
+  cloudflare_preview: live_http_200_not_production
+  canonical_public_frontend: preview_live_not_final_production
 
 canonical_thesis: >-
   Other agents can discover, analyze, recommend or trade. Alpha Scout independently verifies
@@ -56,6 +58,24 @@ canonical_runtime_proof:
   lineage_current_replay_key: AS1-c24346db6fb3c24e
   synthetic_candidate_substituted: false
 
+cloudflare_preview_runtime:
+  artifact: evidence/runtime/P11-CLOUDFLARE-PREVIEW-2026-09-16.json
+  project: alpha-scout-clawrena
+  production_branch: master
+  deployed_branch: winning-intelligence-p11
+  deployed_source_sha: b6f4ef1513bfb7a6ec8476bb0df849ebb974d71e
+  deployment_id_reported: 817bb36b
+  deployment_url: https://817bb36b.alpha-scout-clawrena.pages.dev
+  branch_alias_url: https://winning-intelligence-p11.alpha-scout-clawrena.pages.dev
+  deployment_url_http_status: 200
+  branch_alias_http_status: 200
+  environment: preview
+  production_deployment_made: false
+  production_branch_modified: false
+  custom_domain_attached: false
+  vercel_deployment_made: false
+  http_200_proves_visual_correctness: false
+
 p11_4_agent_to_agent:
   proof_contract: docs/AGENT_TO_AGENT_PROOF_P11_4.md
   capture_script: scripts/capture-agent-to-agent-proof.mjs
@@ -72,6 +92,7 @@ p11_4_agent_to_agent:
   validation_run: https://github.com/Faadil1/clawrena/actions/runs/35042999450
   validation_result: pass
   validated_head: 69b288bd5eea497758efae343e5b035ce127d314
+  convex_redeployed_after_validation: true
 
 completed_gates:
   - rubric_mapping
@@ -97,16 +118,18 @@ completed_gates:
   - agent_to_agent_declared_caller_attribution_code
   - agent_to_agent_capture_script
   - agent_to_agent_attribution_full_ci_green
+  - p11_4_convex_dev_redeploy
+  - cloudflare_pages_project_created
+  - cloudflare_preview_deployed_http_200
 
 blocking_gates:
-  - redeploy_p11_4_to_grandiose_poodle_700
   - evidence_authority_skill_import_into_real_clawpump_or_hermes_agent
   - agent_to_agent_shadow_underwriting_receipt
   - cross_system_clawpump_run_receipt_match
   - eligibility_registration_receipt
   - eligibility_x_follow_receipt
   - alpha_scout_tokenization_receipt
-  - canonical_public_frontend_deploy_or_final_runtime_routing
+  - final_cloudflare_production_routing_and_visual_verification
   - final_screen_recording_or_immutable_video_hash
   - attention_and_stream_receipts
   - gate_7_promote
@@ -119,15 +142,15 @@ conditional_gates:
   - trace_gate_6_5_visual_runtime_review
 
 next_actions:
-  - redeploy current winning-intelligence-p11 to Convex dev
-  - connect ClawPump/Hermes MCP locally without exposing the cpk_ key
-  - choose or create a real external agent
+  - use the connected clawpump-remote MCP in Claude Code
+  - list existing ClawPump agents read-only and choose one, or create one if none exists
   - create/import Evidence Authority custom skill
   - run a real shadow-underwriting objective against Alpha Scout
   - preserve ClawPump agent id and run id plus Alpha Scout replay key
   - run scripts/capture-agent-to-agent-proof.mjs to capture Alpha Scout side
   - cross-reference both systems before marking agent_to_agent complete
   - only then attempt ANSEM-funded run and reopen TRACE/UI
+  - keep current Cloudflare deployment as preview until final visual/runtime routing is approved
 
 eligibility:
   official_source: https://clawpump.tech/ansemhack
