@@ -2,7 +2,7 @@ project: alpha-scout-clawrena
 canonical_branch: winning-intelligence-p11
 upstream_merge_commit: 171576483ff589dcf41c07f25a671134628ef073
 upstream_merged_pr: https://github.com/opeblow/clawrena/pull/1
-phase: P11_4_CLAWPUMP_SKILL_IMPORTED_CHAT_PROBE_FAILED_CLOSED_AWAITING_BOUNDED_RUN
+phase: P11_4_CLAWPUMP_ZERO_BUDGET_RUN_BLOCKED_SWITCHING_EXTERNAL_INVOKER_TO_HERMES
 updated_at: 2026-09-16
 
 product_truth:
@@ -26,6 +26,7 @@ product_truth:
   agent_to_agent_shadow_underwriting: pending_real_external_run
   caller_metadata_is_identity_proof: false
   clawpump_chat_external_http_proved: false
+  clawpump_zero_budget_autonomous_run_supported: false
   ansem_funded_underwriting_demo: planned_not_proved
   x402_authority_service: prepared_not_deployed_no_revenue_claim
   cloudflare_pages_project: alpha-scout-clawrena
@@ -101,7 +102,13 @@ p11_4_agent_to_agent:
   skill_chat_probe_tools_used_count: 0
   skill_chat_probe_external_http_proved: false
   skill_chat_probe_status: FAILED_CLOSED_NO_EXTERNAL_HTTP_PROOF
-  financial_state_change_during_probe: false
+  zero_budget_run_gate_artifact: evidence/runtime/P11-CLAWPUMP-RUN-BUDGET-GATE-2026-09-16.json
+  zero_budget_run_schema_minimum: 0
+  zero_budget_run_runtime_accepted: false
+  zero_budget_run_status: NONZERO_BUDGET_REQUIRED
+  zero_budget_run_created: false
+  financial_state_change_during_probes: false
+  external_invoker_route: hermes
   real_clawpump_or_hermes_run: pending
   validation_run: https://github.com/Faadil1/clawrena/actions/runs/35042999450
   validation_result: pass
@@ -138,6 +145,7 @@ completed_gates:
   - real_clawpump_agent_discovered_read_only
   - evidence_authority_skill_imported_into_real_clawpump_agent
   - failed_chat_probe_preserved_without_fake_http_success
+  - clawpump_zero_budget_run_gate_preserved_without_spend
 
 blocking_gates:
   - auditable_external_agent_http_or_equivalent_authority_invocation
@@ -159,12 +167,12 @@ conditional_gates:
   - trace_gate_6_5_visual_runtime_review
 
 next_actions:
-  - use one tightly bounded ClawPump autonomous run on agent T only to test whether run execution exposes an auditable external HTTP/tool path unavailable in chat
-  - cap the test to a few steps and forbid all trading, transfers, token launch, automations, x402 payment and wallet mutation
-  - inspect get_agent_run_steps; live HTTP is proved only if an actual tool/action step shows the request, never from model text alone
-  - if the bounded run also has no auditable external HTTP capability, stop trying to coerce ClawPump chat/run and switch the external invoker to Hermes where terminal/web HTTP can be evidenced
-  - once a real external invoker exists, call Alpha Scout /underwrite with caller metadata and preserve external run/session id plus replay key
-  - run scripts/capture-agent-to-agent-proof.mjs and cross-reference both systems before marking agent_to_agent complete
+  - stop spending effort on ClawPump autonomous-run proof unless a positive budget is explicitly authorized for product reasons rather than merely to manufacture evidence
+  - use Hermes as the external invoker because terminal/web HTTP actions can be evidenced independently of ClawPump model text
+  - run a Hermes shadow-only capability probe against https://grandiose-poodle-700.convex.site/authority-policy and preserve the real Hermes session/run id plus command/tool trace
+  - if reachability is proved, have Hermes call Alpha Scout /underwrite for a real Pump mint/signature with caller platform hermes and the real Hermes session/run id
+  - preserve the Alpha Scout replay key and run scripts/capture-agent-to-agent-proof.mjs with the external identity/session values
+  - cross-reference Hermes receipt and Alpha Scout receipt before marking agent_to_agent complete
   - only then attempt ANSEM-funded run and reopen TRACE/UI
   - keep current Cloudflare deployment as preview until final visual/runtime routing is approved
 
