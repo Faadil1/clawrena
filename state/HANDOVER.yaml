@@ -1,10 +1,11 @@
 project: alpha-scout-clawrena
-handover_version: P11_4_2026-09-16
+handover_version: P11_4_2026-09-16_CLOUDFLARE_PREVIEW_LIVE
 
 start_here:
   - state/CURRENT.yaml
   - evidence/canonical-run/P11-AUTHORITY-REFUSAL-2026-09-16.json
   - evidence/canonical-run/STATUS.json
+  - evidence/runtime/P11-CLOUDFLARE-PREVIEW-2026-09-16.json
   - docs/AGENT_TO_AGENT_PROOF_P11_4.md
   - skills/evidence-authority/SKILL.md
   - scripts/capture-agent-to-agent-proof.mjs
@@ -28,8 +29,26 @@ canonical_runtime:
   lineage_replay_key: AS1-c24346db6fb3c24e
   value_movement: false
 
+cloudflare_preview:
+  project: alpha-scout-clawrena
+  production_branch: master
+  deployed_branch: winning-intelligence-p11
+  deployed_source_sha: b6f4ef1513bfb7a6ec8476bb0df849ebb974d71e
+  deployment_id_reported: 817bb36b
+  deployment_url: https://817bb36b.alpha-scout-clawrena.pages.dev
+  branch_alias_url: https://winning-intelligence-p11.alpha-scout-clawrena.pages.dev
+  deployment_url_http_status: 200
+  branch_alias_http_status: 200
+  environment: preview
+  production_deployment_made: false
+  production_branch_modified: false
+  custom_domain_attached: false
+  vercel_deployment_made: false
+  visual_correctness_verified: false
+  evidence: evidence/runtime/P11-CLOUDFLARE-PREVIEW-2026-09-16.json
+
 p11_4_agent_to_agent:
-  code_status: validated_not_yet_redeployed
+  code_status: validated_and_deployed_to_convex_dev_not_yet_exercised
   validation_run: https://github.com/Faadil1/clawrena/actions/runs/35042999450
   caller_context:
     semantics: DECLARED_EXTERNAL_CONTEXT
@@ -42,10 +61,8 @@ p11_4_agent_to_agent:
   external_run_status: pending
 
 next_actions_priority:
-  - git fetch origin and hard-reset local winning-intelligence-p11
-  - npx convex dev --once to deploy the caller-attribution schema/runtime
-  - install/configure ClawPump Agent MCP locally; never paste the cpk_ key into chat or repo
-  - list existing ClawPump agents and choose one, or create one if none exists
+  - in the Claude Code session where clawpump-remote is connected, call list_agents read-only
+  - choose an existing ClawPump agent, or create a dedicated one only if no suitable agent exists
   - create/import the Evidence Authority custom skill from skills/evidence-authority/SKILL.md
   - run a real ClawPump/Hermes chat or autonomous run in shadow mode
   - preserve real agent id and run id
@@ -53,7 +70,8 @@ next_actions_priority:
   - run scripts/capture-agent-to-agent-proof.mjs for Alpha Scout-side consistency proof
   - cross-reference the ClawPump run receipt with Alpha Scout replay key before marking agent-to-agent proof complete
   - if feasible, fund the external agent billing wallet with ANSEM and repeat one real underwriting request before making ANSEM-funded claims
-  - only after that reopen TRACE/UI as Proof-of-Authority Workstation
+  - only after agent-to-agent proof reopen TRACE/UI as a Proof-of-Authority Workstation
+  - keep the current Cloudflare deployment preview-only until final visual/runtime approval
 
 truth_boundaries:
   caller_metadata_is_identity_proof: false
@@ -64,6 +82,8 @@ truth_boundaries:
   qualified_is_execution_authorization: false
   agent_to_agent_proof_complete: false
   ansem_funded_demo_proved: false
+  cloudflare_preview_is_production: false
+  cloudflare_http_200_proves_visual_correctness: false
 
 never_do:
   - never paste CLAWPUMP_API_KEY or AUTHORITY_API_KEY into chat, repo, evidence or logs
@@ -72,3 +92,4 @@ never_do:
   - do not call REFUSED a product failure
   - do not call QUALIFIED final execution authorization
   - do not mark agent-to-agent proof complete without both ClawPump/Hermes and Alpha Scout receipts
+  - do not promote the current Cloudflare preview to production before final runtime/visual approval
