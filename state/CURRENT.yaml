@@ -1,6 +1,6 @@
 project: alpha-scout-clawrena
 canonical_branch: winning-intelligence-p11
-phase: P11_4_EXTERNAL_UNDERWRITE_CAPTURED_AWAITING_RECEIPT_MATCH
+phase: P11_4_EXTERNAL_AGENT_AUTHORITY_PROOF_COMPLETE_REOPENING_TRACE_UI
 updated_at: 2026-09-16
 
 product_truth:
@@ -17,6 +17,8 @@ product_truth:
   convex_deployment: grandiose-poodle-700
   cloudflare_preview: live_http_200_not_production
   canonical_public_frontend: preview_live_not_final_production
+  external_agent_authority_proof: complete
+  clawpump_native_autonomous_underwrite_proof: incomplete
 
 canonical_runtime_proof:
   status: REAL_NEGATIVE_PATH_CAPTURED
@@ -28,30 +30,19 @@ canonical_runtime_proof:
   replay_consistency: MATCH
   value_movement: false
 
-clawpump_path:
-  real_agent_id: c1a5477c-c79e-4388-a9eb-8303fa441087
-  real_agent_name: T
-  status_at_discovery: stopped
-  evidence_authority_skill_id: aa303f0b-9f60-4e06-8278-e0dee6ef5a33
-  evidence_authority_skill_slug: evidence-authority
-  evidence_authority_skill_enabled: true
-  chat_http_proof_status: FAILED_CLOSED_NO_EXTERNAL_HTTP_PROOF
-  zero_budget_run_status: NONZERO_BUDGET_REQUIRED
-  positive_budget_authorized: false
-  financial_state_change_during_clawpump_probes: false
-
-external_claude_code:
-  capability_probe_artifact: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-HTTP-PROBE-2026-09-16.json
-  underwrite_artifact: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE-2026-09-16.json
-  capture_class: USER_TERMINAL_JSONL_OUTPUT
+external_agent_authority_proof:
+  status: COMPLETE
+  canonical_artifact: evidence/canonical-run/P11-EXTERNAL-AGENT-AUTHORITY-2026-09-16.json
+  capture_class: USER_TERMINAL_JSONL_AND_VERIFY_RECEIPT_OUTPUT
   assistant_independently_replayed: false
   platform: claude-code
   mode: headless-safe-mode
   model: claude-sonnet-5
+  agent_id: claude-code-headless
   session_id: 94b94917-ff0d-4697-b0fd-5ca7d687f3a0
   tools: [Bash, Read]
   mcp_servers: []
-  authority_policy_http_proved: true
+  capability_http_proved: true
   underwrite_http_request_sent: true
   underwrite_request_count_observed: 1
   automatic_retry_observed: false
@@ -74,9 +65,28 @@ external_claude_code:
     skill_slug: evidence-authority
     identity_semantics: DECLARED_EXTERNAL_CONTEXT
   caller_identity_verified_by_alpha_scout: false
+  receipt_verification_status: success
+  receipt_policy_is_current: true
+  recomputed_replay_key: AS1-51fff2964ef6c06d
+  replay_consistency: MATCH
   external_session_equals_stored_caller_run_id: true
-  receipt_verification_status: pending
-  replay_consistency: pending
+  token_mint_matches: true
+  launch_signature_matches: true
+  replay_key_matches: true
+  cross_system_status: MATCH
+
+clawpump_path:
+  real_agent_id: c1a5477c-c79e-4388-a9eb-8303fa441087
+  real_agent_name: T
+  status_at_discovery: stopped
+  evidence_authority_skill_id: aa303f0b-9f60-4e06-8278-e0dee6ef5a33
+  evidence_authority_skill_slug: evidence-authority
+  evidence_authority_skill_enabled: true
+  chat_http_proof_status: FAILED_CLOSED_NO_EXTERNAL_HTTP_PROOF
+  zero_budget_run_status: NONZERO_BUDGET_REQUIRED
+  positive_budget_authorized: false
+  native_autonomous_underwrite_proved: false
+  financial_state_change_during_clawpump_probes: false
 
 completed_gates:
   - real_pump_launch_discovery
@@ -95,10 +105,11 @@ completed_gates:
   - auditable_external_claude_code_http_reachability
   - external_claude_code_underwrite_single_post_captured
   - external_session_id_persisted_as_declared_caller_run_id
-
-blocking_gates:
   - stored_receipt_consistency_match_for_external_underwrite
   - cross_system_external_session_to_alpha_scout_replay_key_match
+  - p11_4_external_agent_authority_proof_complete
+
+blocking_gates:
   - eligibility_registration_receipt
   - eligibility_x_follow_receipt
   - alpha_scout_tokenization_receipt
@@ -107,15 +118,22 @@ blocking_gates:
   - attention_and_stream_receipts
   - gate_7_promote
 
+conditional_gates:
+  - clawpump_native_autonomous_underwrite_only_if_positive_budget_is_product_justified
+  - verified_onchain_execution_if_attempted
+  - ansem_funded_underwriting_demo
+  - x402_paid_underwriting_only_if_real_settlement_exists
+  - dedicated_helius_rpc_for_higher_runtime_reliability
+  - trace_gate_6_5_visual_runtime_review
+
 next_actions:
-  - perform exactly one read-only underwriting/verifyReceipt query for AS1-51fff2964ef6c06d
-  - do not call /underwrite again merely to verify the receipt
-  - require Convex status success and value.replayConsistency MATCH
-  - require stored caller platform claude-code, agentId claude-code-headless and runId 94b94917-ff0d-4697-b0fd-5ca7d687f3a0
-  - require stored replay key AS1-51fff2964ef6c06d
-  - preserve raw verifyReceipt response in evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-RECEIPT-VERIFY.json
-  - only after all identifiers match mark P11.4 agent-to-agent authority proof complete
-  - after P11.4 completion reopen TRACE/UI and remaining hackathon eligibility gates
+  - reopen TRACE/UI as a Proof-of-Authority Workstation now that P11.4 external-agent proof is complete
+  - surface requester/session, source ledger, UNKNOWN evidence, blockers, replay key, receipt MATCH, valueMovement=false and qualified-not-authorized boundary above the fold
+  - run TRACE Gate 6.5 visual/runtime review on the Cloudflare preview before production promotion
+  - complete hackathon eligibility receipts for registration, X/follow and tokenization
+  - finalize Cloudflare production routing only after visual/runtime approval
+  - capture final demo video or immutable video hash
+  - run Gate 7 promotion only after all hard receipts exist
 
 truth_boundaries:
   refused_is_valid_service_outcome: true
@@ -123,14 +141,16 @@ truth_boundaries:
   qualified_is_execution_authorization: false
   caller_metadata_is_identity_proof: false
   claude_code_session_id_is_crypto_identity: false
+  replay_match_is_crypto_attestation: false
+  receipt_verification_is_live_revalidation: false
   request_count_is_unique_agents: false
   request_count_is_trading_volume: false
-  external_underwrite_captured_equals_receipt_consistency_proved: false
-  agent_to_agent_proof_complete: false
+  external_agent_authority_proof_complete: true
+  clawpump_native_autonomous_underwrite_proved: false
   ansem_funded_demo_proved: false
   cloudflare_preview_is_production: false
 
 visual_system:
-  next_visual_pass_status: blocked_until_agent_to_agent_authority_proof
+  next_visual_pass_status: unblocked
   next_visual_category: proof_of_authority_workstation
   next_visual_rule: do_not_start_from_generic_trading_dashboard_references
