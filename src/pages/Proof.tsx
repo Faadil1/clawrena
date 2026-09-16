@@ -1,4 +1,5 @@
-import { FormEvent, useState } from "react";
+import { useState } from "react";
+import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
@@ -19,12 +20,14 @@ export default function Proof() {
     if (next) setReplayKey(next);
   };
 
-  const hasReceipt = Boolean(receipt?.ok);
-  const caller = hasReceipt ? receipt?.caller : null;
-  const sources = hasReceipt && Array.isArray(receipt?.sourceLedger) ? receipt.sourceLedger : [];
-  const blockers = hasReceipt ? receipt?.blockers ?? [] : [];
-  const unknowns = hasReceipt ? receipt?.unknowns ?? [] : [];
-  const match = hasReceipt && receipt?.replayConsistency === "MATCH";
+  const storedReceipt = receipt && "replayKey" in receipt ? receipt : null;
+  const receiptError = receipt && "error" in receipt ? receipt.error : null;
+  const hasReceipt = storedReceipt !== null;
+  const caller = storedReceipt?.caller ?? null;
+  const sources = storedReceipt && Array.isArray(storedReceipt.sourceLedger) ? storedReceipt.sourceLedger : [];
+  const blockers = storedReceipt?.blockers ?? [];
+  const unknowns = storedReceipt?.unknowns ?? [];
+  const match = storedReceipt?.replayConsistency === "MATCH";
 
   return (
     <div className="pa-page">
@@ -62,23 +65,23 @@ export default function Proof() {
 
           <aside className={`pa-verdict ${hasReceipt ? "is-loaded" : "is-loading"}`}>
             <div className="pa-verdict-label">AUTHORITY DECISION</div>
-            <div className="pa-verdict-word">{receipt === undefined ? "CHECKING" : hasReceipt ? receipt.policyState : "NO RECEIPT"}</div>
+            <div className="pa-verdict-word">{receipt === undefined ? "CHECKING" : storedReceipt ? storedReceipt.policyState : "NO RECEIPT"}</div>
             <div className="pa-verdict-score">
               <span>Evidence score</span>
-              <b>{hasReceipt ? `${receipt.score ?? "—"}/100` : "—"}</b>
+              <b>{storedReceipt ? `${storedReceipt.score ?? "—"}/100` : "—"}</b>
             </div>
-            <div className="pa-stamp" aria-hidden="true">{hasReceipt ? receipt.policyState : "UNVERIFIED"}</div>
+            <div className="pa-stamp" aria-hidden="true">{storedReceipt ? storedReceipt.policyState : "UNVERIFIED"}</div>
             <div className="pa-verdict-foot">
               <span>VALUE MOVEMENT</span>
-              <b>{hasReceipt && receipt.valueMovement === false ? "NONE" : "—"}</b>
+              <b>{storedReceipt?.valueMovement === false ? "NONE" : "—"}</b>
             </div>
           </aside>
         </section>
 
         <section className="pa-proofline" aria-label="Cross-system proof chain">
           <ProofStep no="01" label="REQUESTER" value="Claude Code / headless" detail={caller?.runId ? short(caller.runId, 8, 6) : short(CANONICAL_SESSION_ID, 8, 6)} state="OBSERVED" />
-          <ProofStep no="02" label="UNDERWRITE" value={hasReceipt ? `HTTP receipt · ${receipt.policyState}` : "Awaiting receipt"} detail="real Pump mint + create signature" state={hasReceipt ? "RECORDED" : "PENDING"} />
-          <ProofStep no="03" label="PASSPORT" value={hasReceipt ? receipt.replayKey : CANONICAL_REPLAY_KEY} detail={hasReceipt ? `policy ${receipt.policyVersion}` : "deterministic audit identifier"} state={hasReceipt ? "STORED" : "PENDING"} mono />
+          <ProofStep no="02" label="UNDERWRITE" value={storedReceipt ? `HTTP receipt · ${storedReceipt.policyState}` : "Awaiting receipt"} detail="real Pump mint + create signature" state={hasReceipt ? "RECORDED" : "PENDING"} />
+          <ProofStep no="03" label="PASSPORT" value={storedReceipt ? storedReceipt.replayKey : CANONICAL_REPLAY_KEY} detail={storedReceipt ? `policy ${storedReceipt.policyVersion}` : "deterministic audit identifier"} state={hasReceipt ? "STORED" : "PENDING"} mono />
           <ProofStep no="04" label="CONSISTENCY" value={receipt === undefined ? "CHECKING" : match ? "MATCH" : "UNVERIFIED"} detail="recomputed from stored envelope" state={match ? "PROVED" : "PENDING"} emphasis />
         </section>
 
@@ -87,25 +90,25 @@ export default function Proof() {
             <SheetHead index="A" eyebrow="LIVE EVIDENCE PASSPORT" title="Refusal docket" status={match ? "MATCH" : "CHECKING"} tone={match ? "good" : "neutral"} />
             {receipt === undefined ? (
               <LoadingBlock text="Reading the stored Evidence Passport…" />
-            ) : !hasReceipt ? (
+            ) : storedReceipt === null ? (
               <div className="pa-empty">
                 <b>Receipt unavailable</b>
-                <p>{receipt?.error ?? "No stored underwriting decision matched this replay key."}</p>
+                <p>{receiptError ?? "No stored underwriting decision matched this replay key."}</p>
               </div>
             ) : (
               <div className="pa-receipt-body">
                 <div className="pa-receipt-id">
                   <span>REPLAY KEY</span>
-                  <strong>{receipt.replayKey}</strong>
+                  <strong>{storedReceipt.replayKey}</strong>
                   <small>Deterministic audit identifier — not a cryptographic signature.</small>
                 </div>
                 <div className="pa-docket-grid">
-                  <Docket label="Policy state" value={receipt.policyState} tone="red" />
-                  <Docket label="Policy" value={receipt.policyVersion} />
-                  <Docket label="Score" value={`${receipt.score ?? "—"}/100`} />
-                  <Docket label="Replay" value={receipt.replayConsistency} tone={match ? "green" : "red"} />
-                  <Docket label="Policy current" value={receipt.policyIsCurrent ? "YES" : "NO"} />
-                  <Docket label="Value movement" value={receipt.valueMovement === false ? "NONE" : "UNEXPECTED"} tone={receipt.valueMovement === false ? "green" : "red"} />
+                  <Docket label="Policy state" value={storedReceipt.policyState} tone="red" />
+                  <Docket label="Policy" value={storedReceipt.policyVersion} />
+                  <Docket label="Score" value={`${storedReceipt.score ?? "—"}/100`} />
+                  <Docket label="Replay" value={storedReceipt.replayConsistency} tone={match ? "green" : "red"} />
+                  <Docket label="Policy current" value={storedReceipt.policyIsCurrent ? "YES" : "NO"} />
+                  <Docket label="Value movement" value={storedReceipt.valueMovement === false ? "NONE" : "UNEXPECTED"} tone={storedReceipt.valueMovement === false ? "green" : "red"} />
                 </div>
                 <div className="pa-blocker-zone">
                   <div className="pa-mini-label">WHY AUTHORITY STOPPED</div>
@@ -167,7 +170,7 @@ export default function Proof() {
             </form>
             <div className={`pa-verify-result ${match ? "is-match" : ""}`}>
               <span>{receipt === undefined ? "…" : match ? "✓" : "?"}</span>
-              <div><b>{receipt === undefined ? "Recomputing stored envelope" : match ? "REPLAY CONSISTENCY: MATCH" : "NO MATCH CONFIRMED"}</b><p>{match ? `${receipt?.recomputedReplayKey} reproduces the stored identifier under ${receipt?.policyVersion}.` : "Verification is deterministic consistency only; it is not live market revalidation or cryptographic attestation."}</p></div>
+              <div><b>{receipt === undefined ? "Recomputing stored envelope" : match ? "REPLAY CONSISTENCY: MATCH" : "NO MATCH CONFIRMED"}</b><p>{match && storedReceipt ? `${storedReceipt.recomputedReplayKey} reproduces the stored identifier under ${storedReceipt.policyVersion}.` : "Verification is deterministic consistency only; it is not live market revalidation or cryptographic attestation."}</p></div>
             </div>
             <p className="pa-verifier-foot">Verification reads the stored decision envelope. It does not refresh market evidence and does not authorize execution.</p>
           </article>
