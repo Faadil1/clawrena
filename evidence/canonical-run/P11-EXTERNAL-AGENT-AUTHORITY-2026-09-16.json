@@ -1,0 +1,102 @@
+{
+  "artifactClass": "CANONICAL_EXTERNAL_AGENT_AUTHORITY_PROOF",
+  "status": "COMPLETE",
+  "capturedAt": "2026-09-16T18:37:47Z",
+  "captureClass": "USER_TERMINAL_JSONL_AND_VERIFY_RECEIPT_OUTPUT",
+  "assistantIndependentlyReplayed": false,
+  "fakeSuccessForbidden": true,
+  "externalInvoker": {
+    "platform": "claude-code",
+    "mode": "headless-safe-mode",
+    "model": "claude-sonnet-5",
+    "sessionId": "94b94917-ff0d-4697-b0fd-5ca7d687f3a0",
+    "agentId": "claude-code-headless",
+    "tools": ["Bash", "Read"],
+    "mcpServers": [],
+    "localTranscript": "evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE.jsonl"
+  },
+  "request": {
+    "endpoint": "https://grandiose-poodle-700.convex.site/underwrite",
+    "method": "POST",
+    "observedRequestCount": 1,
+    "automaticRetryObserved": false,
+    "tokenMint": "BPVRf68R4zxrXVXBQMo8KpvJcq9vLM1tpe7p1hckuvd1",
+    "launchSignature": "47emwzJgBXieLUc1zq555jv4ajQbXevwhJFoxaATNyJnqLoFDvpp6ZFE4QLVVe5CoXahFkMyfF6Fy9mpNR4Zoy83",
+    "caller": {
+      "platform": "claude-code",
+      "agentId": "claude-code-headless",
+      "runId": "94b94917-ff0d-4697-b0fd-5ca7d687f3a0",
+      "skillSlug": "evidence-authority"
+    }
+  },
+  "underwriting": {
+    "httpStatus": 200,
+    "ok": true,
+    "ledgerId": "md72gnkxnf2arb7ewnrc2szb498ehrxr",
+    "artifactClass": "LIVE_EVIDENCE_UNDERWRITING_DECISION",
+    "policyVersion": "AS-AUTHORITY-V1",
+    "policyState": "REFUSED",
+    "score": 30,
+    "blockers": [
+      "holder concentration unknown",
+      "launch signal older than six hours"
+    ],
+    "unknowns": ["largest-holder concentration"],
+    "replayKey": "AS1-51fff2964ef6c06d",
+    "valueMovement": false,
+    "callerIdentityVerifiedByAlphaScout": false,
+    "callerIdentitySemantics": "DECLARED_EXTERNAL_CONTEXT"
+  },
+  "receiptVerification": {
+    "endpoint": "https://grandiose-poodle-700.convex.cloud/api/run/underwriting/verifyReceipt",
+    "status": "success",
+    "artifactClass": "STORED_EVIDENCE_PASSPORT_CONSISTENCY_CHECK",
+    "ok": true,
+    "policyIsCurrent": true,
+    "policyVersion": "AS-AUTHORITY-V1",
+    "policyState": "REFUSED",
+    "replayKey": "AS1-51fff2964ef6c06d",
+    "recomputedReplayKey": "AS1-51fff2964ef6c06d",
+    "replayConsistency": "MATCH",
+    "storedCaller": {
+      "platform": "claude-code",
+      "agentId": "claude-code-headless",
+      "runId": "94b94917-ff0d-4697-b0fd-5ca7d687f3a0",
+      "skillSlug": "evidence-authority",
+      "identitySemantics": "DECLARED_EXTERNAL_CONTEXT"
+    },
+    "callerIdentityVerifiedByAlphaScout": false,
+    "valueMovement": false,
+    "semantics": "DETERMINISTIC_CONSISTENCY_NOT_CRYPTOGRAPHIC_ATTESTATION_NOT_LIVE_REVALIDATION"
+  },
+  "crossSystemMatch": {
+    "externalSessionEqualsStoredCallerRunId": true,
+    "tokenMintMatches": true,
+    "launchSignatureMatches": true,
+    "replayKeyMatches": true,
+    "storedReplayKeyRecomputes": true,
+    "valueMovementRemainedFalse": true,
+    "status": "MATCH"
+  },
+  "truthBoundaries": {
+    "callerMetadataIsCryptographicIdentity": false,
+    "claudeCodeSessionIdIsCryptographicIdentity": false,
+    "replayMatchIsCryptographicAttestation": false,
+    "receiptVerificationIsLiveRevalidation": false,
+    "refusedIsValidServiceOutcome": true,
+    "qualifiedWouldNotEqualExecutionAuthorization": true,
+    "requestCountIsUniqueAgentCount": false,
+    "requestCountIsTradingVolume": false,
+    "clawPumpNativeAutonomousRunProved": false,
+    "ansemFundedRunProved": false
+  },
+  "localEvidenceFiles": {
+    "capabilityPrompt": "evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-PROBE-PROMPT.txt",
+    "capabilityTranscript": "evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-PROBE.jsonl",
+    "underwriteBody": "evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE-BODY.json",
+    "underwritePrompt": "evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE-PROMPT.txt",
+    "underwriteTranscript": "evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE.jsonl",
+    "verifyReceiptBody": "evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-RECEIPT-VERIFY-BODY.json",
+    "verifyReceiptResponse": "evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-RECEIPT-VERIFY.json"
+  }
+}
