@@ -1,0 +1,25 @@
+name: TRACE Proof Workstation CI
+
+on:
+  push:
+    branches: [trace-proof-of-authority-workstation]
+  workflow_dispatch:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high
+      - run: npm run verify:integrity
+      - run: npm run test:logic
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+        env:
+          VITE_BUILD_COMMIT_SHA: ${{ github.sha }}
