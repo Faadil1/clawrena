@@ -21,6 +21,7 @@ export const publicStats = query({
     const underwritingQualified = underwriting.filter((row) => row.policyState === "QUALIFIED");
     const underwritingRefused = underwriting.filter((row) => row.policyState === "REFUSED");
     const lineageReruns = underwriting.filter((row) => Boolean(row.supersedesReplayKey));
+    const externallyAttributed = underwriting.filter((row) => Boolean(row.caller?.platform && row.caller?.agentId));
 
     return {
       tradesExecuted: verifiedOnchain.length,
@@ -35,6 +36,7 @@ export const publicStats = query({
       underwritingQualified: underwritingQualified.length,
       underwritingRefused: underwritingRefused.length,
       underwritingLineageReruns: lineageReruns.length,
+      externallyAttributedUnderwritingRequests: externallyAttributed.length,
       verifiedOnchainVolumeSol: verifiedOnchain.reduce((sum, t) => sum + (t.amountSol ?? 0), 0),
       pendingOnchainVolumeSol: pendingOnchain.reduce((sum, t) => sum + (t.amountSol ?? 0), 0),
       paperVolumeSol: paper.reduce((sum, t) => sum + (t.amountSol ?? 0), 0),
