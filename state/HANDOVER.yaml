@@ -1,11 +1,12 @@
 project: alpha-scout-clawrena
-handover_version: P11_4_2026-09-16_EXTERNAL_CLAUDE_CODE_HTTP_PROVED
+handover_version: P11_4_2026-09-16_EXTERNAL_CLAUDE_CODE_UNDERWRITE_BLOCKED_BY_SAFETY_GATE
 
 start_here:
   - state/CURRENT.yaml
   - evidence/canonical-run/P11-AUTHORITY-REFUSAL-2026-09-16.json
   - evidence/canonical-run/STATUS.json
   - evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-HTTP-PROBE-2026-09-16.json
+  - evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE-SAFETY-GATE-2026-09-16.json
   - evidence/runtime/P11-CLOUDFLARE-PREVIEW-2026-09-16.json
   - evidence/external/P11-CLAWPUMP-AGENT-DISCOVERY-2026-09-16.json
   - evidence/runtime/P11-CLAWPUMP-SKILL-CHAT-PROBE-2026-09-16.json
@@ -36,10 +37,7 @@ external_invoker_proof:
   platform: claude-code
   mode: headless-safe-mode
   session_id: 94b94917-ff0d-4697-b0fd-5ca7d687f3a0
-  artifact: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-HTTP-PROBE-2026-09-16.json
-  capture_class: USER_TERMINAL_OUTPUT_SUMMARY
-  assistant_independently_replayed: false
-  system_init_tools: [Bash, Read]
+  capability_artifact: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-HTTP-PROBE-2026-09-16.json
   live_command: curl.exe -sS -i https://grandiose-poodle-700.convex.site/authority-policy
   live_http_status: 200
   observed_policy_version: AS-AUTHORITY-V1
@@ -48,8 +46,17 @@ external_invoker_proof:
   underwrite_called: false
   financial_tools_used: false
   value_movement: false
-  local_prompt: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-PROBE-PROMPT.txt
-  local_transcript: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-PROBE.jsonl
+  local_capability_prompt: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-PROBE-PROMPT.txt
+  local_capability_transcript: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-PROBE.jsonl
+  prepared_underwrite_body: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE-BODY.json
+  prepared_underwrite_prompt: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE-PROMPT.txt
+  underwrite_safety_gate_artifact: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE-SAFETY-GATE-2026-09-16.json
+  underwrite_gate_status: BLOCKED_BEFORE_EXECUTION
+  underwrite_classifier_outcome: REAL_WORLD_TRANSACTIONS_BLOCK
+  underwrite_http_request_sent: false
+  underwrite_ledger_id: null
+  underwrite_replay_key: null
+  receipt_verification_attempted: false
 
 clawpump_path_preserved:
   agent_id: c1a5477c-c79e-4388-a9eb-8303fa441087
@@ -74,23 +81,25 @@ cloudflare_preview:
   production_touched: false
 
 next_actions_priority:
-  - resume Claude Code session 94b94917-ff0d-4697-b0fd-5ca7d687f3a0 using claude --resume rather than creating a new session
-  - keep safe-mode and restrict the external invoker to Read/Bash only
-  - call /underwrite exactly once with the real canonical Pump mint/signature
-  - use caller platform claude-code, agentId claude-code-headless, runId 94b94917-ff0d-4697-b0fd-5ca7d687f3a0 and skillSlug evidence-authority
-  - preserve the raw external Bash tool_use/tool_result containing the /underwrite response
-  - require valueMovement=false and policyState QUALIFIED or REFUSED; REFUSED remains a successful authority result
-  - extract the exact replay key returned by that same external invocation
-  - verify that replay key through underwriting/verifyReceipt without making another /underwrite request
-  - require replayConsistency=MATCH and stored caller runId/session match
+  - preserve exact external Claude Code session 94b94917-ff0d-4697-b0fd-5ca7d687f3a0 and the prepared underwrite body/prompt files
+  - do not classify the Claude safety block as an Alpha Scout underwriting attempt; no HTTP request was sent
+  - simplest continuation is explicit user execution of the prepared claude --resume command, which represents user authorization rather than an automated bypass
+  - after that one call, inspect only the resulting JSONL; do not retry /underwrite automatically
+  - require HTTP 200, ok=true, valueMovement=false, policyState QUALIFIED or REFUSED, returned replay key, and caller.runId equal to the resumed session ID
+  - verify that exact replay key through underwriting/verifyReceipt without another /underwrite request
+  - require replayConsistency=MATCH and stored caller platform/agentId/runId match
   - cross-reference external transcript session ID, mint, launch signature and replay key with Alpha Scout stored receipt
   - only then mark agent-to-agent proof complete
+  - if user does not want to execute the command directly, use a different already-authorized non-financial external invoker with an auditable HTTP trace; do not lower proof standards
   - after agent-to-agent proof, consider ANSEM-funded proof and reopen TRACE/UI
 
 truth_boundaries:
   caller_metadata_is_identity_proof: false
   claude_code_session_id_is_crypto_identity: false
   external_http_reachability_is_underwriting_proof: false
+  classifier_block_is_underwriting_refusal: false
+  prepared_request_is_runtime_proof: false
+  no_http_request_means_no_alpha_scout_decision: true
   request_count_is_unique_agents: false
   request_count_is_trading_volume: false
   refused_is_valid_service_outcome: true
@@ -104,6 +113,7 @@ never_do:
   - never paste CLAWPUMP_API_KEY or AUTHORITY_API_KEY into chat, repo, evidence or logs
   - do not count model text without a tool trace as external network proof
   - do not spend money merely to manufacture an evidence artifact
+  - do not route around Claude Code's safety classifier with disguised commands or renamed endpoints
   - do not call declared caller metadata verified identity
   - do not call REFUSED a product failure
   - do not call QUALIFIED final execution authorization
