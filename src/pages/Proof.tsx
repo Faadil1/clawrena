@@ -203,16 +203,16 @@ export default function Proof() {
   );
 }
 
-function ProofStep({ no, label, value, detail, state, mono = false, emphasis = false }: { no: string; label: string; value: string; detail: string; state: string; mono?: boolean; emphasis?: boolean }) {
-  return <div className={`pa-proofstep ${emphasis ? "is-emphasis" : ""}`}><span className="pa-proofstep-no">{no}</span><div><small>{label}</small><b className={mono ? "is-mono" : ""}>{value}</b><p>{detail}</p></div><i>{state}</i></div>;
+function ProofStep({ no, label, value, detail, state, mono = false, emphasis = false }: { no: string; label: string; value: string | undefined; detail: string; state: string; mono?: boolean; emphasis?: boolean }) {
+  return <div className={`pa-proofstep ${emphasis ? "is-emphasis" : ""}`}><span className="pa-proofstep-no">{no}</span><div><small>{label}</small><b className={mono ? "is-mono" : ""}>{value ?? "—"}</b><p>{detail}</p></div><i>{state}</i></div>;
 }
 
 function SheetHead({ index, eyebrow, title, status, tone }: { index: string; eyebrow: string; title: string; status: string; tone: "good" | "orange" | "neutral" }) {
   return <header className="pa-sheet-head"><span className="pa-sheet-index">{index}</span><div><small>{eyebrow}</small><h2>{title}</h2></div><b className={`pa-sheet-status is-${tone}`}>{status}</b></header>;
 }
 
-function Docket({ label, value, tone }: { label: string; value: string; tone?: "red" | "green" }) {
-  return <div className={`pa-docket ${tone ? `is-${tone}` : ""}`}><span>{label}</span><b>{value}</b></div>;
+function Docket({ label, value, tone }: { label: string; value: string | undefined; tone?: "red" | "green" }) {
+  return <div className={`pa-docket ${tone ? `is-${tone}` : ""}`}><span>{label}</span><b>{value ?? "—"}</b></div>;
 }
 
 function KeyValue({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
