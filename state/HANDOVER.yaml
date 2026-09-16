@@ -1,5 +1,5 @@
 project: alpha-scout-clawrena
-handover_version: P11_4_2026-09-16_CLAWPUMP_AGENT_SELECTED
+handover_version: P11_4_2026-09-16_CLAWPUMP_SKILL_IMPORTED_CHAT_PROBE_FAILED_CLOSED
 
 start_here:
   - state/CURRENT.yaml
@@ -7,6 +7,7 @@ start_here:
   - evidence/canonical-run/STATUS.json
   - evidence/runtime/P11-CLOUDFLARE-PREVIEW-2026-09-16.json
   - evidence/external/P11-CLAWPUMP-AGENT-DISCOVERY-2026-09-16.json
+  - evidence/runtime/P11-CLAWPUMP-SKILL-CHAT-PROBE-2026-09-16.json
   - docs/AGENT_TO_AGENT_PROOF_P11_4.md
   - skills/evidence-authority/SKILL.md
   - scripts/capture-agent-to-agent-proof.mjs
@@ -46,7 +47,6 @@ cloudflare_preview:
   custom_domain_attached: false
   vercel_deployment_made: false
   visual_correctness_verified: false
-  evidence: evidence/runtime/P11-CLOUDFLARE-PREVIEW-2026-09-16.json
 
 p11_4_agent_to_agent:
   code_status: validated_and_deployed_to_convex_dev_not_yet_exercised
@@ -55,10 +55,6 @@ p11_4_agent_to_agent:
     semantics: DECLARED_EXTERNAL_CONTEXT
     fields: [platform, agentId, runId, skillSlug]
     identity_verified_by_alpha_scout: false
-  public_metric: externallyAttributedUnderwritingRequests
-  metric_is_unique_agents: false
-  capture_script: scripts/capture-agent-to-agent-proof.mjs
-  proof_contract: docs/AGENT_TO_AGENT_PROOF_P11_4.md
   selected_external_agent:
     discovery_artifact: evidence/external/P11-CLAWPUMP-AGENT-DISCOVERY-2026-09-16.json
     id: c1a5477c-c79e-4388-a9eb-8303fa441087
@@ -66,20 +62,31 @@ p11_4_agent_to_agent:
     status_at_discovery: stopped
     token_mint: none
     wallet_omitted_from_public_evidence: true
-    discovery_read_only: true
-  external_run_status: pending
+  evidence_authority_skill:
+    id: aa303f0b-9f60-4e06-8278-e0dee6ef5a33
+    slug: evidence-authority
+    enabled: true
+    source: skills/evidence-authority/SKILL.md
+  chat_probe:
+    artifact: evidence/runtime/P11-CLAWPUMP-SKILL-CHAT-PROBE-2026-09-16.json
+    requested_endpoint: https://grandiose-poodle-700.convex.site/authority-policy
+    model_response: AS-AUTHORITY-V1 — QUALIFIED_IS_NOT_EXECUTION_AUTHORIZATION
+    tools_used_count: 0
+    real_external_http_proved: false
+    status: FAILED_CLOSED_NO_EXTERNAL_HTTP_PROOF
+    financial_state_change: false
+  external_underwriting_receipt_status: pending
+  agent_to_agent_proof_complete: false
 
 next_actions_priority:
-  - in the connected clawpump-remote session, create a custom Evidence Authority skill on agent T using skills/evidence-authority/SKILL.md
-  - do not trade, transfer, launch a token, create an automation, or start capital-moving activity during the first proof
-  - use a real ClawPump chat or tightly bounded autonomous run in shadow mode
-  - have that external interaction request Alpha Scout underwriting against a real Pump launch and preserve returned replay key/state
-  - preserve real ClawPump agent id plus chat/run id
-  - run scripts/capture-agent-to-agent-proof.mjs for Alpha Scout-side consistency proof
-  - cross-reference the ClawPump receipt with the Alpha Scout replay key before marking agent-to-agent proof complete
-  - if feasible, fund the external agent billing wallet with ANSEM and repeat one real underwriting request before making ANSEM-funded claims
-  - only after agent-to-agent proof reopen TRACE/UI as a Proof-of-Authority Workstation
-  - keep the current Cloudflare deployment preview-only until final visual/runtime approval
+  - authorize exactly one tightly bounded create_agent_run on agent T as a capability probe, not as a trading run
+  - constrain the run objective to read-only Alpha Scout reachability and explicitly prohibit trading, transfers, token launches, automations, x402 payments and wallet mutations
+  - use a very small step cap/budget appropriate to a non-financial probe
+  - inspect get_agent_run_steps and accept external reachability only if a real tool/action step shows the HTTP request; model text alone is insufficient
+  - if no auditable external HTTP/tool path exists in the autonomous runner either, preserve that failure and switch the external invoker to Hermes rather than fabricating a ClawPump integration
+  - after a real external invoker exists, call /underwrite with caller metadata and preserve the external run/session id plus Alpha Scout replay key
+  - run scripts/capture-agent-to-agent-proof.mjs and cross-match external receipt ↔ Alpha Scout replay key
+  - only then mark agent-to-agent complete, consider ANSEM-funded proof, and reopen TRACE/UI
 
 truth_boundaries:
   caller_metadata_is_identity_proof: false
@@ -92,14 +99,16 @@ truth_boundaries:
   ansem_funded_demo_proved: false
   cloudflare_preview_is_production: false
   cloudflare_http_200_proves_visual_correctness: false
-  listed_external_agent_alone_proves_agent_to_agent: false
+  skill_installed_proves_external_http: false
+  plausible_policy_text_proves_live_fetch: false
 
 never_do:
   - never paste CLAWPUMP_API_KEY or AUTHORITY_API_KEY into chat, repo, evidence or logs
-  - do not publish the selected agent wallet in public evidence unless it becomes necessary for a specific proof
+  - do not publish the selected agent wallet in public evidence unless necessary for a specific proof
+  - do not count model text as an external HTTP receipt when tools_used is empty
   - do not call declared caller metadata verified identity
   - do not call externallyAttributedUnderwritingRequests unique agents/users
   - do not call REFUSED a product failure
   - do not call QUALIFIED final execution authorization
-  - do not mark agent-to-agent proof complete without both ClawPump/Hermes and Alpha Scout receipts
+  - do not mark agent-to-agent proof complete without both external ClawPump/Hermes and Alpha Scout receipts
   - do not promote the current Cloudflare preview to production before final runtime/visual approval
