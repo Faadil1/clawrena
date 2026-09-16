@@ -1,111 +1,74 @@
 project: alpha-scout-clawrena
-handover_version: P11_3_2026-09-16
+handover_version: P11_4_2026-09-16
 
 start_here:
   - state/CURRENT.yaml
   - evidence/canonical-run/P11-AUTHORITY-REFUSAL-2026-09-16.json
   - evidence/canonical-run/STATUS.json
-  - docs/WHITE_SPACE_P11_1.md
-  - docs/WINNING_INTELLIGENCE_P11.md
+  - docs/AGENT_TO_AGENT_PROOF_P11_4.md
   - skills/evidence-authority/SKILL.md
+  - scripts/capture-agent-to-agent-proof.mjs
   - docs/ANSEM_AUTHORITY_DEMO.md
-  - docs/GATE_7_PROMOTE.md
 
 repo:
   upstream: https://github.com/opeblow/clawrena
   merged_pr_1: https://github.com/opeblow/clawrena/pull/1
-  upstream_merge_commit: 171576483ff589dcf41c07f25a671134628ef073
   fork: https://github.com/Faadil1/clawrena
   canonical_branch: winning-intelligence-p11
-  upstream_pr_creation_from_connector: blocked_403
 
-category:
-  old: autonomous_launch_trader_alpha_scanner
-  current: evidence_underwriter_execution_authority
-  memory_sentence: >-
-    Other agents find trades. Alpha Scout decides whether independently verified evidence
-    has earned permission to continue toward capital movement, and preserves a replayable
-    record when it has not.
-
-canonical_runtime_capture:
-  status: CAPTURED
-  source_sha: 3d9257d578d3d4bb3e72a47ba60305c730236d9c
-  convex_project: alpha-scout-clawrena
-  convex_deployment: grandiose-poodle-700
-  convex_cloud_url: https://grandiose-poodle-700.convex.cloud
+canonical_runtime:
+  status: REAL_NEGATIVE_PATH_CAPTURED
   convex_http_url: https://grandiose-poodle-700.convex.site
-  healthz: passed
-  authority_policy: passed
-  authority_openapi: passed
-  authority_stats: passed
-  discovery_source: pump-mint-authority
-  signatures_examined: 6
-  verified_launches: 3
-  selected_mint: BPVRf68R4zxrXVXBQMo8KpvJcq9vLM1tpe7p1hckuvd1
-  selected_launch_signature: 47emwzJgBXieLUc1zq555jv4ajQbXevwhJFoxaATNyJnqLoFDvpp6ZFE4QLVVe5CoXahFkMyfF6Fy9mpNR4Zoy83
-  launch_slot: 447392149
-  underwriting_ledger_id: md7eam4vgh1nfsb3dzvd363v558ehm8z
+  mint: BPVRf68R4zxrXVXBQMo8KpvJcq9vLM1tpe7p1hckuvd1
+  launch_signature: 47emwzJgBXieLUc1zq555jv4ajQbXevwhJFoxaATNyJnqLoFDvpp6ZFE4QLVVe5CoXahFkMyfF6Fy9mpNR4Zoy83
   underwriting_state: REFUSED
-  underwriting_score: 50
-  underwriting_blocker: holder_concentration_unknown
-  value_movement: false
+  blocker: holder_concentration_unknown
   replay_key: AS1-ae5d5316d70899bd
   replay_consistency: MATCH
-  lineage_ledger_id: md75fdf5xfcn9geqqsgv5bq8858egwgs
   lineage_replay_key: AS1-c24346db6fb3c24e
-  lineage_state_changed: false
-  lineage_policy_changed: false
-  lineage_score_delta: 0
-  synthetic_candidate_substituted: false
-  canonical_evidence: evidence/canonical-run/P11-AUTHORITY-REFUSAL-2026-09-16.json
+  value_movement: false
 
-what_the_capture_proves:
-  - targeted Pump mint-authority discovery can find real create/create_v2 launches
-  - selected launch provenance was independently verified on Solana
-  - Jupiter price and liquidity were observed live
-  - holder concentration remained UNKNOWN
-  - critical UNKNOWN vetoed authority and produced a real REFUSED receipt
-  - no value moved
-  - stored Evidence Passport recomputed to the exact same replay key
-  - reunderwrite used the server-stored prior replay key and produced lineage without rewriting history
-  - request counts remain explicitly non-user, non-volume and non-performance metrics
-
-truth_boundaries:
-  qualified_is_authorized: false
-  prepare_is_execution: false
-  pending_is_verified: false
-  paper_is_onchain: false
-  replay_key_is_crypto_signature: false
-  underwrite_moves_value: false
-  reunderwrite_rewrites_history: false
-  authority_request_counts_are_unique_users: false
-  authority_request_counts_are_trading_volume: false
-  current_refusal_is_trading_performance: false
-  canonical_negative_path_complete: true
-  agent_to_agent_proof_complete: false
-  ansem_funded_demo_proved: false
-  x402_service_deployed: false
+p11_4_agent_to_agent:
+  code_status: validated_not_yet_redeployed
+  validation_run: https://github.com/Faadil1/clawrena/actions/runs/35042999450
+  caller_context:
+    semantics: DECLARED_EXTERNAL_CONTEXT
+    fields: [platform, agentId, runId, skillSlug]
+    identity_verified_by_alpha_scout: false
+  public_metric: externallyAttributedUnderwritingRequests
+  metric_is_unique_agents: false
+  capture_script: scripts/capture-agent-to-agent-proof.mjs
+  proof_contract: docs/AGENT_TO_AGENT_PROOF_P11_4.md
+  external_run_status: pending
 
 next_actions_priority:
-  - import skills/evidence-authority/SKILL.md into a real ClawPump/Hermes agent
-  - configure that external agent to call the live Alpha Scout /underwrite endpoint in shadow mode
-  - run it against a real Pump launch and preserve external agent identity/run metadata plus returned replay key
-  - capture agent-to-agent evidence separately from Alpha Scout's own runtime evidence
-  - if feasible fund the ClawPump billing wallet with ANSEM and prove one real Evidence Authority request before making ANSEM-funded claims
-  - close registration, X/follow and tokenization eligibility receipts before 2026-09-20T23:59:00Z
-  - establish final canonical frontend routing and capture the final screen recording / immutable video hash
-  - then reopen TRACE/UI as a Proof-of-Authority Workstation and run Gate 6.5
-  - run npm run gate:submission only after every hard receipt exists
+  - git fetch origin and hard-reset local winning-intelligence-p11
+  - npx convex dev --once to deploy the caller-attribution schema/runtime
+  - install/configure ClawPump Agent MCP locally; never paste the cpk_ key into chat or repo
+  - list existing ClawPump agents and choose one, or create one if none exists
+  - create/import the Evidence Authority custom skill from skills/evidence-authority/SKILL.md
+  - run a real ClawPump/Hermes chat or autonomous run in shadow mode
+  - preserve real agent id and run id
+  - call Alpha Scout /underwrite with caller metadata and preserve replay key
+  - run scripts/capture-agent-to-agent-proof.mjs for Alpha Scout-side consistency proof
+  - cross-reference the ClawPump run receipt with Alpha Scout replay key before marking agent-to-agent proof complete
+  - if feasible, fund the external agent billing wallet with ANSEM and repeat one real underwriting request before making ANSEM-funded claims
+  - only after that reopen TRACE/UI as Proof-of-Authority Workstation
+
+truth_boundaries:
+  caller_metadata_is_identity_proof: false
+  request_count_is_unique_agents: false
+  request_count_is_trading_volume: false
+  refused_is_valid_service_outcome: true
+  underwriting_moves_value: false
+  qualified_is_execution_authorization: false
+  agent_to_agent_proof_complete: false
+  ansem_funded_demo_proved: false
 
 never_do:
-  - do_not_call_REFUSED_a_failure_of_the_product
-  - do_not_call_QUALIFIED_execution_authorization
-  - do_not_convert_UNKNOWN_to_zero_or_pass
-  - do_not_convert_PREPARE_or_PENDING_to_VERIFIED_without_signature_and_confirmation
-  - do_not_call_request_counts_unique_agents_users_or_trading_volume
-  - do_not_claim_the_current_refusal_as_trading_performance
-  - do_not_claim_agent_to_agent_integration_before_a_real_external_agent_run_exists
-  - do_not_claim_ansem_funded_until_real_billing_and_run_receipts_exist
-  - do_not_claim_x402_paid_service_or_revenue_until_real settlement exists
-  - do_not_mark_eligibility_verified_without external receipts
-  - do_not_reopen_final UI before agent-to-agent authority proof is stable
+  - never paste CLAWPUMP_API_KEY or AUTHORITY_API_KEY into chat, repo, evidence or logs
+  - do not call declared caller metadata verified identity
+  - do not call externallyAttributedUnderwritingRequests unique agents/users
+  - do not call REFUSED a product failure
+  - do not call QUALIFIED final execution authorization
+  - do not mark agent-to-agent proof complete without both ClawPump/Hermes and Alpha Scout receipts
