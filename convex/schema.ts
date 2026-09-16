@@ -182,6 +182,13 @@ export default defineSchema({
     sourceLedger: v.any(),
     freshnessExpiresAt: v.number(),
     supersedesReplayKey: v.optional(v.string()),
+    caller: v.optional(v.object({
+      platform: v.string(),
+      agentId: v.string(),
+      runId: v.optional(v.string()),
+      skillSlug: v.optional(v.string()),
+      identitySemantics: v.literal("DECLARED_EXTERNAL_CONTEXT"),
+    })),
     createdAt: v.number(),
   })
     .index("by_replayKey", ["replayKey"])
