@@ -1,18 +1,17 @@
 project: alpha-scout-clawrena
-handover_version: P11_4_2026-09-16_CLAWPUMP_ZERO_BUDGET_RUN_BLOCKED_SWITCH_TO_HERMES
+handover_version: P11_4_2026-09-16_EXTERNAL_CLAUDE_CODE_HTTP_PROVED
 
 start_here:
   - state/CURRENT.yaml
   - evidence/canonical-run/P11-AUTHORITY-REFUSAL-2026-09-16.json
   - evidence/canonical-run/STATUS.json
+  - evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-HTTP-PROBE-2026-09-16.json
   - evidence/runtime/P11-CLOUDFLARE-PREVIEW-2026-09-16.json
   - evidence/external/P11-CLAWPUMP-AGENT-DISCOVERY-2026-09-16.json
   - evidence/runtime/P11-CLAWPUMP-SKILL-CHAT-PROBE-2026-09-16.json
   - evidence/runtime/P11-CLAWPUMP-RUN-BUDGET-GATE-2026-09-16.json
   - docs/AGENT_TO_AGENT_PROOF_P11_4.md
   - skills/evidence-authority/SKILL.md
-  - scripts/capture-agent-to-agent-proof.mjs
-  - docs/ANSEM_AUTHORITY_DEMO.md
 
 repo:
   upstream: https://github.com/opeblow/clawrena
@@ -23,6 +22,7 @@ repo:
 canonical_runtime:
   status: REAL_NEGATIVE_PATH_CAPTURED
   convex_http_url: https://grandiose-poodle-700.convex.site
+  convex_cloud_url: https://grandiose-poodle-700.convex.cloud
   mint: BPVRf68R4zxrXVXBQMo8KpvJcq9vLM1tpe7p1hckuvd1
   launch_signature: 47emwzJgBXieLUc1zq555jv4ajQbXevwhJFoxaATNyJnqLoFDvpp6ZFE4QLVVe5CoXahFkMyfF6Fy9mpNR4Zoy83
   underwriting_state: REFUSED
@@ -32,75 +32,65 @@ canonical_runtime:
   lineage_replay_key: AS1-c24346db6fb3c24e
   value_movement: false
 
+external_invoker_proof:
+  platform: claude-code
+  mode: headless-safe-mode
+  session_id: 94b94917-ff0d-4697-b0fd-5ca7d687f3a0
+  artifact: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-HTTP-PROBE-2026-09-16.json
+  capture_class: USER_TERMINAL_OUTPUT_SUMMARY
+  assistant_independently_replayed: false
+  system_init_tools: [Bash, Read]
+  live_command: curl.exe -sS -i https://grandiose-poodle-700.convex.site/authority-policy
+  live_http_status: 200
+  observed_policy_version: AS-AUTHORITY-V1
+  observed_principle: QUALIFIED_IS_NOT_EXECUTION_AUTHORIZATION
+  real_external_http_tool_trace: true
+  underwrite_called: false
+  financial_tools_used: false
+  value_movement: false
+  local_prompt: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-PROBE-PROMPT.txt
+  local_transcript: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-PROBE.jsonl
+
+clawpump_path_preserved:
+  agent_id: c1a5477c-c79e-4388-a9eb-8303fa441087
+  agent_name: T
+  status_at_discovery: stopped
+  evidence_authority_skill_id: aa303f0b-9f60-4e06-8278-e0dee6ef5a33
+  evidence_authority_skill_enabled: true
+  chat_probe_status: FAILED_CLOSED_NO_EXTERNAL_HTTP_PROOF
+  chat_probe_tools_used_count: 0
+  autonomous_run_zero_budget_status: NONZERO_BUDGET_REQUIRED
+  autonomous_run_created: false
+  financial_state_change: false
+  rule: do_not_spend_positive_budget_only_to_manufacture_evidence
+
 cloudflare_preview:
   project: alpha-scout-clawrena
-  production_branch: master
-  deployed_branch: winning-intelligence-p11
-  deployed_source_sha: b6f4ef1513bfb7a6ec8476bb0df849ebb974d71e
-  deployment_id_reported: 817bb36b
+  branch: winning-intelligence-p11
   deployment_url: https://817bb36b.alpha-scout-clawrena.pages.dev
   branch_alias_url: https://winning-intelligence-p11.alpha-scout-clawrena.pages.dev
-  deployment_url_http_status: 200
-  branch_alias_http_status: 200
   environment: preview
-  production_deployment_made: false
-  production_branch_modified: false
-  custom_domain_attached: false
-  vercel_deployment_made: false
-  visual_correctness_verified: false
-
-p11_4_agent_to_agent:
-  code_status: validated_and_deployed_to_convex_dev_not_yet_exercised
-  validation_run: https://github.com/Faadil1/clawrena/actions/runs/35042999450
-  caller_context:
-    semantics: DECLARED_EXTERNAL_CONTEXT
-    fields: [platform, agentId, runId, skillSlug]
-    identity_verified_by_alpha_scout: false
-  selected_external_agent:
-    discovery_artifact: evidence/external/P11-CLAWPUMP-AGENT-DISCOVERY-2026-09-16.json
-    id: c1a5477c-c79e-4388-a9eb-8303fa441087
-    name: T
-    status_at_discovery: stopped
-    token_mint: none
-    wallet_omitted_from_public_evidence: true
-  evidence_authority_skill:
-    id: aa303f0b-9f60-4e06-8278-e0dee6ef5a33
-    slug: evidence-authority
-    enabled: true
-    source: skills/evidence-authority/SKILL.md
-  chat_probe:
-    artifact: evidence/runtime/P11-CLAWPUMP-SKILL-CHAT-PROBE-2026-09-16.json
-    model_response: AS-AUTHORITY-V1 — QUALIFIED_IS_NOT_EXECUTION_AUTHORIZATION
-    tools_used_count: 0
-    real_external_http_proved: false
-    status: FAILED_CLOSED_NO_EXTERNAL_HTTP_PROOF
-    financial_state_change: false
-  autonomous_run_budget_gate:
-    artifact: evidence/runtime/P11-CLAWPUMP-RUN-BUDGET-GATE-2026-09-16.json
-    inspected_schema_minimum_usd: 0
-    runtime_requires_positive_budget: true
-    requested_budget_usd: 0
-    run_created: false
-    run_id: null
-    status: NONZERO_BUDGET_REQUIRED
-    financial_state_change: false
-  external_invoker_route: hermes
-  external_underwriting_receipt_status: pending
-  agent_to_agent_proof_complete: false
+  http_status: 200
+  production_touched: false
 
 next_actions_priority:
-  - do not pay a positive ClawPump autonomous-run budget solely to manufacture evidence
-  - use Hermes as the external invoker for the next shadow-only proof
-  - first make Hermes perform a real read-only HTTP request to /authority-policy and preserve actual command/tool output plus the Hermes session/run identifier
-  - only if that is auditable, make Hermes invoke /underwrite against a real Pump mint/signature with caller.platform=hermes and a real Hermes session/run id
-  - preserve the returned Alpha Scout replay key/state and valueMovement=false
-  - run scripts/capture-agent-to-agent-proof.mjs for Alpha Scout-side consistency, adapting caller platform/identifier only as needed without fabricating a ClawPump identity
-  - cross-match Hermes trace ↔ Alpha Scout replay key before marking agent-to-agent proof complete
-  - only after that consider ANSEM-funded proof and reopen TRACE/UI
-  - keep Cloudflare preview-only until final runtime/visual approval
+  - resume Claude Code session 94b94917-ff0d-4697-b0fd-5ca7d687f3a0 using claude --resume rather than creating a new session
+  - keep safe-mode and restrict the external invoker to Read/Bash only
+  - call /underwrite exactly once with the real canonical Pump mint/signature
+  - use caller platform claude-code, agentId claude-code-headless, runId 94b94917-ff0d-4697-b0fd-5ca7d687f3a0 and skillSlug evidence-authority
+  - preserve the raw external Bash tool_use/tool_result containing the /underwrite response
+  - require valueMovement=false and policyState QUALIFIED or REFUSED; REFUSED remains a successful authority result
+  - extract the exact replay key returned by that same external invocation
+  - verify that replay key through underwriting/verifyReceipt without making another /underwrite request
+  - require replayConsistency=MATCH and stored caller runId/session match
+  - cross-reference external transcript session ID, mint, launch signature and replay key with Alpha Scout stored receipt
+  - only then mark agent-to-agent proof complete
+  - after agent-to-agent proof, consider ANSEM-funded proof and reopen TRACE/UI
 
 truth_boundaries:
   caller_metadata_is_identity_proof: false
+  claude_code_session_id_is_crypto_identity: false
+  external_http_reachability_is_underwriting_proof: false
   request_count_is_unique_agents: false
   request_count_is_trading_volume: false
   refused_is_valid_service_outcome: true
@@ -109,20 +99,14 @@ truth_boundaries:
   agent_to_agent_proof_complete: false
   ansem_funded_demo_proved: false
   cloudflare_preview_is_production: false
-  cloudflare_http_200_proves_visual_correctness: false
-  skill_installed_proves_external_http: false
-  plausible_policy_text_proves_live_fetch: false
-  clawpump_schema_minimum_zero_proves_runtime_accepts_zero: false
-  nonzero_budget_required_means_run_was_created: false
 
 never_do:
   - never paste CLAWPUMP_API_KEY or AUTHORITY_API_KEY into chat, repo, evidence or logs
-  - do not publish the selected agent wallet in public evidence unless necessary for a specific proof
-  - do not count model text as an external HTTP receipt when tools_used is empty
-  - do not spend money merely to manufacture an agent-to-agent evidence artifact
+  - do not count model text without a tool trace as external network proof
+  - do not spend money merely to manufacture an evidence artifact
   - do not call declared caller metadata verified identity
-  - do not call externallyAttributedUnderwritingRequests unique agents/users
   - do not call REFUSED a product failure
   - do not call QUALIFIED final execution authorization
-  - do not mark agent-to-agent proof complete without both external ClawPump/Hermes and Alpha Scout receipts
-  - do not promote the current Cloudflare preview to production before final runtime/visual approval
+  - do not re-run /underwrite merely to verify a receipt; verify the returned replay key instead
+  - do not mark agent-to-agent complete without external session trace plus Alpha Scout stored receipt match
+  - do not promote Cloudflare preview to production before final runtime/visual approval
