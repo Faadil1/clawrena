@@ -1,0 +1,21 @@
+{
+  "artifactClass": "HERMES_EXTERNAL_INVOKER_INSTALL_GATE",
+  "capturedAt": "2026-09-16",
+  "captureClass": "user_terminal_output",
+  "assistantIndependentlyReplayed": false,
+  "status": "BLOCKED_NOT_INSTALLED",
+  "command": "hermes --version",
+  "observedResult": "command not found in both Bash and PowerShell",
+  "installationAttempted": false,
+  "authenticationAttempted": false,
+  "probePromptCreated": false,
+  "externalHttpAttempted": false,
+  "underwritingAttempted": false,
+  "valueMovement": false,
+  "truthBoundaries": {
+    "hermesUnavailableDoesNotDisproveAlphaScout": true,
+    "noExternalInvokerProofCaptured": true,
+    "noAgentToAgentProofClaim": true
+  },
+  "nextBoundary": "install and authenticate Hermes, then run read-only capability probe"
+}
