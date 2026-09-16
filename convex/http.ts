@@ -11,6 +11,15 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 const MINT_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 const SIG_RE = /^[1-9A-HJ-NP-Za-km-z]{64,100}$/;
 const REPLAY_RE = /^AS1-[0-9a-f]{16}$/;
+const CALLER_PLATFORM_RE = /^[a-z0-9][a-z0-9._-]{0,31}$/;
+
+type DeclaredCaller = {
+  platform: string;
+  agentId: string;
+  runId?: string;
+  skillSlug?: string;
+  identitySemantics: "DECLARED_EXTERNAL_CONTEXT";
+};
 
 function authorityAccess(request: Request): Response | null {
   const required = process.env.AUTHORITY_API_KEY?.trim();
@@ -18,6 +27,29 @@ function authorityAccess(request: Request): Response | null {
   return request.headers.get("x-alpha-scout-key") === required
     ? null
     : json({ ok: false, error: "authority API key required" }, 401);
+}
+
+function parseCaller(value: unknown): { caller?: DeclaredCaller; error?: string } {
+  if (value === undefined || value === null) return {};
+  if (typeof value !== "object") return { error: "caller must be an object" };
+  const raw = value as Record<string, unknown>;
+  const platform = typeof raw.platform === "string" ? raw.platform.trim().toLowerCase() : "";
+  const agentId = typeof raw.agentId === "string" ? raw.agentId.trim() : "";
+  const runId = typeof raw.runId === "string" ? raw.runId.trim() : "";
+  const skillSlug = typeof raw.skillSlug === "string" ? raw.skillSlug.trim().toLowerCase() : "";
+  if (!CALLER_PLATFORM_RE.test(platform)) return { error: "caller.platform is invalid" };
+  if (!agentId || agentId.length > 128) return { error: "caller.agentId is required and must be <= 128 characters" };
+  if (runId.length > 128) return { error: "caller.runId must be <= 128 characters" };
+  if (skillSlug.length > 64) return { error: "caller.skillSlug must be <= 64 characters" };
+  return {
+    caller: {
+      platform,
+      agentId,
+      ...(runId ? { runId } : {}),
+      ...(skillSlug ? { skillSlug } : {}),
+      identitySemantics: "DECLARED_EXTERNAL_CONTEXT",
+    },
+  };
 }
 
 export const healthz = httpAction(async () => json({ ok: true, service: "alpha-scout", now: Date.now() }));
@@ -34,6 +66,7 @@ export const authorityPolicy = httpAction(async () => json({
     pendingOnchain: "NOT_VERIFIED",
     verifiedOnchain: "REQUIRES_TX_SIGNATURE_AND_CONFIRMATION_SLOT",
     replayKey: "DETERMINISTIC_AUDIT_IDENTIFIER_NOT_A_CRYPTOGRAPHIC_SIGNATURE",
+    caller: "DECLARED_EXTERNAL_CONTEXT_REQUIRES_SEPARATE_EXTERNAL_RECEIPT_FOR_IDENTITY_PROOF",
   },
   pipeline: ["DISCOVER", "VERIFY_PROVENANCE", "INVESTIGATE", "QUALIFY", "LAST_MILE_PREFLIGHT", "EXECUTE_OR_REFUSE", "PROVE"],
   policyStates: ["QUALIFIED", "REFUSED", "ABSTAINED", "PREPARED"],
@@ -50,7 +83,9 @@ export const authorityStats = httpAction(async (ctx) => {
     underwritingQualified: stats.underwritingQualified,
     underwritingRefused: stats.underwritingRefused,
     underwritingLineageReruns: stats.underwritingLineageReruns,
+    externallyAttributedUnderwritingRequests: stats.externallyAttributedUnderwritingRequests,
     requestCountsAreNotUniqueAgents: true,
+    callerAttributionIsNotIdentityProof: true,
     notTradingVolume: true,
     notRealisedPerformance: true,
   });
@@ -68,7 +103,32 @@ export const authorityOpenApi = httpAction(async (_ctx, request) => {
       "/underwrite": {
         post: {
           summary: "Independently underwrite a Pump launch without moving value",
-          requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["tokenMint", "launchSignature"], properties: { tokenMint: { type: "string" }, launchSignature: { type: "string" } } } } } },
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["tokenMint", "launchSignature"],
+                  properties: {
+                    tokenMint: { type: "string" },
+                    launchSignature: { type: "string" },
+                    caller: {
+                      type: "object",
+                      description: "Declared external context only; not identity proof by itself",
+                      required: ["platform", "agentId"],
+                      properties: {
+                        platform: { type: "string" },
+                        agentId: { type: "string" },
+                        runId: { type: "string" },
+                        skillSlug: { type: "string" },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
       "/reunderwrite": {
@@ -84,14 +144,16 @@ export const authorityOpenApi = httpAction(async (_ctx, request) => {
 export const underwrite = httpAction(async (ctx, request) => {
   const denied = authorityAccess(request);
   if (denied) return denied;
-  let body: { tokenMint?: unknown; launchSignature?: unknown };
-  try { body = await request.json() as { tokenMint?: unknown; launchSignature?: unknown }; }
+  let body: { tokenMint?: unknown; launchSignature?: unknown; caller?: unknown };
+  try { body = await request.json() as { tokenMint?: unknown; launchSignature?: unknown; caller?: unknown }; }
   catch { return json({ ok: false, error: "invalid json" }, 400); }
 
   const tokenMint = typeof body.tokenMint === "string" ? body.tokenMint.trim() : "";
   const launchSignature = typeof body.launchSignature === "string" ? body.launchSignature.trim() : "";
   if (!MINT_RE.test(tokenMint)) return json({ ok: false, error: "invalid Solana mint" }, 400);
   if (!SIG_RE.test(launchSignature)) return json({ ok: false, error: "invalid Solana transaction signature" }, 400);
+  const parsedCaller = parseCaller(body.caller);
+  if (parsedCaller.error) return json({ ok: false, error: parsedCaller.error }, 400);
 
   const result = await underwritePumpLaunch({ tokenMint, launchSignature });
   const ledgerId = await ctx.runMutation(internal.underwriting.recordDecision, {
@@ -107,9 +169,16 @@ export const underwrite = httpAction(async (ctx, request) => {
     blockers: result.blockers,
     sourceLedger: result.sourceLedger,
     freshnessExpiresAt: result.passport.freshnessExpiresAt,
+    caller: parsedCaller.caller,
     createdAt: result.createdAt,
   });
-  return json({ ok: true, ledgerId, ...result });
+  return json({
+    ok: true,
+    ledgerId,
+    ...result,
+    caller: parsedCaller.caller ?? null,
+    callerIdentityVerifiedByAlphaScout: false,
+  });
 });
 
 /**
@@ -144,12 +213,15 @@ export const reunderwrite = httpAction(async (ctx, request) => {
     sourceLedger: result.sourceLedger,
     freshnessExpiresAt: result.passport.freshnessExpiresAt,
     supersedesReplayKey: previous.replayKey,
+    caller: previous.caller,
     createdAt: result.createdAt,
   });
 
   return json({
     ok: true,
     ledgerId,
+    caller: previous.caller ?? null,
+    callerIdentityVerifiedByAlphaScout: false,
     lineage: compareUnderwritingDecisions(previous, result),
     current: result,
   });
