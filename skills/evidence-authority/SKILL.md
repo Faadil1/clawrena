@@ -71,9 +71,17 @@ Use the deployed Alpha Scout HTTP site rather than reproducing policy from memor
 ```json
 {
   "tokenMint": "<solana-mint>",
-  "launchSignature": "<pump-create-transaction-signature>"
+  "launchSignature": "<pump-create-transaction-signature>",
+  "caller": {
+    "platform": "clawpump",
+    "agentId": "<real external agent id>",
+    "runId": "<real run id when available>",
+    "skillSlug": "evidence-authority"
+  }
 }
 ```
+
+Caller metadata is **DECLARED_EXTERNAL_CONTEXT**. Alpha Scout stores it so receipts can be cross-referenced with ClawPump/Hermes run evidence, but it is not cryptographic identity proof by itself and must never be counted as a unique user/agent metric.
 
 `POST /reunderwrite` input:
 
@@ -148,5 +156,7 @@ Those skills discover, analyze, recommend or execute. **Evidence Authority indep
 ## Sponsor-native use
 
 `other agent / Hermes workflow → Alpha Scout /underwrite → QUALIFIED or REFUSED → last-mile provider/risk preflight → downstream execution → confirmed receipt`
+
+For a canonical agent-to-agent proof, preserve both sides: the Alpha Scout replay key/ledger id and the external ClawPump/Hermes agent/run receipt that declared the caller context.
 
 The skill should remain independently useful even when Alpha Scout's own UI is not involved.
