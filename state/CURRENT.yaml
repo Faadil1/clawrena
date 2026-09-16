@@ -2,7 +2,7 @@ project: alpha-scout-clawrena
 canonical_branch: winning-intelligence-p11
 upstream_merge_commit: 171576483ff589dcf41c07f25a671134628ef073
 upstream_merged_pr: https://github.com/opeblow/clawrena/pull/1
-phase: P11_4_EXTERNAL_CLAUDE_CODE_HTTP_PROVED_AWAITING_UNDERWRITE
+phase: P11_4_EXTERNAL_CLAUDE_CODE_HTTP_PROVED_UNDERWRITE_BLOCKED_BY_SAFETY_GATE
 updated_at: 2026-09-16
 
 product_truth:
@@ -24,6 +24,7 @@ product_truth:
   evidence_authority_skill: imported_into_real_clawpump_agent
   agent_to_agent_caller_attribution: deployed_dev_runtime_not_yet_exercised_by_external_underwrite
   external_agent_http_reachability: proved_with_auditable_claude_code_bash_trace
+  external_agent_underwrite_safety_gate: blocked_before_execution
   agent_to_agent_shadow_underwriting: pending
   caller_metadata_is_identity_proof: false
   ansem_funded_underwriting_demo: planned_not_proved
@@ -95,6 +96,15 @@ external_claude_code_probe:
   financial_tools_used: false
   local_prompt_path: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-PROBE-PROMPT.txt
   local_transcript_path: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-PROBE.jsonl
+  underwrite_body_path: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE-BODY.json
+  underwrite_prompt_path: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE-PROMPT.txt
+  underwrite_safety_gate_artifact: evidence/runtime/P11-CLAUDE-CODE-EXTERNAL-UNDERWRITE-SAFETY-GATE-2026-09-16.json
+  underwrite_safety_gate_status: BLOCKED_BEFORE_EXECUTION
+  underwrite_classifier_outcome: REAL_WORLD_TRANSACTIONS_BLOCK
+  underwrite_http_request_sent: false
+  underwrite_ledger_id: null
+  underwrite_replay_key: null
+  receipt_verification_attempted: false
 
 cloudflare_preview_runtime:
   artifact: evidence/runtime/P11-CLOUDFLARE-PREVIEW-2026-09-16.json
@@ -127,6 +137,7 @@ completed_gates:
   - failed_clawpump_chat_probe_preserved_without_fake_success
   - clawpump_zero_budget_run_gate_preserved_without_spend
   - auditable_external_claude_code_http_reachability
+  - external_underwrite_safety_gate_preserved_without_false_runtime_claim
 
 blocking_gates:
   - external_agent_underwrite_receipt
@@ -141,14 +152,14 @@ blocking_gates:
   - gate_7_promote
 
 next_actions:
-  - resume exact Claude Code session 94b94917-ff0d-4697-b0fd-5ca7d687f3a0 rather than creating a new external identity
-  - in that session call Alpha Scout /underwrite exactly once against the canonical real Pump mint/signature
-  - declare caller.platform=claude-code, caller.agentId=claude-code-headless, caller.runId=94b94917-ff0d-4697-b0fd-5ca7d687f3a0, caller.skillSlug=evidence-authority
-  - preserve the raw /underwrite tool trace and response including ledgerId, policyState, replayKey, caller and valueMovement=false
-  - do not call /underwrite a second time merely for verification
-  - verify the exact returned replayKey against underwriting/verifyReceipt and require replayConsistency=MATCH plus stored caller.runId match
+  - preserve exact Claude Code external session 94b94917-ff0d-4697-b0fd-5ca7d687f3a0 and both prepared underwrite files
+  - because Claude Code blocked the command before execution, do not relabel this as an Alpha Scout refusal or attempted underwriting
+  - if the user explicitly chooses to execute the prepared resume command themselves, capture the resulting JSONL and do not retry /underwrite automatically
+  - after a successful single /underwrite, extract the exact replay key from that same external transcript
+  - verify the replay key through underwriting/verifyReceipt without another /underwrite request and require replayConsistency=MATCH plus stored caller.runId match
   - cross-reference external session transcript, mint, launch signature, replay key and stored receipt before marking agent_to_agent complete
-  - only after that consider ANSEM-funded proof and reopen TRACE/UI
+  - alternatively, use another already-authorized non-financial external invoker that can produce an auditable HTTP trace; do not weaken proof requirements
+  - only after agent-to-agent proof consider ANSEM-funded proof and reopen TRACE/UI
   - keep Cloudflare preview-only until final runtime/visual approval
 
 eligibility:
@@ -167,6 +178,9 @@ truth_boundaries:
   underwriting_moves_value: false
   qualified_is_execution_authorization: false
   external_http_probe_equals_underwriting_proof: false
+  classifier_block_is_underwriting_refusal: false
+  prepared_request_is_runtime_proof: false
+  no_http_request_means_no_alpha_scout_decision: true
   agent_to_agent_proof_complete: false
   ansem_funded_demo_proved: false
   cloudflare_preview_is_production: false
