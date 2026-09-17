@@ -2,9 +2,15 @@
   "artifactClass": "CANONICAL_RUNTIME_EVIDENCE_STATUS",
   "status": "REAL_NEGATIVE_PATH_CAPTURED",
   "fakeSuccessForbidden": true,
+  "publicPreview": {
+    "url": "https://f87de3e2.alpha-scout-clawrena.pages.dev",
+    "proofUrl": "https://f87de3e2.alpha-scout-clawrena.pages.dev/proof",
+    "deployedCommitSha": "56ca45d6a052011332bce96ab8f556b0dd8e4c87",
+    "runtimeCapture": "evidence/runtime/LATEST.json",
+    "production": false
+  },
   "captured": {
     "publicRuntimeUrl": "https://grandiose-poodle-700.convex.site",
-    "deployedCommitSha": "3d9257d578d3d4bb3e72a47ba60305c730236d9c",
     "realPumpLaunchMint": "BPVRf68R4zxrXVXBQMo8KpvJcq9vLM1tpe7p1hckuvd1",
     "realPumpLaunchSignature": "47emwzJgBXieLUc1zq555jv4ajQbXevwhJFoxaATNyJnqLoFDvpp6ZFE4QLVVe5CoXahFkMyfF6Fy9mpNR4Zoy83",
     "realNegativePathLedgerId": "md7eam4vgh1nfsb3dzvd363v558ehm8z",
@@ -16,13 +22,12 @@
     "lineageLedgerId": "md75fdf5xfcn9geqqsgv5bq8858egwgs",
     "valueMovement": false,
     "blocker": "holder concentration unknown",
-    "canonicalEvidence": "evidence/canonical-run/P11-AUTHORITY-REFUSAL-2026-09-16.json"
+    "canonicalEvidence": "evidence/canonical-run/AUTHORITY-REFUSAL-2026-09-16.json"
   },
   "externalAgentAuthorityProof": {
     "status": "COMPLETE",
     "platform": "claude-code",
     "agentId": "claude-code-headless",
-    "sessionId": "94b94917-ff0d-4697-b0fd-5ca7d687f3a0",
     "ledgerId": "md72gnkxnf2arb7ewnrc2szb498ehrxr",
     "policyState": "REFUSED",
     "score": 30,
@@ -31,28 +36,23 @@
     "replayConsistency": "MATCH",
     "valueMovement": false,
     "callerIdentityVerifiedByAlphaScout": false,
-    "canonicalEvidence": "evidence/canonical-run/P11-EXTERNAL-AGENT-AUTHORITY-2026-09-16.json",
+    "canonicalEvidence": "evidence/canonical-run/EXTERNAL-AGENT-AUTHORITY-2026-09-16.json",
     "clawPumpNativeAutonomousRunProved": false
   },
-  "gate6_5TraceProofOfAuthorityWorkstation": {
-    "status": "PASS",
-    "workstationStatus": "PROMOTED",
-    "promotedSourceSha": "56ca45d6a052011332bce96ab8f556b0dd8e4c87",
-    "promotedIntoBranch": "winning-intelligence-p11",
-    "validatedCloudflarePreview": "https://f87de3e2.alpha-scout-clawrena.pages.dev",
-    "desktopGate6_5": "PASS",
-    "mobile390x844Gate6_5": "PASS",
-    "reducedMotionGate6_5": "PASS",
-    "cloudflarePreviewIsProduction": false
+  "truthBoundaries": {
+    "previewIsProduction": false,
+    "verifiedOnchainVolumeClaimed": false,
+    "liveTokenClaimed": false,
+    "replayMatchIsCryptographicAttestation": false,
+    "callerMetadataIsVerifiedIdentity": false,
+    "underwritingMovesValue": false
   },
-  "stillRequiredBeforePromotion": [
-    "hackathon eligibility registration receipt",
-    "hackathon X entry/follow receipt",
-    "Alpha Scout tokenization receipt",
-    "final Cloudflare production routing (visual/runtime verification of the public preview is already complete under Gate 6.5)",
-    "screen recording link or immutable video hash showing the live authority flow",
-    "attention/stream receipts required by final submission packaging",
-    "transaction signature and confirmation slot only if actual on-chain execution is attempted"
+  "remainingExternalSubmissionItems": [
+    "hackathon registration receipt",
+    "hackathon X announcement/follow receipt",
+    "ClawPump tokenization receipt",
+    "final production routing",
+    "final demo video or immutable video hash"
   ],
   "promotionReady": false
 }
