@@ -1,0 +1,81 @@
+{
+  "artifactClass": "CANONICAL_EXTERNAL_AGENT_AUTHORITY_PROOF",
+  "status": "COMPLETE",
+  "capturedAt": "2026-09-16T18:37:47Z",
+  "captureClass": "EXTERNAL_AGENT_HTTP_CALL_AND_RECEIPT_VERIFICATION",
+  "fakeSuccessForbidden": true,
+  "externalInvoker": {
+    "platform": "claude-code",
+    "mode": "headless-safe-mode",
+    "model": "claude-sonnet-5",
+    "agentId": "claude-code-headless",
+    "tools": ["Bash", "Read"],
+    "mcpServers": []
+  },
+  "request": {
+    "endpoint": "https://grandiose-poodle-700.convex.site/underwrite",
+    "method": "POST",
+    "observedRequestCount": 1,
+    "automaticRetryObserved": false,
+    "tokenMint": "BPVRf68R4zxrXVXBQMo8KpvJcq9vLM1tpe7p1hckuvd1",
+    "launchSignature": "47emwzJgBXieLUc1zq555jv4ajQbXevwhJFoxaATNyJnqLoFDvpp6ZFE4QLVVe5CoXahFkMyfF6Fy9mpNR4Zoy83",
+    "caller": {
+      "platform": "claude-code",
+      "agentId": "claude-code-headless",
+      "skillSlug": "evidence-authority",
+      "identitySemantics": "DECLARED_EXTERNAL_CONTEXT"
+    }
+  },
+  "underwriting": {
+    "httpStatus": 200,
+    "ok": true,
+    "ledgerId": "md72gnkxnf2arb7ewnrc2szb498ehrxr",
+    "artifactClass": "LIVE_EVIDENCE_UNDERWRITING_DECISION",
+    "policyVersion": "AS-AUTHORITY-V1",
+    "policyState": "REFUSED",
+    "score": 30,
+    "blockers": [
+      "holder concentration unknown",
+      "launch signal older than six hours"
+    ],
+    "unknowns": ["largest-holder concentration"],
+    "replayKey": "AS1-51fff2964ef6c06d",
+    "valueMovement": false,
+    "callerIdentityVerifiedByAlphaScout": false,
+    "callerIdentitySemantics": "DECLARED_EXTERNAL_CONTEXT"
+  },
+  "receiptVerification": {
+    "endpoint": "https://grandiose-poodle-700.convex.cloud/api/run/underwriting/verifyReceipt",
+    "status": "success",
+    "artifactClass": "STORED_EVIDENCE_PASSPORT_CONSISTENCY_CHECK",
+    "ok": true,
+    "policyIsCurrent": true,
+    "policyVersion": "AS-AUTHORITY-V1",
+    "policyState": "REFUSED",
+    "replayKey": "AS1-51fff2964ef6c06d",
+    "recomputedReplayKey": "AS1-51fff2964ef6c06d",
+    "replayConsistency": "MATCH",
+    "callerIdentityVerifiedByAlphaScout": false,
+    "valueMovement": false,
+    "semantics": "DETERMINISTIC_CONSISTENCY_NOT_CRYPTOGRAPHIC_ATTESTATION_NOT_LIVE_REVALIDATION"
+  },
+  "crossSystemMatch": {
+    "tokenMintMatches": true,
+    "launchSignatureMatches": true,
+    "replayKeyMatches": true,
+    "storedReplayKeyRecomputes": true,
+    "valueMovementRemainedFalse": true,
+    "status": "MATCH"
+  },
+  "truthBoundaries": {
+    "callerMetadataIsCryptographicIdentity": false,
+    "replayMatchIsCryptographicAttestation": false,
+    "receiptVerificationIsLiveRevalidation": false,
+    "refusedIsValidServiceOutcome": true,
+    "qualifiedWouldNotEqualExecutionAuthorization": true,
+    "requestCountIsUniqueAgentCount": false,
+    "requestCountIsTradingVolume": false,
+    "clawPumpNativeAutonomousRunProved": false,
+    "ansemFundedRunProved": false
+  }
+}
