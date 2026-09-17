@@ -1,108 +1,238 @@
-# Alpha Scout
+<p align="center">
+  <img src="public/alpha-scout.svg" alt="Alpha Scout logo" width="92" height="92" />
+</p>
 
-**Evidence Underwriter / Execution Authority for autonomous capital on Solana.**
+<h1 align="center">Alpha Scout</h1>
 
-Other agents can discover, analyze, recommend or trade. Alpha Scout sits between a market signal and value movement: it independently verifies launch provenance, builds an evidence record, keeps critical UNKNOWN states visible, applies a versioned deterministic policy, and records why a candidate was qualified, refused, skipped or only prepared.
+<p align="center"><strong>The evidence can say no.</strong></p>
+<p align="center">Evidence underwriting and execution authority for autonomous capital on Solana.</p>
 
-The current local trading harness is explicitly **PAPER**. A separate ClawPump v1 bridge can create/link an agent, quote a swap, and build a safety-gated unsigned swap transaction. Nothing is counted as **verified on-chain volume** without on-chain execution, a transaction signature and an independently stored confirmation slot.
+<p align="center">
+  <a href="https://f87de3e2.alpha-scout-clawrena.pages.dev"><strong>Validated Preview</strong></a>
+  ·
+  <a href="https://f87de3e2.alpha-scout-clawrena.pages.dev/proof"><strong>Proof Room</strong></a>
+  ·
+  <a href="https://grandiose-poodle-700.convex.site/authority-policy"><strong>Authority Policy</strong></a>
+  ·
+  <a href="https://grandiose-poodle-700.convex.site/authority-openapi"><strong>OpenAPI</strong></a>
+</p>
 
-## Hackathon
+<p align="center"><sub>AnsemHack / Clawrena · Public preview · PAPER trading harness · no verified on-chain volume claimed</sub></p>
 
-- AnsemHack Clawrena
-- Track: ClawPump × pump.fun + Overall Winner
-- Token eligibility deadline: **20 Sep 2026 · 23:59 UTC**
-- Winning Intelligence P11: `docs/WINNING_INTELLIGENCE_P11.md`
-- P11.1 white-space: `docs/WHITE_SPACE_P11_1.md`
-- Competitive snapshot: `docs/COMPETITIVE_INTELLIGENCE_2026-09-15.md`
+> **Current status**  
+> The public Cloudflare preview and live Convex authority backend are reachable now. A real Pump launch has been independently underwritten and refused because critical evidence remained unknown; the stored Evidence Passport recomputes to the same replay key and `valueMovement` stayed `false`. Final production routing, tokenization, and external hackathon eligibility are handled separately and are not claimed complete here.
 
-## Public live frontend
+---
 
-- **URL:** https://clawrena-alpha-scout-review.vercel.app
-- **Convex:** `grandiose-poodle-700`
-- **Truth boundary:** this existing frontend is live and Convex-bound, but the new P11.1 authority-network endpoints are **not production proof until separately deployed and probed**.
-- **Canonical runtime target:** Cloudflare Pages + the same Convex backend, followed by runtime capture and a real live-market negative-path receipt.
+## Why Alpha Scout exists
 
-## P11.1 — Authority network
+### The pain
 
-Alpha Scout now treats evidence authority as an agent-to-agent product primitive rather than a trading-dashboard feature.
+Autonomous trading agents are good at finding things to act on. The dangerous part is what happens **between a market signal and moving value**.
 
-### Evidence Passport
+A scanner can say a token looks interesting. A model can say the momentum looks strong. Neither statement proves that launch provenance is real, liquidity is sufficient, ownership concentration is known, the evidence is fresh, or the execution provider is healthy.
 
-New decisions carry:
+### The problem
 
-- policy version (`AS-AUTHORITY-V1`)
-- deterministic replay key
-- policy state (`QUALIFIED`, `REFUSED`, `ABSTAINED`, `PREPARED`)
-- evidence freshness expiry
-- counterfactual conditions for reconsideration
+Most agent stacks blur several different decisions together:
 
-`QUALIFIED` means **the Evidence Gate passed**, not that execution has been authorized. Last-mile provider/risk checks still control value movement.
+- discovery;
+- analysis;
+- recommendation;
+- authorization;
+- execution;
+- confirmation.
 
-### Versioned policy contract
+That makes it too easy for an incomplete observation, an unresolved `UNKNOWN`, or a stale recommendation to become accidental authority.
 
-Core thresholds, scoring bands, critical UNKNOWN states and freshness are centralized in `convex/lib/evidencePolicy.ts`. The same policy drives Evidence Gate scoring, Evidence Passports, last-mile authority and the public policy contract.
+### Why Alpha Scout is different
 
-### Source ledger
+Alpha Scout is an **Evidence Underwriter / Execution Authority**. It sits between the signal and the money.
 
-Underwriting records where evidence came from and, when available, when it was observed:
+- It verifies Pump launch provenance from real transaction instructions.
+- It fetches live market evidence independently instead of trusting caller-provided scores.
+- It keeps critical `UNKNOWN` states visible and fail-closed.
+- It applies a versioned deterministic evidence policy.
+- It produces replayable **Evidence Passports** with reasons, blockers, freshness, and counterfactuals.
+- It separates `QUALIFIED` from final execution authorization.
+- It requires a fresh receipt and live provider preflight before last-mile preparation.
+- It never counts activity as verified on-chain volume without a transaction signature **and** independent confirmation slot.
 
-- Solana Pump transaction provenance
-- Jupiter Price V3 market evidence
-- Solana economic-owner concentration
-- transaction/block times, Solana slots and Jupiter block IDs where available
+**Signal → Underwrite → Evidence Passport → Last-mile authority → Prepare / Refuse → Verify**
 
-### Durable decision lineage
+The central invariant is simple: **recommendation is not authority**.
 
-Cross-agent decisions are stored in `underwriting_decisions`. A later `/reunderwrite` call resolves the prior replay key server-side, refreshes the **same mint + launch signature**, and returns what changed rather than rewriting history.
+---
 
-### Shadow mode
+## The authority flow
 
-Another agent can use Alpha Scout before delegating any custody:
+| Step | What happens |
+|---|---|
+| Discover | Find a candidate from live Pump / Solana observations |
+| Underwrite | Re-fetch provenance, price, liquidity and ownership evidence |
+| Decide | Produce `QUALIFIED` or `REFUSED` under the versioned policy |
+| Passport | Persist replay key, source ledger, blockers, unknowns and freshness |
+| Last mile | Re-check receipt freshness, provider health and risk budget |
+| Verify | Keep PAPER, PREPARED, pending on-chain and VERIFIED ONCHAIN distinct |
 
-`candidate → underwriting → QUALIFIED / REFUSED → durable receipt → zero value movement`
+The strongest outcome is not always a trade. A correct refusal is a successful authority decision.
 
-This allows real integration/adoption evidence without manufacturing trades.
+---
+
+## Execution architecture
+
+```mermaid
+flowchart LR
+    A[External agent / Alpha Scout UI] --> B[Convex Authority API]
+    B --> C[Pump provenance]
+    B --> D[Jupiter market evidence]
+    B --> E[Solana owner concentration]
+    C --> F[Evidence Policy]
+    D --> F
+    E --> F
+    F --> G[Evidence Passport]
+    G --> H[Last-mile execution authority]
+    H -->|deny| I[REFUSED receipt]
+    H -->|allow preparation| J[ClawPump unsigned preparation]
+    J --> K[Submission + independent confirmation]
+    K --> L[VERIFIED ONCHAIN only if both exist]
+```
+
+- **React / Vite** provides the workstation and Proof Room.
+- **Convex** stores decisions, source lineage, replay keys, agent state, paper portfolio state, and public authority endpoints.
+- **Solana RPC / Helius** supplies launch and ownership evidence.
+- **Jupiter Price V3** supplies live price/liquidity evidence.
+- **ClawPump** is the external agent / preparation surface; its safety gates are never silently bypassed.
+- **Evidence Policy `AS-AUTHORITY-V1`** centralizes thresholds, scoring, critical unknowns, and freshness.
+
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the compact technical map.
+
+---
+
+## Evidence
+
+### Real negative path
+
+A real Pump launch was evaluated from live evidence and **refused** because holder concentration remained unknown. The decision was persisted with a source ledger and deterministic replay key. No value moved.
+
+### External-agent authority proof
+
+A separate Claude Code agent called Alpha Scout against a real Pump launch. Alpha Scout independently evaluated the evidence and stored the result:
+
+| Field | Result |
+|---|---|
+| Authority decision | `REFUSED` |
+| Evidence score | `30/100` |
+| Replay key | `AS1-51fff2964ef6c06d` |
+| Replay consistency | `MATCH` |
+| Critical unknown | `largest-holder concentration` |
+| Value movement | `false` |
+| Caller identity | Declared context, **not** cryptographic identity proof |
+
+The Proof Room exposes the same receipt, requester context, source ledger, blockers, unknowns, and replay result in a judge-facing interface.
+
+Canonical public evidence lives under [`evidence/canonical-run/`](evidence/canonical-run/). Runtime reachability is captured in [`evidence/runtime/LATEST.json`](evidence/runtime/LATEST.json).
+
+See [`docs/AUTHORITY_PROOF.md`](docs/AUTHORITY_PROOF.md) for the evidence boundaries.
+
+---
+
+## Product surfaces
+
+- `/` — product thesis and authority model
+- `/proof` — Proof-of-Authority Workstation with live stored receipt replay
+- `/dashboard` — PAPER portfolio and separated execution records
+- `/signals` — live launch / signal feed
+- `/agent` — agent controls, ClawPump link and Agent Treasury observability
+- `/token/:mint?` — live token shield scan
+
+---
 
 ## Agent-facing authority API
 
-On the Convex HTTP site after P11.1 deployment:
+The live Convex HTTP surface exposes:
 
-- `GET /authority-policy` — current versioned policy + thresholds
+- `GET /healthz` — backend health
+- `GET /authority-policy` — current policy version and thresholds
 - `GET /authority-openapi` — machine-readable integration contract
-- `GET /authority-stats` — honest underwriting request activity; explicitly not unique users, volume or realised performance
-- `POST /underwrite` — independently verifies Pump launch provenance + live market/holder evidence and persists a durable decision
-- `POST /reunderwrite` — re-evaluates a server-stored prior decision and returns policy/evidence lineage
+- `GET /authority-stats` — request activity only; explicitly not unique users, volume, or realised performance
+- `POST /underwrite` — independent underwriting for a Pump launch
+- `POST /reunderwrite` — server-bound re-evaluation of a stored prior decision
 
-If `AUTHORITY_API_KEY` is configured server-side, `/underwrite` and `/reunderwrite` require `x-alpha-scout-key`. Never expose that key in browser code or prompts.
+A reusable integration skill is included under [`skills/evidence-authority/`](skills/evidence-authority/).
 
-The repo also contains a reusable ClawPump/Hermes skill:
+---
 
-- `skills/evidence-authority/SKILL.md`
-- `skills/evidence-authority/metadata.json`
+## Token utility
 
-This is deliberately complementary to existing discovery/analysis/risk skills. Alpha Scout's category is **execution authority**, not another scanner.
+Alpha Scout does not invent governance or holder yield to justify a token.
 
-## Core guarantees
+ClawPump exposes creator-fee economics for agent-linked tokens, and Alpha Scout surfaces that as **Agent Treasury observability**. The UI can show earned, sent, pending and held creator-fee state from the public ledger.
 
-- Watched wallet balance never becomes paper buying power.
-- Unknown liquidity or holder concentration fails closed.
-- Launch provenance requires an official Pump `create` / `create_v2` instruction; token-balance deltas are not launch proof.
-- Caller-provided scores are not underwriting authority; Alpha Scout independently re-fetches evidence.
-- Signal execution uses an atomic lease to prevent duplicate concurrent entries.
-- PAPER, QUALIFIED, PREPARED, pending on-chain activity and VERIFIED ONCHAIN remain distinct states/boundaries.
-- ClawPump high-risk/unverified safety gates are not auto-bypassed.
-- A passing receipt expires before last-mile execution; stale evidence cannot authorize value movement.
-- Refusals remain in the record and say what evidence must change before reconsideration.
-- Re-underwriting preserves old decisions and creates lineage rather than editing history.
-- Public underwriting counts are request activity only — never unique users, trading volume or realised performance.
-- Creator-fee economics come from ClawPump's public ledger; missing/invalid values fail closed rather than becoming synthetic zeroes.
-- Agent Treasury is creator-fee observability, **not** a holder revenue-share/governance promise.
+What is **not** claimed:
 
-## Stack
+- holder revenue sharing;
+- guaranteed yield or appreciation;
+- buybacks / burns;
+- governance rights;
+- automatic spending of creator fees;
+- a live Alpha Scout token before an actual tokenization receipt exists.
 
-React 18 · Vite · Tailwind · Convex · Solana RPC/Helius · Jupiter · ClawPump Partner API v1
+See [`docs/TOKEN_UTILITY.md`](docs/TOKEN_UTILITY.md).
 
-## Checks
+---
+
+## Truth boundaries
+
+Alpha Scout deliberately keeps these states separate:
+
+- `OBSERVED ≠ INFERRED`
+- `UNKNOWN ≠ PASS`
+- `QUALIFIED ≠ AUTHORIZED`
+- `PREPARED ≠ SUBMITTED`
+- `SUBMITTED ≠ VERIFIED ONCHAIN`
+- `REPLAY MATCH ≠ CRYPTOGRAPHIC ATTESTATION`
+- caller metadata ≠ verified identity
+- underwriting activity ≠ unique users, trading volume, or realised performance
+
+The current trading harness remains **PAPER**. Verified on-chain volume is only counted when a real on-chain transaction has both a signature and an independently stored confirmation slot.
+
+Real-world failure cases that shaped these boundaries are documented in [`docs/REAL_FAILURE_EVIDENCE.md`](docs/REAL_FAILURE_EVIDENCE.md).
+
+---
+
+## Security model
+
+- Browser-visible `VITE_*` configuration never contains backend secrets.
+- Underwriting mutation endpoints can require a server-side authority API key.
+- Wallet observation never becomes synthetic paper buying power.
+- Signal claims use an atomic lease to prevent duplicate concurrent execution.
+- Critical evidence gaps fail closed.
+- Passing Evidence Passports expire before last-mile execution.
+- ClawPump high-risk / unverified acknowledgements are never silently bypassed.
+- Provider degradation can deny execution preparation.
+
+See [`SECURITY.md`](SECURITY.md) and [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
+---
+
+## Repository guide
+
+The public `master` branch is intentionally compact for judges and contributors:
+
+- `src/` — browser product surfaces
+- `convex/` — authority backend, evidence policy, market reads and durable state
+- `skills/` — reusable evidence-authority integration skill
+- `evidence/` — compact runtime and canonical proof artifacts
+- `docs/` — architecture, deployment, evidence and token-utility documentation
+- `scripts/` — integrity, logic, runtime-capture and submission-readiness utilities
+- `public/` — static assets and Cloudflare routing headers
+
+Internal research, competitive analysis, design process notes, operational handovers, transcript analysis, and strategy work are intentionally **not part of the current public tree**.
+
+---
+
+## Development
 
 ```bash
 npm ci
@@ -113,50 +243,28 @@ npm run lint
 npm run build
 ```
 
-## Product surfaces
+Local configuration starts from `.env.example`. Backend secrets belong in the Convex deployment environment, never in browser-visible `VITE_*` variables.
 
-- `/dashboard` — paper portfolio + separated execution records
-- `/agent` — risk controls, watch-only wallet observation, ClawPump link + observed Agent Treasury
-- `/signals` — real launch/signal feed
-- `/proof` — judge-facing decision receipts, Evidence Passports, real-failure grounding and verified-volume boundary
-- `/token/:mint?` — live token shield scan
+---
 
-## Sponsor-native expansion
+## Team
 
-### $ANSEM
+- **Faadil1** — product / repo lead
+- **Opeyemi (`opeblow`)** — collaborator / technical lead
 
-ClawPump officially supports ANSEM deposits into agent billing wallets. The planned, **not yet proved**, path is:
+---
 
-`ANSEM-funded ClawPump/Hermes agent → Evidence Authority skill → /underwrite → real QUALIFIED/REFUSED decision`
+## Useful links
 
-See `docs/ANSEM_AUTHORITY_DEMO.md`.
+- [Validated Cloudflare preview](https://f87de3e2.alpha-scout-clawrena.pages.dev)
+- [Proof Room](https://f87de3e2.alpha-scout-clawrena.pages.dev/proof)
+- [Authority policy](https://grandiose-poodle-700.convex.site/authority-policy)
+- [Authority OpenAPI](https://grandiose-poodle-700.convex.site/authority-openapi)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Authority proof](docs/AUTHORITY_PROOF.md)
+- [Token utility](docs/TOKEN_UTILITY.md)
+- [Security](SECURITY.md)
 
-### x402
+## License
 
-x402 itself is already used in the ecosystem, so Alpha Scout does not treat “uses x402” as differentiation. The prepared white-space is a specialized **paid Evidence Authority underwriting service**. It remains **READY TO ACTIVATE / NOT DEPLOYED / NO REVENUE CLAIM** until a real x402 settlement + authority receipt exist.
-
-See `docs/X402_AUTHORITY_SERVICE.md`.
-
-## Judge assurance
-
-Canonical product cycle:
-
-`RUBRIC → PAIN → PROBLEM → DIFFERENTIATOR → EXECUTION → EVIDENCE → STORY → DEMO → Q&A → RUNTIME → ELIGIBILITY → PROMOTE`
-
-Start with:
-
-- `state/CURRENT.yaml`
-- `docs/WINNING_INTELLIGENCE_P11.md`
-- `docs/WHITE_SPACE_P11_1.md`
-- `docs/COMPETITIVE_INTELLIGENCE_2026-09-15.md`
-- `docs/ANSEM_AUTHORITY_DEMO.md`
-- `docs/X402_AUTHORITY_SERVICE.md`
-- `docs/JUDGE_ASSURANCE_P3.md`
-- `docs/REAL_FAILURE_EVIDENCE.md`
-- `docs/RUBRIC_EVIDENCE_MATRIX.md`
-- `docs/CLAIM_LEDGER.md`
-- `docs/GATE_7_PROMOTE.md`
-
-`evidence/canonical-run/STATUS.json` deliberately stays **PENDING_REAL_RUNTIME_CAPTURE** until a real runtime negative-path receipt exists. Test fixtures must never be presented as submission proof.
-
-`npm run gate:submission` remains the final machine-readable Gate 7 check and is expected to fail until eligibility receipts, public runtime evidence and the canonical live run are actually captured.
+MIT — see [`LICENSE`](LICENSE).
