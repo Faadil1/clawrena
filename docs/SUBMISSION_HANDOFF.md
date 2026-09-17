@@ -100,7 +100,7 @@ git merge --ff-only faadil/master
 git push origin master
 ```
 
-Do **not** restore removed internal research, Winning Intelligence material, private handovers, local evidence scratch files, or personal/work data.
+Do **not** restore removed internal research, strategy material, private handovers, local evidence scratch files, or personal/work data.
 
 ## Local verification before submission
 
