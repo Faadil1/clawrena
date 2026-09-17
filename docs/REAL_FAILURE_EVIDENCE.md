@@ -1,88 +1,66 @@
-# Real Failure Evidence — why Alpha Scout must know when not to trade
+# Real failure evidence — why Alpha Scout must know when not to trade
 
-Canonical rule: **Real failure > fake success.** A failure, rejection, degraded provider, stale receipt, or UNKNOWN result is evidence. It must remain visible rather than being rewritten as success.
+**Real failure > fake success.** A refusal, degraded provider, stale receipt, or critical `UNKNOWN` is evidence. It stays visible instead of being rewritten as success.
 
-This document anchors Alpha Scout in two real incidents. They are not backtests and are not presented as Alpha Scout trades. They are external evidence for product requirements.
+These external incidents shaped Alpha Scout's product requirements. They are not Alpha Scout trades or backtests.
 
-## Case A — LIBRA collapse, February 2025
+## LIBRA collapse — February 2025
 
-### 1. Signal positive / opportunity
+Reuters reported that eight wallets linked to the creator of LIBRA withdrew about **$99 million** from the token's liquidity pool, and that the token fell by more than **95%** after its surge. CoinDesk, citing Nansen analysis, reported that **86% of traders lost money, totalling $251 million**.
 
-Memecoin launches can create enormous attention, liquidity and short-lived price discovery. A launch agent therefore has a real opportunity to reduce reaction time and continuously inspect evidence that a human may miss.
+### Design implication
 
-### 2. Concrete negative event
+A new mint and rising price are not authority to trade.
 
-Reuters reported that eight wallets linked to the creator of LIBRA withdrew about **$99 million** from the token's liquidity pool. Reuters also reported the token fell by more than **95%** after its surge. CoinDesk, citing Nansen on-chain analysis, reported that **86% of traders lost money, totalling $251 million**.
+Ownership concentration, liquidity, provenance and unresolved unknowns must be allowed to veto progression. Related token accounts must be considered at the economic-owner level rather than treated as independent wallets.
 
-### 3. Observable impact
+### Alpha Scout response
 
-- concentrated creator-linked activity was economically material;
-- most observed traders lost money;
-- the collapse happened on the same kind of fast, attention-driven launch surface an autonomous trader is tempted to chase.
+- Pump launch detection requires official `create` / `create_v2` instruction discriminators.
+- Token accounts are aggregated by economic owner where possible.
+- Unknown holder concentration or liquidity fails closed.
+- Deterministic evidence gates decide whether a candidate qualifies.
+- Refusals remain stored as decision receipts.
+- A passing receipt expires before last-mile execution.
 
-### 4. Design implication
-
-`new mint + rising price` is not authority to trade. Ownership concentration, liquidity, provenance and unresolved unknowns must be allowed to veto execution. Related token accounts must be considered at the economic-owner level rather than treated as independent wallets.
-
-### 5. Alpha Scout mitigation
-
-- Pump launch detection requires official `create` / `create_v2` instruction discriminators;
-- sampled token accounts are aggregated by economic owner and Pump custody is classified separately;
-- unknown holder concentration or liquidity fails closed;
-- deterministic evidence score gates entry;
-- every reject remains a decision receipt;
-- a strategy receipt cannot authorize execution indefinitely: P3 adds a short execution-evidence TTL.
-
-### Sources
+Sources:
 
 - Reuters, 2025-02-20: https://www.reuters.com/world/americas/crypto-worth-99-million-withdrawn-milei-backed-libra-token-researchers-say-2025-02-20/
 - Reuters, 2025-02-21: https://www.reuters.com/technology/politician-linked-meme-coins-backfire-after-libra-scandal-2025-02-21/
 - CoinDesk / Nansen, 2025-02-20: https://www.coindesk.com/markets/2025/02/20/libra-memecoin-fiasco-destroyed-usd251m-in-investor-wealth-research-shows
 
-## Case B — Pump.fun privileged-access exploit, 16 May 2024
+## Pump.fun privileged-access exploit — 16 May 2024
 
-### 1. Signal positive / opportunity
+Pump.fun said a former employee used privileged access and flash loans in an exploit. The platform reported about **12,300 SOL / $1.9 million** was misappropriated, and trading was halted while contracts were upgraded.
 
-Pump.fun is a high-throughput launch venue and therefore a valuable discovery source for a launch agent.
+### Design implication
 
-### 2. Concrete negative event
+A token can look acceptable while the execution venue or provider is degraded. Asset evidence alone is not enough.
 
-Pump.fun said a former employee used privileged access and flash loans in an exploit. The platform reported about **12,300 SOL / $1.9 million** was misappropriated. Trading was halted while the platform upgraded its contracts.
+### Alpha Scout response
 
-### 3. Observable impact
+- last-mile authority requires a live provider preflight;
+- the linked external agent must still exist;
+- the decision receipt must still be fresh;
+- critical evidence cannot remain unknown;
+- a failed last-mile condition creates an explicit reject rather than disappearing;
+- an unsigned transaction remains `PREPARED`, not executed.
 
-- approximately $1.9 million of liquidity was affected;
-- trading was halted;
-- the failure came from the venue/control plane, not from a token's ordinary market score.
-
-### 4. Design implication
-
-A token can look acceptable while the execution venue or provider is degraded. Asset evidence alone is insufficient. Execution authority must include provider health and evidence freshness.
-
-### 5. Alpha Scout mitigation
-
-P3 adds an explicit last-mile authority gate:
-
-- a live ClawPump provider preflight must succeed;
-- the linked remote agent must still exist;
-- the decision receipt must be fresh;
-- critical evidence cannot still be UNKNOWN;
-- failure of any condition creates an on-chain-mode **REJECT** receipt instead of silently disappearing;
-- prepared unsigned transactions remain `PREPARE`, never `EXECUTE`.
-
-### Source
+Source:
 
 - The Block, 2024-05-16/17: https://www.theblock.co/news/regulation/2024-05-16-pump-fun-post-mortem-295029
 
-## Counter-case requirement
+## Negative-path requirement
 
-The canonical demo is invalid if it only shows a successful path. It must show at least one real runtime negative path such as:
+A credible authority product must show a path where capital does **not** move.
 
-- missing liquidity -> `REJECT`;
-- unknown economic-owner concentration -> `REJECT`;
-- stale passing receipt -> execution authority `REJECT`;
-- ClawPump preflight unavailable / linked agent missing -> execution authority `REJECT`;
-- unsigned transaction -> `PREPARE`, verified volume unchanged;
-- drawdown threshold reached -> agent `HALTED` and explicit acknowledgement required.
+Examples include:
 
-The repository fixture under `evidence/negative-path/` is test input only. It is deliberately labelled **NOT RUNTIME EVIDENCE**. Submission proof must be captured from a real run.
+- missing liquidity → `REFUSED`;
+- unknown economic-owner concentration → `REFUSED`;
+- stale passing receipt → last-mile refusal;
+- provider unavailable / linked agent missing → last-mile refusal;
+- unsigned transaction → `PREPARED`, verified volume unchanged;
+- risk threshold reached → agent halted pending explicit recovery.
+
+The fixture under `evidence/negative-path/` is test input only and is deliberately labeled **NOT RUNTIME EVIDENCE**. Public proof comes from real runtime receipts under `evidence/canonical-run/`.
