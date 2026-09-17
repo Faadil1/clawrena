@@ -60,5 +60,5 @@
       "sha256": "77dac560653391ae70fcf2c0e1b75ff7c63a862cd66a60525522193f76ae89f5"
     }
   ],
-  "notes": "Reachability evidence only. Canonical-run promotion still requires a real launch signature and a real negative-path decision receipt."
+  "notes": "Reachability evidence only. It does not prove execution, tokenization, realised performance, or verified on-chain volume."
 }
