@@ -34,8 +34,16 @@ Thumbs.db
 # typescript
 *.tsbuildinfo
 
+# local/internal working material
+state/
+research/
+internal/
+handover/
+evidence/runtime/*.jsonl
+evidence/runtime/*PROMPT*
+evidence/runtime/*BODY*
+
 # misc
 *.bak
-*.mjs
 .auth-keys.json
 coverage/
