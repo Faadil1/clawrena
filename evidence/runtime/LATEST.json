@@ -1,12 +1,64 @@
 {
   "artifactClass": "PUBLIC_RUNTIME_CAPTURE_STATUS",
-  "status": "PENDING_DEPLOYMENT",
+  "status": "PUBLIC_RUNTIME_CAPTURED",
   "fakeSuccessForbidden": true,
-  "publicUrl": null,
-  "convexHttpUrl": null,
-  "deployedCommitSha": null,
-  "capturedAt": null,
-  "providerHealth": null,
-  "probes": [],
-  "notes": "This file may be overwritten by npm run capture:runtime only from reachable deployed endpoints. It does not complete the canonical run by itself."
+  "publicUrl": "https://f87de3e2.alpha-scout-clawrena.pages.dev",
+  "convexHttpUrl": "https://grandiose-poodle-700.convex.site",
+  "deployedCommitSha": "56ca45d6a052011332bce96ab8f556b0dd8e4c87",
+  "capturedAt": "2026-09-17T02:56:13.075Z",
+  "providerHealth": {
+    "ok": false,
+    "status": 404
+  },
+  "probes": [
+    {
+      "name": "frontend_root",
+      "url": "https://f87de3e2.alpha-scout-clawrena.pages.dev/",
+      "critical": true,
+      "ok": true,
+      "status": 200,
+      "finalUrl": "https://f87de3e2.alpha-scout-clawrena.pages.dev/",
+      "latencyMs": 448,
+      "contentType": "text/html; charset=utf-8",
+      "bytes": 1162,
+      "sha256": "1b0b84968a1a243b6f1bb0c2d7bc450470b40ef228ab71a04dd47196d7ae7192"
+    },
+    {
+      "name": "frontend_proof_route",
+      "url": "https://f87de3e2.alpha-scout-clawrena.pages.dev/proof",
+      "critical": true,
+      "ok": true,
+      "status": 200,
+      "finalUrl": "https://f87de3e2.alpha-scout-clawrena.pages.dev/proof",
+      "latencyMs": 158,
+      "contentType": "text/html; charset=utf-8",
+      "bytes": 1162,
+      "sha256": "1b0b84968a1a243b6f1bb0c2d7bc450470b40ef228ab71a04dd47196d7ae7192"
+    },
+    {
+      "name": "convex_healthz",
+      "url": "https://grandiose-poodle-700.convex.site/healthz",
+      "critical": true,
+      "ok": true,
+      "status": 200,
+      "finalUrl": "https://grandiose-poodle-700.convex.site/healthz",
+      "latencyMs": 329,
+      "contentType": "application/json",
+      "bytes": 55,
+      "sha256": "8be488ae281358a0bdf775b650fdf206f369599988ceefa8e0b08bf7dafb79ef"
+    },
+    {
+      "name": "clawpump_platform_health",
+      "url": "https://clawpump.tech/api/health",
+      "critical": false,
+      "ok": false,
+      "status": 404,
+      "finalUrl": "https://clawpump.tech/api/health",
+      "latencyMs": 252,
+      "contentType": "text/html; charset=utf-8",
+      "bytes": 25809,
+      "sha256": "77dac560653391ae70fcf2c0e1b75ff7c63a862cd66a60525522193f76ae89f5"
+    }
+  ],
+  "notes": "Reachability evidence only. Canonical-run promotion still requires a real launch signature and a real negative-path decision receipt."
 }

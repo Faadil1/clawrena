@@ -1,6 +1,6 @@
 project: alpha-scout-clawrena
 canonical_branch: winning-intelligence-p11
-phase: P11_4_EXTERNAL_AGENT_AUTHORITY_PROOF_COMPLETE_REOPENING_TRACE_UI
+phase: GATE_7_PRE_PRODUCTION_SUBMISSION_READINESS
 updated_at: 2026-09-16
 
 product_truth:
@@ -19,6 +19,28 @@ product_truth:
   canonical_public_frontend: preview_live_not_final_production
   external_agent_authority_proof: complete
   clawpump_native_autonomous_underwrite_proof: incomplete
+
+gate_6_5_trace_proof_of_authority_workstation:
+  status: PASS
+  workstation_status: PROMOTED
+  promoted_into_branch: winning-intelligence-p11
+  promoted_source_sha: 56ca45d6a052011332bce96ab8f556b0dd8e4c87
+  canonical_state_commit_derives_from: 9146a68a81e23e5beee2271a5796283ed7ddf237
+  promotion_method: fast_forward_only_no_merge_commit
+  validated_cloudflare_preview: https://f87de3e2.alpha-scout-clawrena.pages.dev
+  root_http_status: 200
+  proof_http_status: 200
+  live_convex_receipt_verified: true
+  canonical_replay_key: AS1-51fff2964ef6c06d
+  policy_state: REFUSED
+  score: 30
+  replay_consistency: MATCH
+  value_movement: false
+  desktop_gate_6_5: PASS
+  mobile_390x844_gate_6_5: PASS
+  reduced_motion_gate_6_5: PASS
+  clawpump_native_autonomous_proof: SEPARATE_UNPROVED
+  production_deployment_occurred: false
 
 canonical_runtime_proof:
   status: REAL_NEGATIVE_PATH_CAPTURED
@@ -108,12 +130,14 @@ completed_gates:
   - stored_receipt_consistency_match_for_external_underwrite
   - cross_system_external_session_to_alpha_scout_replay_key_match
   - p11_4_external_agent_authority_proof_complete
+  - trace_gate_6_5_visual_runtime_review
+  - trace_proof_of_authority_workstation_promoted_to_canonical
 
 blocking_gates:
   - eligibility_registration_receipt
   - eligibility_x_follow_receipt
   - alpha_scout_tokenization_receipt
-  - final_cloudflare_production_routing_and_visual_verification
+  - final_cloudflare_production_routing
   - final_screen_recording_or_immutable_video_hash
   - attention_and_stream_receipts
   - gate_7_promote
@@ -124,16 +148,13 @@ conditional_gates:
   - ansem_funded_underwriting_demo
   - x402_paid_underwriting_only_if_real_settlement_exists
   - dedicated_helius_rpc_for_higher_runtime_reliability
-  - trace_gate_6_5_visual_runtime_review
 
 next_actions:
-  - reopen TRACE/UI as a Proof-of-Authority Workstation now that P11.4 external-agent proof is complete
-  - surface requester/session, source ledger, UNKNOWN evidence, blockers, replay key, receipt MATCH, valueMovement=false and qualified-not-authorized boundary above the fold
-  - run TRACE Gate 6.5 visual/runtime review on the Cloudflare preview before production promotion
-  - complete hackathon eligibility receipts for registration, X/follow and tokenization
-  - finalize Cloudflare production routing only after visual/runtime approval
+  - TRACE Proof-of-Authority Workstation passed Gate 6.5 (desktop/mobile/reduced-motion) and is promoted into winning-intelligence-p11 at 56ca45d6a052011332bce96ab8f556b0dd8e4c87; this is pre-production canonical state, not a production deployment
+  - complete hackathon eligibility receipts for registration, X/follow and tokenization — none are verified yet
+  - finalize Cloudflare production routing only under the explicit Gate 7 procedure, after eligibility receipts exist
   - capture final demo video or immutable video hash
-  - run Gate 7 promotion only after all hard receipts exist
+  - run Gate 7 promotion only after all hard receipts exist; do not mark Gate 7 PASS from this reconciliation pass
 
 truth_boundaries:
   refused_is_valid_service_outcome: true
@@ -149,8 +170,9 @@ truth_boundaries:
   clawpump_native_autonomous_underwrite_proved: false
   ansem_funded_demo_proved: false
   cloudflare_preview_is_production: false
+  canonical_promotion_is_production_deployment: false
+  gate_6_5_pass_is_gate_7_pass: false
 
 visual_system:
-  next_visual_pass_status: unblocked
-  next_visual_category: proof_of_authority_workstation
+  proof_of_authority_workstation_status: promoted_to_canonical_pending_production_routing
   next_visual_rule: do_not_start_from_generic_trading_dashboard_references

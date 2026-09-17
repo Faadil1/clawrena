@@ -34,11 +34,22 @@
     "canonicalEvidence": "evidence/canonical-run/P11-EXTERNAL-AGENT-AUTHORITY-2026-09-16.json",
     "clawPumpNativeAutonomousRunProved": false
   },
+  "gate6_5TraceProofOfAuthorityWorkstation": {
+    "status": "PASS",
+    "workstationStatus": "PROMOTED",
+    "promotedSourceSha": "56ca45d6a052011332bce96ab8f556b0dd8e4c87",
+    "promotedIntoBranch": "winning-intelligence-p11",
+    "validatedCloudflarePreview": "https://f87de3e2.alpha-scout-clawrena.pages.dev",
+    "desktopGate6_5": "PASS",
+    "mobile390x844Gate6_5": "PASS",
+    "reducedMotionGate6_5": "PASS",
+    "cloudflarePreviewIsProduction": false
+  },
   "stillRequiredBeforePromotion": [
     "hackathon eligibility registration receipt",
     "hackathon X entry/follow receipt",
     "Alpha Scout tokenization receipt",
-    "final Cloudflare production routing plus visual/runtime verification",
+    "final Cloudflare production routing (visual/runtime verification of the public preview is already complete under Gate 6.5)",
     "screen recording link or immutable video hash showing the live authority flow",
     "attention/stream receipts required by final submission packaging",
     "transaction signature and confirmation slot only if actual on-chain execution is attempted"

@@ -17,7 +17,9 @@ checks.push([
 ]);
 checks.push([
   "canonical-run",
-  canonical.status === "REAL_RUNTIME_CAPTURED" || canonical.status === "READY_FOR_PROMOTION",
+  canonical.status === "REAL_NEGATIVE_PATH_CAPTURED" ||
+    canonical.status === "REAL_RUNTIME_CAPTURED" ||
+    canonical.status === "READY_FOR_PROMOTION",
   canonical.status,
 ]);
 

@@ -22,9 +22,9 @@ Gate 7 is a **release authority gate**, not a confidence score. A single require
 - [x] runtime reachability capture script
 - [x] eligibility receipt ledger
 - [x] machine-readable submission gate
-- [ ] public runtime captured from deployed endpoints
-- [ ] real negative-path receipt captured from live market evidence
-- [ ] canonical run evidence updated without synthetic proof
+- [x] public runtime captured from deployed endpoints — `evidence/runtime/LATEST.json`, captured against the validated public Cloudflare preview `https://f87de3e2.alpha-scout-clawrena.pages.dev` (commit `56ca45d6a052011332bce96ab8f556b0dd8e4c87`); this is a validated public preview, **not final production routing**
+- [x] real negative-path receipt captured from live market evidence — `evidence/canonical-run/P11-AUTHORITY-REFUSAL-2026-09-16.json`, status `REAL_NEGATIVE_PATH_CAPTURED`
+- [x] canonical run evidence updated without synthetic proof — `evidence/canonical-run/STATUS.json` and `evidence/canonical-run/P11-EXTERNAL-AGENT-AUTHORITY-2026-09-16.json`
 
 ## External eligibility — hard blockers
 
