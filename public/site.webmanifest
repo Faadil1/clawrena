@@ -1,0 +1,17 @@
+{
+  "name": "Alpha Scout",
+  "short_name": "Alpha Scout",
+  "description": "Evidence underwriting and execution authority for autonomous capital on Solana.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F3EFE4",
+  "theme_color": "#F3EFE4",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
