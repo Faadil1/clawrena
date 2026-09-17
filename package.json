@@ -12,8 +12,7 @@
     "lint": "eslint src convex --ext .ts,.tsx",
     "verify:integrity": "node scripts/verify-integrity.mjs",
     "test:logic": "node scripts/test-logic.mjs",
-    "capture:runtime": "node scripts/capture-runtime-proof.mjs",
-    "gate:submission": "node scripts/gate-submission.mjs"
+    "capture:runtime": "node scripts/capture-runtime-proof.mjs"
   },
   "dependencies": {
     "@convex-dev/auth": "^0.0.95",
@@ -31,7 +30,7 @@
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.19",
     "eslint": "^8.57.1",
-    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-hooks": "^4.6.2",
     "playwright": "^1.63.0",
     "postcss": "^8.4.39",
     "tailwindcss": "^3.4.6",
